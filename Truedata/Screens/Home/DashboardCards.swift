@@ -10,6 +10,7 @@ struct DashboardItemCard: View {
     var role: String = ""
     var startDate: String = ""
     var endDate: String = ""
+    var globalTopSellingFallback: JSONValue?
     var onFetch: () -> Void = {}
     var onNavigate: (String) -> Void = { _ in }
     var onStartDateChange: (String) -> Void = { _ in }
@@ -174,8 +175,16 @@ struct DashboardItemCard: View {
         let totalAmount = today?.double(for: "todayTotalAmount", "today_total_amount") ?? 0
         let deliveredAmount = today?.double(for: "todayDeliveredAmount", "today_delivered_amount") ?? 0
         let pendingAmount = today?.double(for: "todayPendingAmount", "today_pending_amount") ?? 0
-        let settledAmount = today?.double(for: "todayApprovedCollectionAmount", "todayCollectionAmount") ?? 0
-        let products = topSellingProducts(from: today)
+        let approvedCollection = today?.double(for: "todayApprovedCollectionAmount") ?? 0
+        let totalCollectionAmount = today?.double(for: "todayCollectionAmount", "today_collection_amount") ?? 0
+        let settledAmount = approvedCollection > 0 ? approvedCollection : (totalCollectionAmount > 0 ? totalCollectionAmount : totalCollection)
+        let pendingOrders = today?.int(for: "pending") ?? 0
+        let cancelledOrders = today?.int(for: "cancelled") ?? 0
+        let validOrders = today?.int(for: "totalWithoutCancelled") ?? (pendingOrders - cancelledOrders)
+        let products = topSellingProducts(
+            from: today,
+            fallback: globalTopSellingFallback ?? payload
+        )
 
         return DashboardCardChrome(cornerRadius: 24) {
             VStack(alignment: .leading, spacing: 16) {
@@ -275,51 +284,34 @@ struct DashboardItemCard: View {
                 .background(DashboardTheme.surfaceVariant)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                if settledAmount > 0 {
-                    DashboardSectionHeader(title: "Today's Collection")
-                    VStack(spacing: 4) {
-                        Text("Settled Amount")
-                            .font(.system(size: 12))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                        Text(settledAmount.currencyLabel)
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(DashboardTheme.neutralDark)
-                    }
+                Divider()
+                DashboardSectionHeader(title: "Today's Collection")
+                VStack(spacing: 4) {
+                    Text("Settled Amount")
+                        .font(.system(size: 12))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                    Text(settledAmount.currencyLabel)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(DashboardTheme.surfaceVariant)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Divider()
+                DashboardSectionHeader(title: "Total Valid Orders")
+                Text("\(max(validOrders, 0))")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(DashboardTheme.surfaceVariant)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
 
-                if !products.isEmpty {
-                    DashboardSectionHeader(title: "Top Selling Products")
-                    VStack(spacing: 10) {
-                        ForEach(products.prefix(5)) { product in
-                            HStack {
-                                Text(product.name)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(DashboardTheme.neutralDark)
-                                    .lineLimit(1)
-                                Spacer()
-                                Text("\(product.quantity) units | \(product.amount.currencyLabel)")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(DashboardTheme.neutralMedium)
-                            }
-                        }
-                    }
-                    DashboardOutlinedButton(title: "View More", systemImage: "arrow.right")
-                }
-
-                let validOrders = today?.int(for: "totalWithoutCancelled") ?? today?.int(for: "pending") ?? 0
-                if validOrders > 0 {
-                    DashboardSectionHeader(title: "Total Valid Orders")
-                    Text("\(validOrders)")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(DashboardTheme.surfaceVariant)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                Divider()
+                topSellingProductsSection(products) {
+                    onNavigate("manage_orders_top_selling")
                 }
             }
         }
@@ -383,9 +375,12 @@ struct DashboardItemCard: View {
 
                 HStack {
                     Spacer()
-                    Text("View History >")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    Button(action: { onNavigate("payment_history") }) {
+                        Text("View History >")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -404,7 +399,11 @@ struct DashboardItemCard: View {
                         colors: [DashboardTheme.warningYellow, DashboardTheme.dangerRed]
                     )
                     Spacer()
-                    DashboardCompactButton(title: "Settle Pending Bills", color: DashboardTheme.warningYellow, action: {})
+                    DashboardCompactButton(
+                        title: "Settle Pending Bills",
+                        color: DashboardTheme.warningYellow,
+                        action: { onNavigate("payment_history_bills") }
+                    )
                 }
             }
 
@@ -634,19 +633,43 @@ struct DashboardItemCard: View {
         let total = payload?.int(for: "allProducts", "all_products") ?? 0
         let active = payload?.int(for: "activeProducts", "active_products") ?? 0
         let inactive = payload?.int(for: "inactiveProducts", "inactive_products") ?? 0
-        return summaryCard(
-            title: displayTitle("Products"),
-            colors: [DashboardTheme.infoBlue, DashboardTheme.primaryBlue],
-            stats: [
-                ("square.stack.3d.up.fill", total, DashboardTheme.infoBlue),
-                ("checkmark.circle.fill", active, DashboardTheme.successGreen),
-                ("pause.circle.fill", inactive, DashboardTheme.neutralMedium)
-            ],
-            primaryTitle: "View Products →",
-            primaryColor: DashboardTheme.infoBlue,
-            secondaryTitle: nil,
-            secondaryColor: DashboardTheme.infoBlue
-        )
+        let products = topSellingProducts(from: nil, fallback: payload)
+
+        return DashboardCardChrome(cornerRadius: 24) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        DashboardBulletTitle(
+                            title: displayTitle("Products"),
+                            colors: [DashboardTheme.infoBlue, DashboardTheme.primaryBlue]
+                        )
+                        HStack(spacing: 10) {
+                            productStatChip(systemName: "square.stack.3d.up.fill", value: total, color: DashboardTheme.infoBlue)
+                            productStatChip(systemName: "checkmark.circle.fill", value: active, color: DashboardTheme.successGreen)
+                            productStatChip(systemName: "pause.circle.fill", value: inactive, color: DashboardTheme.neutralMedium)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    DashboardCompactButton(title: "View Products →", color: DashboardTheme.infoBlue, action: {})
+                }
+
+                if !products.isEmpty {
+                    Divider()
+                    topSellingProductsSection(products, showViewMore: false)
+                }
+            }
+        }
+    }
+
+    private func productStatChip(systemName: String, value: Int, color: Color) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: systemName)
+                .font(.system(size: 12))
+                .foregroundStyle(color)
+            Text("\(value)")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(DashboardTheme.neutralDark)
+        }
     }
 
     private var targetsCard: some View {
@@ -784,17 +807,103 @@ struct DashboardItemCard: View {
         }
     }
 
-    private func topSellingProducts(from today: JSONValue?) -> [TopSellingProduct] {
-        let list = today?["productsCountAndAmount"]?.arrayValue ?? today?["products_count_and_amount"]?.arrayValue ?? []
-        return list.compactMap { entry in
-            let name = entry.string(for: "productName", "product_name")
-            guard !name.isEmptyString else { return nil }
-            return TopSellingProduct(
-                name: name,
-                quantity: entry.int(for: "totalQuantity", "total_quantity"),
-                amount: entry.double(for: "totalAmount", "total_amount")
+    private func topSellingProducts(from today: JSONValue?, fallback: JSONValue? = nil) -> [TopSellingProduct] {
+        var products = topSellingProductsFromArray(
+            today?["productsCountAndAmount"] ?? today?["products_count_and_amount"]
+        )
+
+        if products.isEmpty {
+            products = topSellingProductsFromMap(
+                today?["topSellingProducts"] ?? fallback?["topSellingProducts"]
             )
         }
+
+        return products
+    }
+
+    private func topSellingProductsFromArray(_ value: JSONValue?) -> [TopSellingProduct] {
+        let list = value?.arrayValue ?? []
+        return list.compactMap { entry in
+            let name = entry.string(for: "productName", "product_name", "name")
+            guard !name.isEmptyString, !isPlaceholderProductName(name) else { return nil }
+
+            let quantity = entry.int(for: "totalQuantity", "total_quantity", "count", "quantity")
+            let amount = entry.double(for: "totalAmount", "total_amount", "amount")
+            guard quantity > 0 || amount > 0 else { return nil }
+
+            return TopSellingProduct(name: name, quantity: quantity, amount: amount)
+        }
+    }
+
+    private func topSellingProductsFromMap(_ value: JSONValue?) -> [TopSellingProduct] {
+        guard let object = value?.objectValue, !object.isEmpty else { return [] }
+
+        return object
+            .map { key, entry in
+                TopSellingProduct(
+                    name: key,
+                    quantity: entry.intValue,
+                    amount: entry.doubleValue
+                )
+            }
+            .filter { product in
+                !isPlaceholderProductName(product.name) && (product.quantity > 0 || product.amount > 0)
+            }
+            .sorted { lhs, rhs in
+                if lhs.quantity != rhs.quantity { return lhs.quantity > rhs.quantity }
+                return lhs.amount > rhs.amount
+            }
+    }
+
+    private func isPlaceholderProductName(_ name: String) -> Bool {
+        let normalized = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized == "no products" || normalized == "no product"
+    }
+
+    @ViewBuilder
+    private func topSellingProductsSection(
+        _ products: [TopSellingProduct],
+        showViewMore: Bool = true,
+        onViewMore: (() -> Void)? = nil
+    ) -> some View {
+        DashboardSectionHeader(title: "Top Selling Products")
+        if products.isEmpty {
+            Text("No top selling products to show.")
+                .font(.system(size: 14))
+                .foregroundStyle(DashboardTheme.neutralMedium)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+        } else {
+            VStack(spacing: 10) {
+                ForEach(products.prefix(5)) { product in
+                    HStack {
+                        Text(product.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                            .lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text(topSellingProductDetail(for: product))
+                            .font(.system(size: 12))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+                }
+            }
+            if showViewMore {
+                DashboardOutlinedButton(title: "View More", systemImage: "arrow.right") {
+                    onViewMore?()
+                }
+            }
+        }
+    }
+
+    private func topSellingProductDetail(for product: TopSellingProduct) -> String {
+        if product.amount > 0 && product.quantity > 0 {
+            return "\(product.quantity) units | \(product.amount.currencyLabel)"
+        }
+        if product.quantity > 0 {
+            return "\(product.quantity) units"
+        }
+        return product.amount.currencyLabel
     }
 
     private func paymentAmount(from transactions: JSONValue?, mode: String) -> Double {

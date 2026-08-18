@@ -13,6 +13,7 @@ struct StartNewOrderScreen: View {
     @State private var showRearrangeSellers = false
     @State private var selectedSellerForOverview: StartNewOrderSeller?
     @State private var selectedSellerForProfile: StartNewOrderSeller?
+    @State private var selectedSellerForStatusUpdate: StartNewOrderSeller?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -56,6 +57,12 @@ struct StartNewOrderScreen: View {
         }
         .navigationDestination(item: $selectedSellerForProfile) { seller in
             SellerProfileScreen(sellerId: seller.id)
+        }
+        .navigationDestination(item: $selectedSellerForStatusUpdate) { seller in
+            UpdateSellerStatusScreen(
+                sellerId: String(seller.id),
+                sellerName: seller.displayName
+            )
         }
         .sheet(item: $selectedSellerForOverview) { seller in
             StartNewOrderSellerOverviewSheet(
@@ -416,6 +423,9 @@ struct StartNewOrderScreen: View {
                         },
                         onRequestAccess: {
                             selectedSellerForOverview = seller
+                        },
+                        onSellerNotAvailable: {
+                            selectedSellerForStatusUpdate = seller
                         }
                     )
                 }
@@ -583,6 +593,7 @@ private struct StartNewOrderSellerCard: View {
     var onCreateOrder: () -> Void
     var onViewProfile: () -> Void
     var onRequestAccess: () -> Void
+    var onSellerNotAvailable: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -618,11 +629,17 @@ private struct StartNewOrderSellerCard: View {
                             .frame(width: 10, height: 10)
                     }
 
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                        .rotationEffect(.degrees(90))
-                        .frame(width: 28, height: 28)
+                    Menu {
+                        Button("Seller Not Available") {
+                            onSellerNotAvailable()
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                            .rotationEffect(.degrees(90))
+                            .frame(width: 28, height: 28)
+                    }
                 }
             }
 

@@ -17,6 +17,10 @@ class UserDefaultManager {
         case authToken
         case refreshToken
         case tokenExpiry
+        case locationServiceEnabled
+        case isUserWorking
+        case locationUpdateInterval
+        case locationPriority
     }
 
     func setUserDefaultsString(value: String, key: PersistenceKeys) {
@@ -70,5 +74,20 @@ class UserDefaultManager {
         setUserDefaultsString(value: "", key: .authToken)
         setUserDefaultsString(value: "", key: .refreshToken)
         setTokenExpiry(secondsFromNow: nil)
+        setUserDefaultsBool(value: false, key: .locationServiceEnabled)
+        setUserDefaultsBool(value: false, key: .isUserWorking)
+        setUserDefaultsString(value: "", key: .locationUpdateInterval)
+        setUserDefaultsString(value: "", key: .locationPriority)
+    }
+
+    func updateLocationConfig(_ config: LocationConfigData) {
+        setUserDefaultsBool(value: config.serviceEnabled, key: .locationServiceEnabled)
+        setUserDefaultsBool(value: config.isUserWorking, key: .isUserWorking)
+        setUserDefaultsString(value: config.updateIntervalSeconds, key: .locationUpdateInterval)
+        setUserDefaultsString(value: config.priority, key: .locationPriority)
+    }
+
+    var isLocationTrackingNeeded: Bool {
+        getUserDefaultsBool(key: .locationServiceEnabled) && getUserDefaultsBool(key: .isUserWorking)
     }
 }

@@ -64,4 +64,37 @@ class StartNewOrderServiceManager {
             headers: authHeaders
         )
     }
+
+    func submitShopLocationVisited(
+        sellerId: String,
+        latitude: String,
+        longitude: String,
+        nextVisitDate: String,
+        remark: String,
+        address: String,
+        imageData: Data
+    ) -> AnyPublisher<StartNewOrderStatusResponse, Error> {
+        let params: [String: Any] = [
+            "seller_id": sellerId,
+            "lat": latitude,
+            "long": longitude,
+            "remark": remark,
+            "next_visit_date": nextVisitDate,
+            "address": address
+        ]
+
+        let file = MultipartFileUpload(
+            fieldName: "image",
+            fileName: "shop_visit.jpg",
+            mimeType: "image/jpeg",
+            data: imageData
+        )
+
+        return networkService.uploadMultipart(
+            APIRouter.shopLocationVisited,
+            params: params,
+            file: file,
+            headers: authHeaders
+        )
+    }
 }

@@ -101,6 +101,24 @@
 		DDB659D130342A15005C1E91 /* ProductDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659D230342A15005C1E91 /* ProductDetailViewModel.swift */; };
 		DDB659D330342A15005C1E91 /* ProductDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659D430342A15005C1E91 /* ProductDetailScreen.swift */; };
 		DDB659D530342A16005C1E91 /* EditSpecialPricesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659D630342A16005C1E91 /* EditSpecialPricesSheet.swift */; };
+		DDB659D730342A17005C1E91 /* UpdateSellerStatusScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659D830342A17005C1E91 /* UpdateSellerStatusScreen.swift */; };
+		DDB659D930342A17005C1E91 /* UpdateSellerStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DA30342A17005C1E91 /* UpdateSellerStatusViewModel.swift */; };
+		DDB659DB30342A17005C1E91 /* LocationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DC30342A17005C1E91 /* LocationHelper.swift */; };
+		DDB659DD30342A17005C1E91 /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DE30342A17005C1E91 /* CameraImagePicker.swift */; };
+		DDB659E330342A18005C1E91 /* HomePrefetchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DF30342A18005C1E91 /* HomePrefetchModels.swift */; };
+		DDB659E430342A18005C1E91 /* HomePrefetchServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E030342A18005C1E91 /* HomePrefetchServiceManager.swift */; };
+		DDB659E530342A18005C1E91 /* HomePrefetchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E130342A18005C1E91 /* HomePrefetchStore.swift */; };
+		DDB659E630342A18005C1E91 /* HomePrefetchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E230342A18005C1E91 /* HomePrefetchManager.swift */; };
+		DDB659E730342A19005C1E91 /* TopSellingProductsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */; };
+		DDB659E930342A19005C1E91 /* TopSellingProductsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */; };
+		DDB659EB30342A19005C1E91 /* TopSellingProductsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */; };
+		DDB659ED30342A19005C1E91 /* TopSellingProductsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */; };
+		DDB659EF30342A19005C1E91 /* TopSellingProductsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */; };
+		DDB659F630342A1A005C1E91 /* PaymentInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */; };
+		DDB659F830342A1A005C1E91 /* PaymentInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */; };
+		DDB659FA30342A1A005C1E91 /* PaymentInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */; };
+		DDB659FC30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */; };
+		DDB659FE30342A1A005C1E91 /* PaymentInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -201,6 +219,24 @@
 		DDB659D230342A15005C1E91 /* ProductDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailViewModel.swift; sourceTree = "<group>"; };
 		DDB659D430342A15005C1E91 /* ProductDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailScreen.swift; sourceTree = "<group>"; };
 		DDB659D630342A16005C1E91 /* EditSpecialPricesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditSpecialPricesSheet.swift; sourceTree = "<group>"; };
+		DDB659D830342A17005C1E91 /* UpdateSellerStatusScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSellerStatusScreen.swift; sourceTree = "<group>"; };
+		DDB659DA30342A17005C1E91 /* UpdateSellerStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSellerStatusViewModel.swift; sourceTree = "<group>"; };
+		DDB659DC30342A17005C1E91 /* LocationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationHelper.swift; sourceTree = "<group>"; };
+				DDB659DE30342A17005C1E91 /* CameraImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImagePicker.swift; sourceTree = "<group>"; };
+		DDB659DF30342A18005C1E91 /* HomePrefetchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchModels.swift; sourceTree = "<group>"; };
+		DDB659E030342A18005C1E91 /* HomePrefetchServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchServiceManager.swift; sourceTree = "<group>"; };
+		DDB659E130342A18005C1E91 /* HomePrefetchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchStore.swift; sourceTree = "<group>"; };
+		DDB659E230342A18005C1E91 /* HomePrefetchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchManager.swift; sourceTree = "<group>"; };
+		DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsModels.swift; sourceTree = "<group>"; };
+		DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsServiceManager.swift; sourceTree = "<group>"; };
+		DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsViewModel.swift; sourceTree = "<group>"; };
+		DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsScreen.swift; sourceTree = "<group>"; };
+		DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsFilterSheet.swift; sourceTree = "<group>"; };
+		DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsModels.swift; sourceTree = "<group>"; };
+		DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsServiceManager.swift; sourceTree = "<group>"; };
+		DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsViewModel.swift; sourceTree = "<group>"; };
+		DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsFilterSheet.swift; sourceTree = "<group>"; };
+		DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -310,6 +346,22 @@
 				DDB659A130342A0D005C1E91 /* RearrangeSellersViewModel.swift */,
 				DDB659A230342A0D005C1E91 /* RearrangeSellersScreen.swift */,
 				DDB659A430342A0E005C1E91 /* StartNewOrderSellerOverviewSheet.swift */,
+				DDB659D830342A17005C1E91 /* UpdateSellerStatusScreen.swift */,
+				DDB659DA30342A17005C1E91 /* UpdateSellerStatusViewModel.swift */,
+				DDB659DF30342A18005C1E91 /* HomePrefetchModels.swift */,
+				DDB659E030342A18005C1E91 /* HomePrefetchServiceManager.swift */,
+				DDB659E130342A18005C1E91 /* HomePrefetchStore.swift */,
+				DDB659E230342A18005C1E91 /* HomePrefetchManager.swift */,
+				DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */,
+				DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */,
+				DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */,
+				DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */,
+				DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */,
+				DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */,
+				DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */,
+				DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */,
+				DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */,
+				DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -443,6 +495,8 @@
 				DDB65908303429F8005C1E91 /* RemoteImage.swift */,
 				DDB65909303429F8005C1E91 /* TruDataaLogo.swift */,
 				DDB6597A30342A09005C1E91 /* DashboardDatePicker.swift */,
+				DDB659DC30342A17005C1E91 /* LocationHelper.swift */,
+				DDB659DE30342A17005C1E91 /* CameraImagePicker.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -680,6 +734,24 @@
 				DDB659D130342A15005C1E91 /* ProductDetailViewModel.swift in Sources */,
 				DDB659D330342A15005C1E91 /* ProductDetailScreen.swift in Sources */,
 				DDB659D530342A16005C1E91 /* EditSpecialPricesSheet.swift in Sources */,
+				DDB659D730342A17005C1E91 /* UpdateSellerStatusScreen.swift in Sources */,
+				DDB659D930342A17005C1E91 /* UpdateSellerStatusViewModel.swift in Sources */,
+				DDB659DB30342A17005C1E91 /* LocationHelper.swift in Sources */,
+				DDB659DD30342A17005C1E91 /* CameraImagePicker.swift in Sources */,
+				DDB659E330342A18005C1E91 /* HomePrefetchModels.swift in Sources */,
+				DDB659E430342A18005C1E91 /* HomePrefetchServiceManager.swift in Sources */,
+				DDB659E530342A18005C1E91 /* HomePrefetchStore.swift in Sources */,
+				DDB659E630342A18005C1E91 /* HomePrefetchManager.swift in Sources */,
+				DDB659E730342A19005C1E91 /* TopSellingProductsModels.swift in Sources */,
+				DDB659E930342A19005C1E91 /* TopSellingProductsServiceManager.swift in Sources */,
+				DDB659EB30342A19005C1E91 /* TopSellingProductsViewModel.swift in Sources */,
+				DDB659ED30342A19005C1E91 /* TopSellingProductsScreen.swift in Sources */,
+				DDB659EF30342A19005C1E91 /* TopSellingProductsFilterSheet.swift in Sources */,
+				DDB659F630342A1A005C1E91 /* PaymentInsightsModels.swift in Sources */,
+				DDB659F830342A1A005C1E91 /* PaymentInsightsServiceManager.swift in Sources */,
+				DDB659FA30342A1A005C1E91 /* PaymentInsightsViewModel.swift in Sources */,
+				DDB659FC30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift in Sources */,
+				DDB659FE30342A1A005C1E91 /* PaymentInsightsScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -812,6 +884,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -862,6 +935,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

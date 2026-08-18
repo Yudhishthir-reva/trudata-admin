@@ -12,6 +12,14 @@ enum HomeDestination: Hashable {
     case orderApproval
     case viewPendingBills(sellerId: Int, staffId: Int, sellerName: String)
     case orderInsights(startDate: String, endDate: String)
+    case topSellingProducts(startDate: String, endDate: String, sellerId: String = "")
+    case paymentInsights(
+        startDate: String,
+        endDate: String,
+        initialTab: PaymentInsightsViewMode = .report,
+        datePreset: OrderInsightsDatePreset? = nil,
+        paymentStatus: String? = nil
+    )
     case startNewOrder
 }
 
@@ -49,6 +57,20 @@ struct HomeScreen: View {
                         )
                     case .orderInsights(let startDate, let endDate):
                         OrderInsightsScreen(startDate: startDate, endDate: endDate)
+                    case .topSellingProducts(let startDate, let endDate, let sellerId):
+                        TopSellingProductsScreen(
+                            startDate: startDate,
+                            endDate: endDate,
+                            sellerId: sellerId
+                        )
+                    case .paymentInsights(let startDate, let endDate, let initialTab, let datePreset, let paymentStatus):
+                        PaymentInsightsScreen(
+                            startDate: startDate,
+                            endDate: endDate,
+                            initialTab: initialTab,
+                            datePreset: datePreset,
+                            paymentStatus: paymentStatus
+                        )
                     case .startNewOrder:
                         StartNewOrderScreen()
                     }
@@ -99,6 +121,9 @@ struct HomeScreen: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             permissionManager.refreshStatus()
+            if permissionManager.canShowDashboard, viewModel.response != nil {
+                viewModel.loadHomeForResume()
+            }
         }
         .alert("Logout", isPresented: $showLogoutDialog) {
             Button("Cancel", role: .cancel) {}
@@ -130,6 +155,30 @@ struct HomeScreen: View {
                 HomeDestination.orderInsights(
                     startDate: viewModel.startDate,
                     endDate: viewModel.endDate
+                )
+            )
+        case "manage_orders_top_selling":
+            navigationPath.append(
+                HomeDestination.topSellingProducts(
+                    startDate: viewModel.startDate,
+                    endDate: viewModel.endDate
+                )
+            )
+        case "payment_history":
+            navigationPath.append(
+                HomeDestination.paymentInsights(
+                    startDate: viewModel.startDate,
+                    endDate: viewModel.endDate
+                )
+            )
+        case "payment_history_bills":
+            navigationPath.append(
+                HomeDestination.paymentInsights(
+                    startDate: "",
+                    endDate: "",
+                    initialTab: .bills,
+                    datePreset: .thisYear,
+                    paymentStatus: "0"
                 )
             )
         case "start_new_order":
@@ -203,6 +252,7 @@ struct HomeScreen: View {
                                         role: viewModel.role,
                                         startDate: viewModel.startDate,
                                         endDate: viewModel.endDate,
+                                        globalTopSellingFallback: viewModel.globalTopSellingFallback,
                                         onFetch: { viewModel.fetchDashboardData() },
                                         onNavigate: navigate,
                                         onStartDateChange: { newDate in

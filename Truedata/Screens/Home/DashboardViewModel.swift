@@ -19,6 +19,7 @@ class DashboardViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private let service = DashboardServiceManager()
+    private var hasInitialLoadCompleted = false
 
     var screenTitle: String {
         let title = response?.data?.screenTitle ?? ""
@@ -58,11 +59,18 @@ class DashboardViewModel: ObservableObject {
         return operations
     }
 
+    /// Top selling map from the Products tile — used when manage_orders has placeholder data.
+    var globalTopSellingFallback: JSONValue? {
+        items.first(where: { $0.route == "view_products" })?.payload
+    }
+
     func loadHome(isRefresh: Bool = false) {
         if isRefresh {
             isRefreshing = true
         } else if response == nil {
             isLoading = true
+        } else {
+            isRefreshing = true
         }
         errorMessage = nil
 
@@ -86,11 +94,23 @@ class DashboardViewModel: ObservableObject {
             self.isRefreshing = false
             if model.status {
                 self.response = model
+                self.hasInitialLoadCompleted = true
+                self.errorMessage = nil
+                HomePrefetchManager.shared.fetchLocationConfig()
+                HomePrefetchManager.shared.prefetchBaseApisIfNeeded()
             } else {
                 self.errorMessage = model.message.isEmptyString ? "Failed to load dashboard." : model.message
             }
         }
         .store(in: &cancellables)
+    }
+
+    func loadHomeForResume() {
+        guard hasInitialLoadCompleted else {
+            loadHome()
+            return
+        }
+        loadHome(isRefresh: true)
     }
 
     func logout() {
@@ -105,6 +125,7 @@ class DashboardViewModel: ObservableObject {
 
     private func finishLogout() {
         isLoggingOut = false
+        HomePrefetchManager.shared.reset()
         UserDefaultManager.shared.resetUserData()
         AppRootManager.shared.setRootView(view: AuthScreen())
     }

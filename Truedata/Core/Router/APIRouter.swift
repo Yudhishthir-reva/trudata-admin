@@ -40,6 +40,20 @@ enum APIRouter: RouterManagable {
     case topSellingProductsSuggestion
     case productSearchWiseList
     case addProductSpecialPrice
+    case shopLocationVisited
+    case locationConfig
+    case getRoles
+    case getLeaveType
+    case getSellerType
+    case sellerList
+    case transactionHistory
+    case billSettlementHistory
+    case todayAchievementsDetails
+    case getCategory
+    case getVariant
+    case productList
+    case allTopSellingProducts
+    case allTopSellingProductsExportExcel
 
     var endPointUrl: String {
         switch self {
@@ -113,6 +127,34 @@ enum APIRouter: RouterManagable {
             return "product-search-wise-list"
         case .addProductSpecialPrice:
             return "add-product-special-price"
+        case .shopLocationVisited:
+            return "shop-location-visited"
+        case .locationConfig:
+            return "location-config"
+        case .getRoles:
+            return "get-role"
+        case .getLeaveType:
+            return "get-leave-type"
+        case .getSellerType:
+            return "get-seller-type"
+        case .sellerList:
+            return "seller-list"
+        case .transactionHistory:
+            return "transaction-history"
+        case .billSettlementHistory:
+            return "bill-settlement-history"
+        case .todayAchievementsDetails:
+            return "V2/today-achievements-details"
+        case .getCategory:
+            return "get-category"
+        case .getVariant:
+            return "get-varient"
+        case .productList:
+            return "product"
+        case .allTopSellingProducts:
+            return "V2/all-top-selling-products"
+        case .allTopSellingProductsExportExcel:
+            return "V2/all-top-selling-products-export-excel"
         }
     }
 
@@ -120,7 +162,7 @@ enum APIRouter: RouterManagable {
         switch self {
         case .updateSellerColor, .addProductSpecialPrice:
             return .json
-        case .paymentSave, .paymentSettlement:
+        case .paymentSave, .paymentSettlement, .shopLocationVisited:
             return .multipartForm
         default:
             return .urlEncoded
