@@ -11,6 +11,8 @@ struct StartNewOrderScreen: View {
     @StateObject private var viewModel = StartNewOrderViewModel()
     @State private var showAddSellerAlert = false
     @State private var showRearrangeSellers = false
+    @State private var selectedSellerForOverview: StartNewOrderSeller?
+    @State private var selectedSellerForProfile: StartNewOrderSeller?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -51,6 +53,34 @@ struct StartNewOrderScreen: View {
                     }
                 )
             }
+        }
+        .navigationDestination(item: $selectedSellerForProfile) { seller in
+            SellerProfileScreen(sellerId: seller.id)
+        }
+        .sheet(item: $selectedSellerForOverview) { seller in
+            StartNewOrderSellerOverviewSheet(
+                seller: seller,
+                isRequestingAccess: viewModel.isRequestingAccess,
+                onClose: { selectedSellerForOverview = nil },
+                onRequestAccess: { viewModel.requestAccess(for: seller) },
+                onViewBills: {
+                    selectedSellerForOverview = nil
+                    viewModel.errorMessage = "Pending bills for \(seller.displayName) will open here."
+                }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .onChange(of: viewModel.showApprovalSuccess) { _, didSucceed in
+            guard didSucceed else { return }
+            selectedSellerForOverview = nil
+        }
+        .alert("Request sent to Admin", isPresented: $viewModel.showApprovalSuccess) {
+            Button("OK") {
+                viewModel.resetApprovalSuccess()
+            }
+        } message: {
+            Text("Your request has been sent to the admin for approval. You will be notified once the request is processed.")
         }
         .alert("Add Seller", isPresented: $showAddSellerAlert) {
             Button("OK", role: .cancel) {}
@@ -382,10 +412,10 @@ struct StartNewOrderScreen: View {
                         seller: seller,
                         onCreateOrder: { viewModel.sellerSelected(seller) },
                         onViewProfile: {
-                            viewModel.errorMessage = "Seller profile for \(seller.displayName) will open here."
+                            selectedSellerForProfile = seller
                         },
                         onRequestAccess: {
-                            viewModel.errorMessage = "Request sent for \(seller.displayName)."
+                            selectedSellerForOverview = seller
                         }
                     )
                 }

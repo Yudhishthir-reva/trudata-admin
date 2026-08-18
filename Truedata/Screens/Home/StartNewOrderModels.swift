@@ -112,9 +112,16 @@ struct StartNewOrderSeller: Identifiable, Decodable, Hashable {
     var colorId: Int?
     var colorDescription: String?
     var transactionCount: Int
+    var whatsappNo: String
+    var email: String
+    var address: String
+    var cityId: String
+    var stateId: String
+    var sellerTypeId: String
+    var createdAt: String
 
     enum CodingKeys: String, CodingKey {
-        case id, name, mobile, status, address
+        case id, name, mobile, status, address, email
         case shopName = "shop_name"
         case sellerId = "seller_id"
         case beatId = "beat_id"
@@ -126,6 +133,11 @@ struct StartNewOrderSeller: Identifiable, Decodable, Hashable {
         case colorId = "color_id"
         case colorDescription = "color_description"
         case transactionCount = "transaction_count"
+        case whatsappNo = "whatsapp_no"
+        case cityId = "city_id"
+        case stateId = "state_id"
+        case sellerTypeId = "sellertype_id"
+        case createdAt = "created_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -145,10 +157,25 @@ struct StartNewOrderSeller: Identifiable, Decodable, Hashable {
         colorId = container.decodeIntLeniently(forKey: .colorId)
         colorDescription = container.decodeStringLeniently(forKey: .colorDescription)
         transactionCount = container.decodeIntLeniently(forKey: .transactionCount) ?? 0
+        whatsappNo = container.decodeStringLeniently(forKey: .whatsappNo) ?? ""
+        email = container.decodeStringLeniently(forKey: .email) ?? ""
+        address = container.decodeStringLeniently(forKey: .address) ?? ""
+        cityId = container.decodeStringLeniently(forKey: .cityId) ?? ""
+        stateId = container.decodeStringLeniently(forKey: .stateId) ?? ""
+        sellerTypeId = container.decodeStringLeniently(forKey: .sellerTypeId) ?? ""
+        createdAt = container.decodeStringLeniently(forKey: .createdAt) ?? ""
     }
 
     var displayName: String {
         shopName.isEmptyString ? name : shopName
+    }
+
+    var joinedDate: String {
+        createdAt.count >= 10 ? String(createdAt.prefix(10)) : createdAt
+    }
+
+    var accessStatusLabel: String {
+        createOrderStatus ? "Active" : "Restricted"
     }
 
     var contactLine: String {

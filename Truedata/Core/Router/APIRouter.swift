@@ -27,6 +27,19 @@ enum APIRouter: RouterManagable {
     case sellerListBeatWise
     case setStaffBeat
     case beatWiseArrangeSellers
+    case orderApprovalRequest
+    case sellerProfile2
+    case colorList
+    case updateSellerColor
+    case sellerOrderList
+    case sellerTransactions
+    case paymentSave
+    case paymentBillList
+    case paymentSettlement
+    case brandList
+    case topSellingProductsSuggestion
+    case productSearchWiseList
+    case addProductSpecialPrice
 
     var endPointUrl: String {
         switch self {
@@ -74,6 +87,43 @@ enum APIRouter: RouterManagable {
             return "set-staff-beat"
         case .beatWiseArrangeSellers:
             return "beat-wise-arrange-sellers"
+        case .orderApprovalRequest:
+            return "order-approval-request"
+        case .sellerProfile2:
+            return "seller-Profile2"
+        case .colorList:
+            return "color-list"
+        case .updateSellerColor:
+            return "update-seller-color"
+        case .sellerOrderList:
+            return "seller-order-list"
+        case .sellerTransactions:
+            return "seller-transactions"
+        case .paymentSave:
+            return "payment-save"
+        case .paymentBillList:
+            return "payment-bill-list"
+        case .paymentSettlement:
+            return "payment-settlement"
+        case .brandList:
+            return "brand-list"
+        case .topSellingProductsSuggestion:
+            return "V2/top-selling-products-suggestion"
+        case .productSearchWiseList:
+            return "product-search-wise-list"
+        case .addProductSpecialPrice:
+            return "add-product-special-price"
+        }
+    }
+
+    var contentType: RequestContentType {
+        switch self {
+        case .updateSellerColor, .addProductSpecialPrice:
+            return .json
+        case .paymentSave, .paymentSettlement:
+            return .multipartForm
+        default:
+            return .urlEncoded
         }
     }
 }

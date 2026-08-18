@@ -31,6 +31,8 @@ final class StartNewOrderViewModel: ObservableObject {
     @Published var sellerSearchQuery = ""
     @Published var selectedSellerTab: StartNewOrderSellerTab = .notVisited
     @Published var visibleListLimit = 8
+    @Published var isRequestingAccess = false
+    @Published var showApprovalSuccess = false
 
     private let service = StartNewOrderServiceManager()
     private var cancellables = Set<AnyCancellable>()
@@ -235,6 +237,37 @@ final class StartNewOrderViewModel: ObservableObject {
         self.sellers = sellers
         guard let beatId = selectedBeatId else { return }
         loadSellers(beatId: beatId)
+    }
+
+    func requestAccess(for seller: StartNewOrderSeller) {
+        guard !isRequestingAccess else { return }
+
+        isRequestingAccess = true
+        errorMessage = nil
+
+        service.sendOrderApprovalRequest(sellerId: seller.id)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                self?.isRequestingAccess = false
+                if case .failure(let error) = completion {
+                    self?.errorMessage = error.localizedDescription
+                }
+            } receiveValue: { [weak self] response in
+                guard let self else { return }
+                self.isRequestingAccess = false
+                if response.status {
+                    self.showApprovalSuccess = true
+                } else {
+                    self.errorMessage = response.message.isEmptyString
+                        ? "Failed to send approval request"
+                        : response.message
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func resetApprovalSuccess() {
+        showApprovalSuccess = false
     }
 
     private func saveBeatAndLoadSellers(beatId: Int) {

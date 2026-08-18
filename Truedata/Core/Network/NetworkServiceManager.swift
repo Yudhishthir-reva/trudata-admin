@@ -112,7 +112,77 @@ class NetworkServiceManager: NetworkServiceManagable {
             .eraseToAnyPublisher()
     }
 
-    private static func multipartBody(from params: RequestConstants.Param, boundary: String) -> Data {
+    func uploadMultipart<T: Decodable>(
+        _ endpoint: RouterManagable,
+        params: RequestConstants.Param,
+        file: MultipartFileUpload?,
+        headers: RequestConstants.Header
+    ) -> AnyPublisher<T, Error> {
+        guard NetworkMonitor.shared.isConnected else {
+            return Fail(error: RequestError.noInternet)
+                .eraseToAnyPublisher()
+        }
+
+        guard let url = URL(string: endpoint.urlString) else {
+            return Fail(error: RequestError.invalidURL)
+                .eraseToAnyPublisher()
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+
+        var request = URLRequest(url: url)
+        request.httpMethod = endpoint.requestType.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(
+            RequestContentType.multipartForm.headerValue(boundary: boundary),
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.httpBody = Self.multipartBody(from: params, boundary: boundary, file: file)
+
+        #if DEBUG
+        print("===================================================================")
+        print("API (multipart):\n", url)
+        print("===================================================================")
+        print("Parameter:\n", params)
+        print("File attached:", file != nil)
+        print("===================================================================")
+        #endif
+
+        headers.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .mapError { error -> Error in
+                if error.code == .notConnectedToInternet || error.code == .networkConnectionLost {
+                    return RequestError.noInternet
+                }
+                return error
+            }
+            .tryMap { data, response -> Data in
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw RequestError.invalidResponse
+                }
+
+                switch httpResponse.statusCode {
+                case 200...299:
+                    return data
+                default:
+                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let message = json["message"] as? String, !message.isEmpty {
+                        throw RequestError.apiMessage(message)
+                    }
+                    throw RequestError.unknownError
+                }
+            }
+            .decode(type: T.self, decoder: JSONDecoder())
+            .eraseToAnyPublisher()
+    }
+
+    private static func multipartBody(
+        from params: RequestConstants.Param,
+        boundary: String,
+        file: MultipartFileUpload? = nil
+    ) -> Data {
         var body = Data()
 
         for (key, value) in fields(from: params) {
@@ -120,6 +190,19 @@ class NetworkServiceManager: NetworkServiceManagable {
             body.append(Data("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".utf8))
             body.append(Data("\(value)\r\n".utf8))
         }
+
+        if let file {
+            body.append(Data("--\(boundary)\r\n".utf8))
+            body.append(
+                Data(
+                    "Content-Disposition: form-data; name=\"\(file.fieldName)\"; filename=\"\(file.fileName)\"\r\n".utf8
+                )
+            )
+            body.append(Data("Content-Type: \(file.mimeType)\r\n\r\n".utf8))
+            body.append(file.data)
+            body.append(Data("\r\n".utf8))
+        }
+
         body.append(Data("--\(boundary)--\r\n".utf8))
 
         return body

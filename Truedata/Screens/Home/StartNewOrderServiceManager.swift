@@ -53,4 +53,15 @@ class StartNewOrderServiceManager {
             headers: authHeaders
         )
     }
+
+    func sendOrderApprovalRequest(sellerId: Int) -> AnyPublisher<StartNewOrderStatusResponse, Error> {
+        let staffId = UserDefaultManager.shared.getUserDefaultsString(key: .userId)
+        var params: [String: Any] = ["seller_id": sellerId]
+        if !staffId.isEmptyString { params["staff_id"] = staffId }
+        return networkService.request(
+            APIRouter.orderApprovalRequest,
+            params: params,
+            headers: authHeaders
+        )
+    }
 }
