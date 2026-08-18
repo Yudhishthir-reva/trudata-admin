@@ -2,16 +2,18 @@
 //  TruedataApp.swift
 //  Truedata
 //
-//  Created by Devkinandan Dendwal on 18/08/26.
-//
 
 import SwiftUI
 
 @main
 struct TruedataApp: App {
+
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreen()
+                .handleNoInternet()
         }
     }
 }
