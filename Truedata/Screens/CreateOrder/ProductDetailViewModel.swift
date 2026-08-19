@@ -17,7 +17,9 @@ final class ProductDetailViewModel: ObservableObject {
     let brandName: String
     let sellerId: Int
     let brandId: Int
+    let isEditMode: Bool
 
+    private var editOrderViewModel: EditOrderViewModel?
     private let service: CreateOrderServiceManager
     private var cancellables = Set<AnyCancellable>()
 
@@ -26,13 +28,33 @@ final class ProductDetailViewModel: ObservableObject {
         brandName: String,
         sellerId: Int,
         brandId: Int,
+        editOrderViewModel: EditOrderViewModel? = nil,
         service: CreateOrderServiceManager = CreateOrderServiceManager()
     ) {
         self.product = product
         self.brandName = brandName
         self.sellerId = sellerId
         self.brandId = brandId
+        self.editOrderViewModel = editOrderViewModel
+        self.isEditMode = editOrderViewModel != nil
         self.service = service
+        self.variantQuantities = Self.initialQuantities(for: product, editOrderViewModel: editOrderViewModel)
+    }
+
+    private static func initialQuantities(
+        for product: ActiveProductItem,
+        editOrderViewModel: EditOrderViewModel?
+    ) -> [Int: Int] {
+        guard let editOrderViewModel else { return [:] }
+
+        var seeded: [Int: Int] = [:]
+        for item in editOrderViewModel.items where item.quantity > 0 {
+            let belongsToProduct = item.productId == product.id
+                || (item.productId == 0 && product.variants.contains(where: { $0.id == item.variantId }))
+            guard belongsToProduct else { continue }
+            seeded[item.variantId] = item.quantity
+        }
+        return seeded
     }
 
     func quantity(for variantID: Int) -> Int {
@@ -48,6 +70,17 @@ final class ProductDetailViewModel: ObservableObject {
             updated[variantID] = clamped
         }
         variantQuantities = updated
+
+        guard isEditMode,
+              let editOrderViewModel,
+              let variant = product.variants.first(where: { $0.id == variantID }) else { return }
+
+        editOrderViewModel.updateProductVariant(
+            product: product,
+            brandName: brandName,
+            variant: variant,
+            quantity: clamped
+        )
     }
 
     var categoryBrandLabel: String {
@@ -97,7 +130,11 @@ final class ProductDetailViewModel: ObservableObject {
     }
 
     private func reloadProduct() {
-        service.getActiveProducts(sellerId: String(sellerId), brandId: brandId)
+        service.getActiveProducts(
+            sellerId: String(sellerId),
+            brandId: brandId,
+            isEditMode: isEditMode
+        )
             .receive(on: DispatchQueue.main)
             .sink { _ in } receiveValue: { [weak self] response in
                 guard let self, response.status else { return }

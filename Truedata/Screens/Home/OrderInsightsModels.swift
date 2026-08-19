@@ -418,21 +418,41 @@ struct OrderInsightsSellerItem: Identifiable, Decodable {
     var id: Int
     var name: String
     var shopName: String
+    var mobile: String
 
     enum CodingKeys: String, CodingKey {
-        case id, name
+        case id
+        case sellerId = "seller_id"
+        case name
+        case sellerName = "seller_name"
         case shopName = "shop_name"
+        case sellerShopName = "seller_shop_name"
+        case mobile
     }
 
     var displayName: String {
-        shopName.isEmptyString ? name : shopName
+        if !shopName.isEmptyString { return shopName }
+        if !name.isEmptyString { return name }
+        if !mobile.isEmptyString { return mobile }
+        return ""
+    }
+
+    var isSelectable: Bool {
+        id > 0 && !displayName.isEmptyString
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = container.decodeIntLeniently(forKey: .id) ?? 0
-        name = container.decodeStringLeniently(forKey: .name) ?? ""
-        shopName = container.decodeStringLeniently(forKey: .shopName) ?? ""
+        id = container.decodeIntLeniently(forKey: .id)
+            ?? container.decodeIntLeniently(forKey: .sellerId)
+            ?? 0
+        name = container.decodeStringLeniently(forKey: .name)
+            ?? container.decodeStringLeniently(forKey: .sellerName)
+            ?? ""
+        shopName = container.decodeStringLeniently(forKey: .shopName)
+            ?? container.decodeStringLeniently(forKey: .sellerShopName)
+            ?? ""
+        mobile = container.decodeStringLeniently(forKey: .mobile) ?? ""
     }
 }
 
@@ -445,7 +465,13 @@ struct OrderInsightsSellerListResponse: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         status = container.decodeBoolLeniently(forKey: .status) ?? false
         message = container.decodeStringLeniently(forKey: .message) ?? ""
-        data = (try? container.decode(OrderInsightsSellerPage.self, forKey: .data)) ?? OrderInsightsSellerPage()
+        if let page = try? container.decode(OrderInsightsSellerPage.self, forKey: .data) {
+            data = page
+        } else if let sellers = try? container.decode([OrderInsightsSellerItem].self, forKey: .data) {
+            data = OrderInsightsSellerPage(currentPage: 1, lastPage: 1, sellers: sellers)
+        } else {
+            data = OrderInsightsSellerPage()
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -461,7 +487,8 @@ struct OrderInsightsSellerPage: Decodable {
     enum CodingKeys: String, CodingKey {
         case currentPage = "current_page"
         case lastPage = "last_page"
-        case sellers = "data"
+        case sellers
+        case sellersData = "data"
     }
 
     init(currentPage: Int = 0, lastPage: Int = 0, sellers: [OrderInsightsSellerItem] = []) {
@@ -474,7 +501,13 @@ struct OrderInsightsSellerPage: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         currentPage = container.decodeIntLeniently(forKey: .currentPage) ?? 0
         lastPage = container.decodeIntLeniently(forKey: .lastPage) ?? 0
-        sellers = (try? container.decode([OrderInsightsSellerItem].self, forKey: .sellers)) ?? []
+        if let list = try? container.decode([OrderInsightsSellerItem].self, forKey: .sellersData) {
+            sellers = list
+        } else if let list = try? container.decode([OrderInsightsSellerItem].self, forKey: .sellers) {
+            sellers = list
+        } else {
+            sellers = []
+        }
     }
 }
 

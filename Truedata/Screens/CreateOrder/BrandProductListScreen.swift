@@ -10,17 +10,30 @@ struct BrandProductListScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: BrandProductListViewModel
 
+    private let editOrderViewModel: EditOrderViewModel?
+    private let onViewCart: (() -> Void)?
+
     private let columns = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
     ]
 
-    init(sellerId: Int, brandId: Int, brandName: String) {
+    init(
+        sellerId: Int,
+        brandId: Int,
+        brandName: String,
+        isEditMode: Bool = false,
+        editOrderViewModel: EditOrderViewModel? = nil,
+        onViewCart: (() -> Void)? = nil
+    ) {
+        self.editOrderViewModel = editOrderViewModel
+        self.onViewCart = onViewCart
         _viewModel = StateObject(
             wrappedValue: BrandProductListViewModel(
                 sellerId: sellerId,
                 brandId: brandId,
-                brandName: brandName
+                brandName: brandName,
+                isEditMode: isEditMode
             )
         )
     }
@@ -60,7 +73,9 @@ struct BrandProductListScreen: View {
                                             product: product,
                                             brandName: viewModel.brandName,
                                             sellerId: viewModel.sellerId,
-                                            brandId: viewModel.brandId
+                                            brandId: viewModel.brandId,
+                                            editOrderViewModel: editOrderViewModel,
+                                            onViewCart: onViewCart
                                         )
                                     } label: {
                                         BrandProductGridCard(product: product)
@@ -74,6 +89,13 @@ struct BrandProductListScreen: View {
                         }
                     }
                 }
+            }
+
+            if let editOrderViewModel, let onViewCart {
+                EditOrderCartFooterContainer(
+                    viewModel: editOrderViewModel,
+                    onViewCart: onViewCart
+                )
             }
         }
         .navigationBarHidden(true)

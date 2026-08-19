@@ -19,6 +19,7 @@ final class PaymentInsightsViewModel: ObservableObject {
     @Published var settlements: [BillSettlementItem] = []
     @Published var summary: PaymentInsightsSummary?
     @Published var recordsCount = 0
+    @Published var settlementRecordsCount = 0
     @Published var searchText = ""
     @Published var viewMode: PaymentInsightsViewMode = .report
 
@@ -188,6 +189,7 @@ final class PaymentInsightsViewModel: ObservableObject {
                 } else {
                     self.settlements.append(contentsOf: page.settlements)
                 }
+                self.settlementRecordsCount = page.total
                 self.settlementPage = page.currentPage
                 self.canLoadMoreSettlements = page.currentPage < page.lastPage
                 self.settlementErrorMessage = nil

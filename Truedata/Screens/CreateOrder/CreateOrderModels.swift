@@ -229,6 +229,11 @@ enum CreateOrderVariantParser {
         if formatted.last == "." { formatted.removeLast() }
         return formatted
     }
+
+    static func packets(fromKg kg: Double, weightInGrams: Double) -> Int {
+        guard kg > 0, weightInGrams > 0 else { return 0 }
+        return min(Int((kg * 1000) / weightInGrams), maxPacketsLimit)
+    }
 }
 
 struct SpecialPriceRequest: Encodable {

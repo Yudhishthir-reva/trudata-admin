@@ -19,6 +19,10 @@ enum APIRouter: RouterManagable {
     case updateOrderApprovalRequest
     case viewPendingPaymentBillList
     case orderDetail
+    case updateOrderSeller
+    case orderDetailsForEdit
+    case addCartForEdit
+    case createOrderForEdit
     case orderListV2
     case orderListV3
     case staffList
@@ -85,6 +89,14 @@ enum APIRouter: RouterManagable {
             return "view-pending-payment-bill-list"
         case .orderDetail:
             return "order-detail"
+        case .updateOrderSeller:
+            return "update-order-seller"
+        case .orderDetailsForEdit:
+            return "order-details-for-edit"
+        case .addCartForEdit:
+            return "add-cart-for-edit"
+        case .createOrderForEdit:
+            return "create-order-for-edit"
         case .orderListV2:
             return "V2/order-list2"
         case .orderListV3:
@@ -160,7 +172,7 @@ enum APIRouter: RouterManagable {
 
     var contentType: RequestContentType {
         switch self {
-        case .updateSellerColor, .addProductSpecialPrice:
+        case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit:
             return .json
         case .paymentSave, .paymentSettlement, .shopLocationVisited:
             return .multipartForm

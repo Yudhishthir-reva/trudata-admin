@@ -76,7 +76,7 @@ struct PaymentInsightsScreen: View {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search...", text: Binding(
+                TextField("Search transactions...", text: Binding(
                     get: { viewModel.searchText },
                     set: { viewModel.updateSearch($0) }
                 ))
@@ -101,20 +101,12 @@ struct PaymentInsightsScreen: View {
 
             Button { showFilterSheet = true } label: {
                 ZStack(alignment: .topTrailing) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Filter")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-                    .padding(.horizontal, 16)
-                    .frame(height: 48)
-                    .background(Color.clear)
-                    .overlay {
-                        Capsule()
-                            .stroke(DashboardTheme.primaryBlue.opacity(0.55), lineWidth: 1)
-                    }
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 48, height: 48)
+                        .background(DashboardTheme.primaryBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                     if viewModel.isFilterActive {
                         Circle()
@@ -159,17 +151,37 @@ struct PaymentInsightsScreen: View {
 
     @ViewBuilder
     private var recordsHeader: some View {
-        if viewModel.viewMode == .bills {
-            HStack {
-                Text("\(viewModel.recordsCount) records found")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color(hex: "F3F4F6"))
+        switch viewModel.viewMode {
+        case .bills:
+            recordsHeaderRow(
+                title: "\(viewModel.recordsCount) records found",
+                trailing: nil
+            )
+        case .settlements:
+            recordsHeaderRow(
+                title: "Bill Settlements",
+                trailing: "\(viewModel.settlementRecordsCount) records"
+            )
+        case .report:
+            EmptyView()
         }
+    }
+
+    private func recordsHeaderRow(title: String, trailing: String?) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(DashboardTheme.neutralDark)
+            Spacer()
+            if let trailing {
+                Text(trailing)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(hex: "F3F4F6"))
     }
 
     @ViewBuilder
@@ -232,13 +244,8 @@ struct PaymentInsightsScreen: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(viewModel.transactions) { transaction in
-                        NavigationLink {
-                            OrderDetailScreen(orderId: transaction.orderNo)
-                        } label: {
-                            PaymentTransactionRow(transaction: transaction)
-                        }
-                        .buttonStyle(.plain)
-                        .onAppear { viewModel.loadMoreTransactionsIfNeeded(current: transaction) }
+                        PaymentTransactionRow(transaction: transaction)
+                            .onAppear { viewModel.loadMoreTransactionsIfNeeded(current: transaction) }
                     }
                     if viewModel.isLoadingMore {
                         ProgressView().tint(DashboardTheme.primaryBlue).padding(.vertical, 16)
@@ -316,6 +323,8 @@ private struct PaymentInsightsAppBar: View {
 private struct PaymentInsightsReportCard: View {
     let summary: PaymentInsightsSummary
 
+    private let paymentModes = ["Cash", "Cheque", "UPI"]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Financial Overview")
@@ -327,31 +336,33 @@ private struct PaymentInsightsReportCard: View {
                     paymentModeDonut
                     VStack(alignment: .leading, spacing: 10) {
                         metricBlock(title: "Bills with Settlements", value: "\(summary.totalTransactions)")
-                        metricBlock(title: "Total Amount", value: summary.totalTransactionAmount.currencyLabel, valueColor: DashboardTheme.primaryBlue)
-                        metricBlock(title: "Avg. Transaction", value: summary.averageTransactionValue.currencyLabel)
+                        metricBlock(
+                            title: "Total Amount",
+                            value: summary.totalTransactionAmount.currencyLabel,
+                            valueColor: DashboardTheme.primaryBlue
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                if !summary.amountByStatus.isEmpty {
-                    Divider()
-                    Text("Breakdown by Payment Mode")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
+                Divider()
+                Text("Breakdown by Payment Mode")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
 
-                    ForEach(summary.amountByStatus.sorted(by: { $0.key < $1.key }), id: \.key) { key, amount in
-                        HStack {
-                            Circle()
-                                .fill(paymentModeColor(key))
-                                .frame(width: 8, height: 8)
-                            Text(key.capitalized)
-                                .font(.system(size: 13))
-                                .foregroundStyle(DashboardTheme.neutralDark)
-                            Spacer()
-                            Text(amount.currencyLabel)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(DashboardTheme.primaryBlue)
-                        }
+                ForEach(paymentModes, id: \.self) { mode in
+                    let amount = paymentModeAmount(for: mode)
+                    HStack {
+                        Circle()
+                            .fill(paymentModeColor(mode))
+                            .frame(width: 8, height: 8)
+                        Text(mode)
+                            .font(.system(size: 13))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                        Spacer()
+                        Text(amount.currencyLabel)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
                     }
                 }
             }
@@ -366,19 +377,25 @@ private struct PaymentInsightsReportCard: View {
     }
 
     private var paymentModeDonut: some View {
-        let segments = summary.amountByStatus.map { key, value in
-            DashboardChartSegment(value: value, color: paymentModeColor(key))
-        }.filter { $0.value > 0 }
+        let segments = paymentModes.compactMap { mode -> DashboardChartSegment? in
+            let amount = paymentModeAmount(for: mode)
+            guard amount > 0 else { return nil }
+            return DashboardChartSegment(value: amount, color: paymentModeColor(mode))
+        }
 
         return DashboardDonutChart(
             segments: segments.isEmpty
                 ? [DashboardChartSegment(value: 1, color: DashboardTheme.neutralMedium.opacity(0.3))]
                 : segments,
-            centerTitle: summary.totalTransactionAmount.compactCurrencyLabel,
-            centerSubtitle: nil,
-            size: 96,
+            centerTitle: summary.totalTransactionAmount.indianCompactCurrencyLabel,
+            centerSubtitle: "Total",
+            size: 100,
             lineWidth: 12
         )
+    }
+
+    private func paymentModeAmount(for mode: String) -> Double {
+        summary.amountByStatus.first { $0.key.caseInsensitiveCompare(mode) == .orderedSame }?.value ?? 0
     }
 
     private func metricBlock(title: String, value: String, valueColor: Color = DashboardTheme.neutralDark) -> some View {
@@ -405,54 +422,106 @@ private struct PaymentInsightsReportCard: View {
 private struct PaymentTransactionRow: View {
     let transaction: PaymentTransactionItem
 
+    private var orderStatus: BillOrderStatus { BillOrderStatus(key: transaction.orderStatus) }
+    private var paymentStatusLabel: String {
+        PaymentInsightsPaymentStatus.title(for: transaction.status)
+    }
+    private var paymentStatusColor: Color {
+        PaymentInsightsPaymentStatus.color(for: transaction.status)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(transaction.orderNo.isEmptyString ? "Order" : transaction.orderNo)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                    Text(transaction.date)
-                        .font(.system(size: 12))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(transaction.displayOrderLabel)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                        Text(transaction.date)
+                            .font(.system(size: 12))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(transaction.amount.currencyLabel)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                        Text("\(transaction.deductAmount.currencyLabel) Remaining")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                    }
                 }
+
+                detailLine(icon: "storefront", label: "Seller", value: transaction.sellerName)
+                detailLine(icon: "phone", label: "Seller Mob.", value: transaction.sellerPhone)
+                detailLine(icon: "person", label: "Staff", value: transaction.staffName)
+
+                if orderStatus != .unknown {
+                    Text("Order Status: \(orderStatus.label)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(DashboardTheme.warningYellow)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(DashboardTheme.warningYellow.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+
+                HStack(spacing: 16) {
+                    if !transaction.resolvedOrderId.isEmptyString {
+                        NavigationLink {
+                            OrderDetailScreen(orderId: transaction.resolvedOrderId)
+                                .toolbar(.hidden, for: .navigationBar)
+                                .navigationBarBackButtonHidden(true)
+                        } label: {
+                            actionLabel("View Order")
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if let sellerId = transaction.sellerIdInt {
+                        NavigationLink {
+                            BillSettlementScreen(sellerId: sellerId)
+                                .toolbar(.hidden, for: .navigationBar)
+                                .navigationBarBackButtonHidden(true)
+                        } label: {
+                            actionLabel("Add Payment")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(14)
+
+            HStack {
+                Text("Payment Status: \(paymentStatusLabel)")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(paymentStatusColor)
                 Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(transaction.amount.currencyLabel)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                    Text("\(transaction.deductAmount.currencyLabel) Remaining")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                }
+                Image(systemName: "barcode")
+                    .font(.system(size: 14))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
             }
-
-            Divider()
-
-            detailLine(icon: "storefront", label: "Seller", value: transaction.sellerName)
-            detailLine(icon: "person", label: "Staff", value: transaction.staffName)
-            HStack(spacing: 8) {
-                statusChip(
-                    PaymentInsightsPaymentStatus.title(for: transaction.status),
-                    color: PaymentInsightsPaymentStatus.color(for: transaction.status)
-                )
-                statusChip(
-                    PaymentInsightsPaymentMode.title(for: transaction.paymentMode),
-                    color: DashboardTheme.infoBlue
-                )
-            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(paymentStatusColor.opacity(0.12))
         }
-        .padding(12)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(DashboardTheme.neutralMedium.opacity(0.15), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(DashboardTheme.neutralMedium.opacity(0.12), lineWidth: 1)
         }
     }
 
+    private func actionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(DashboardTheme.primaryBlue)
+    }
+
     private func detailLine(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 12))
                 .foregroundStyle(DashboardTheme.neutralMedium)
@@ -463,18 +532,9 @@ private struct PaymentTransactionRow: View {
             Text(value.isEmptyString ? "-" : value)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(DashboardTheme.neutralDark)
+                .lineLimit(2)
             Spacer(minLength: 0)
         }
-    }
-
-    private func statusChip(_ text: String, color: Color) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.12))
-            .clipShape(Capsule())
     }
 }
 
@@ -482,40 +542,115 @@ private struct PaymentSettlementRow: View {
     let item: BillSettlementItem
 
     var body: some View {
-        HStack(spacing: 12) {
-            RemoteImage(url: item.imageUrl, contentMode: .fill)
-                .frame(width: 48, height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.orderId.isEmptyString ? item.billId : "Order \(item.orderId)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                Text(item.sellerName)
-                    .font(.system(size: 12))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                Text(item.date)
-                    .font(.system(size: 11))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-            }
-
-            Spacer(minLength: 0)
-
-            VStack(alignment: .trailing, spacing: 4) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(displayBillId)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    Text(item.date)
+                        .font(.system(size: 12))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                }
+                Spacer()
                 Text(item.deductAmount.currencyLabel)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+            }
+
+            HStack(spacing: 8) {
+                paymentModeTag
+                if !item.discount.isEmptyString, item.discount != "0", item.discount != "0.0" {
+                    discountTag
+                }
+            }
+
+            HStack(alignment: .top, spacing: 16) {
+                settlementColumn(title: "SELLER", value: item.sellerName)
+                settlementColumn(title: "STAFF", value: item.staffName)
+            }
+
+            if !item.orderId.isEmptyString {
+                NavigationLink {
+                    OrderDetailScreen(orderId: item.orderId)
+                        .toolbar(.hidden, for: .navigationBar)
+                        .navigationBarBackButtonHidden(true)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("View Details")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(">")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
                     .foregroundStyle(DashboardTheme.primaryBlue)
-                Text(PaymentInsightsPaymentMode.title(for: item.paymentMode))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
+                }
+                .buttonStyle(.plain)
             }
         }
-        .padding(12)
+        .padding(14)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(DashboardTheme.neutralMedium.opacity(0.15), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(DashboardTheme.neutralMedium.opacity(0.12), lineWidth: 1)
         }
+    }
+
+    private var displayBillId: String {
+        let value = item.billId.isEmptyString ? item.orderId : item.billId
+        guard !value.isEmptyString else { return "Settlement" }
+        return value.hasPrefix("#") ? value : "#\(value)"
+    }
+
+    private var paymentModeTag: some View {
+        let mode = PaymentInsightsPaymentMode.title(for: item.paymentMode)
+        let color = paymentModeColor(for: mode)
+        return HStack(spacing: 4) {
+            Image(systemName: "banknote")
+                .font(.system(size: 10, weight: .bold))
+            Text(mode.uppercased())
+                .font(.system(size: 10, weight: .bold))
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.12))
+        .clipShape(Capsule())
+    }
+
+    private func paymentModeColor(for mode: String) -> Color {
+        switch mode.lowercased() {
+        case "cash": return DashboardTheme.successGreen
+        case "cheque": return DashboardTheme.warningYellow
+        case "upi": return DashboardTheme.primaryBlue
+        default: return DashboardTheme.neutralMedium
+        }
+    }
+
+    private var discountTag: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "tag")
+                .font(.system(size: 10, weight: .bold))
+            Text("Discount ₹\(item.discount)")
+                .font(.system(size: 10, weight: .bold))
+        }
+        .foregroundStyle(DashboardTheme.dangerRed)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(DashboardTheme.dangerRed.opacity(0.1))
+        .clipShape(Capsule())
+    }
+
+    private func settlementColumn(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(DashboardTheme.neutralMedium)
+            Text(value.isEmptyString ? "-" : value)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(DashboardTheme.neutralDark)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

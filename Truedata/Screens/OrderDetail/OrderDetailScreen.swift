@@ -11,6 +11,9 @@ struct OrderDetailScreen: View {
     @StateObject private var viewModel: OrderDetailViewModel
     @State private var previewImageURL: String?
     @State private var actionMessage: String?
+    @State private var showCancelConfirm = false
+    @State private var showChangeSeller = false
+    @State private var showEditOrder = false
 
     init(orderId: String) {
         _viewModel = StateObject(wrappedValue: OrderDetailViewModel(orderId: orderId))
@@ -42,6 +45,16 @@ struct OrderDetailScreen: View {
         } message: {
             Text(actionMessage ?? "")
         }
+        .confirmationDialog(
+            "Cancel this order?",
+            isPresented: $showCancelConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Cancel Order", role: .destructive) {
+                actionMessage = "Cancel order is not available in iOS yet."
+            }
+            Button("Dismiss", role: .cancel) {}
+        }
         .fullScreenCover(isPresented: imagePreviewBinding) {
             if let url = previewImageURL {
                 OrderProductImagePreview(imageURL: url) {
@@ -49,6 +62,26 @@ struct OrderDetailScreen: View {
                 }
             }
         }
+        .sheet(isPresented: $showChangeSeller) {
+            if let order = viewModel.order {
+                ChangeSellerSheet(
+                    order: order,
+                    orderId: orderId,
+                    onUpdated: { viewModel.loadOrderDetail() }
+                )
+            }
+        }
+        .fullScreenCover(isPresented: $showEditOrder) {
+            if let order = viewModel.order {
+                EditOrderSheet(order: order) {
+                    viewModel.loadOrderDetail()
+                }
+            }
+        }
+    }
+
+    private var orderId: String {
+        viewModel.orderId
     }
 
     private var alertBinding: Binding<Bool> {
@@ -84,19 +117,16 @@ struct OrderDetailScreen: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let order = viewModel.order {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 10) {
-                        orderMainCard(order)
-                        paymentDetailsCard(order)
-                        sellerInfoCard(order)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 10)
-                    .padding(.bottom, 12)
+            ScrollView {
+                VStack(spacing: 10) {
+                    orderMainCard(order)
+                    paymentDetailsCard(order)
+                    sellerInfoCard(order)
+                    bottomActions(order)
                 }
-
-                bottomActions(order)
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+                .padding(.bottom, 24)
             }
         } else {
             Color.clear
@@ -282,51 +312,103 @@ struct OrderDetailScreen: View {
 
     private func bottomActions(_ order: OrderDetailData) -> some View {
         VStack(spacing: 8) {
-            if order.canDownloadInvoice {
+            if order.showsEditSeller {
+                Button {
+                    showChangeSeller = true
+                } label: {
+                    orderActionButton(
+                        title: "Edit Seller",
+                        icon: "storefront.fill",
+                        color: DashboardTheme.secondaryPurple
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            if order.showsEditOrder {
+                Button {
+                    showEditOrder = true
+                } label: {
+                    orderActionButton(
+                        title: "Edit Order",
+                        icon: "pencil",
+                        color: Color(hex: "166534")
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            if order.showsDownloadInvoice {
                 Button {
                     downloadInvoice(order)
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.down.circle.fill")
-                        Text("Download Invoice")
-                    }
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        order.invoiceLink.isEmptyString
-                        ? DashboardTheme.primaryBlue.opacity(0.45)
-                        : DashboardTheme.primaryBlue
+                    orderActionButton(
+                        title: "Download Invoice",
+                        icon: "arrow.down.circle.fill",
+                        color: DashboardTheme.primaryBlue,
+                        isDisabled: order.invoiceLink.isEmptyString
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .disabled(order.invoiceLink.isEmptyString)
             }
 
-            if order.canDownloadPaymentReceipt {
+            if order.showsDownloadSettlementReceipt {
                 Button {
-                    actionMessage = "Settlement receipt download will be available soon."
+                    downloadSettlementReceipt(order)
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.down.circle.fill")
-                        Text("Download Settlement Receipt")
-                    }
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(AppTheme.darkMidnightBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    orderActionButton(
+                        title: "Download Settlement Receipt",
+                        icon: "arrow.down.circle.fill",
+                        color: AppTheme.darkMidnightBlue,
+                        isDisabled: order.paymentReceiptLink.isEmptyString
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(order.paymentReceiptLink.isEmptyString)
+            }
+
+            if order.showsCancelOrder {
+                Button {
+                    showCancelConfirm = true
+                } label: {
+                    orderActionButton(
+                        title: "Cancel Order",
+                        icon: "xmark.circle.fill",
+                        color: DashboardTheme.dangerRed
+                    )
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-        .background(Color.white.opacity(0.96))
+        .padding(.top, 4)
+    }
+
+    private func orderActionButton(
+        title: String,
+        icon: String,
+        color: Color,
+        isDisabled: Bool = false
+    ) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+            Text(title)
+        }
+        .font(.system(size: 15, weight: .semibold))
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(isDisabled ? color.opacity(0.45) : color)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func downloadSettlementReceipt(_ order: OrderDetailData) {
+        guard !order.paymentReceiptLink.isEmptyString,
+              let url = URL(string: order.paymentReceiptLink.trim) else {
+            actionMessage = "Settlement receipt link is not available."
+            return
+        }
+        UIApplication.shared.open(url)
     }
 
     private func downloadInvoice(_ order: OrderDetailData) {

@@ -1,26 +1,30 @@
 //
-//  ChooseBrandScreen.swift
+//  EditOrderChooseBrandScreen.swift
 //  Truedata
 //
 
 import SwiftUI
 
-struct ChooseBrandScreen: View {
+struct EditOrderChooseBrandScreen: View {
 
+    @ObservedObject var editOrderViewModel: EditOrderViewModel
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ChooseBrandViewModel
 
     private let sellerId: Int
+    private let onViewCart: () -> Void
 
-    init(sellerId: Int) {
+    init(sellerId: Int, editOrderViewModel: EditOrderViewModel, onViewCart: @escaping () -> Void) {
         self.sellerId = sellerId
+        self.editOrderViewModel = editOrderViewModel
+        self.onViewCart = onViewCart
         _viewModel = StateObject(wrappedValue: ChooseBrandViewModel(sellerId: sellerId))
     }
 
     var body: some View {
         VStack(spacing: 0) {
             CreateOrderAppBar(
-                title: "Choose a Brand",
+                title: "Edit Order – Choose Brand",
                 onBack: { dismiss() },
                 onHome: { dismiss() },
                 onRefresh: { viewModel.loadData() }
@@ -39,7 +43,7 @@ struct ChooseBrandScreen: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Select Brand")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(DashboardTheme.neutralDark)
+                                .foregroundStyle(DashboardTheme.primaryBlue)
                                 .padding(.top, 4)
 
                             ForEach(viewModel.brands) { brand in
@@ -47,7 +51,10 @@ struct ChooseBrandScreen: View {
                                     BrandProductListScreen(
                                         sellerId: sellerId,
                                         brandId: brand.id,
-                                        brandName: brand.name
+                                        brandName: brand.name,
+                                        isEditMode: true,
+                                        editOrderViewModel: editOrderViewModel,
+                                        onViewCart: onViewCart
                                     )
                                 } label: {
                                     BrandSelectionRow(brand: brand)
@@ -63,6 +70,11 @@ struct ChooseBrandScreen: View {
                     }
                 }
             }
+
+            EditOrderCartFooterContainer(
+                viewModel: editOrderViewModel,
+                onViewCart: onViewCart
+            )
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -127,116 +139,63 @@ struct ChooseBrandScreen: View {
     }
 }
 
-struct BrandSelectionRow: View {
-    let brand: BrandListItem
+struct EditOrderCartFooter: View {
+    let itemCount: Int
+    let grandTotal: Double
+    let buttonTitle: String
+    var onAction: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.white)
-                        .frame(width: 48, height: 48)
-
-                    RemoteImage(url: brand.image, contentMode: .fit)
-                        .frame(width: 36, height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                }
-
-                Text(brand.name)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                    .lineLimit(1)
-
-                Spacer(minLength: 0)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(itemCount) Items")
+                    .font(.system(size: 12))
                     .foregroundStyle(DashboardTheme.neutralMedium)
+                Text(grandTotal.priceLabel)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(DashboardTheme.surfaceVariant)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Spacer(minLength: 8)
+
+            Button(action: onAction) {
+                Text(buttonTitle)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 14)
+                    .background(AppTheme.darkMidnightBlue)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.white)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(AppTheme.darkMidnightBlue.opacity(0.12))
+                .frame(height: 1)
+        }
     }
 }
 
-struct TopSellingSuggestionRow: View {
-    let suggestion: TopSellingProductSuggestion
+struct EditOrderCartFooterContainer: View {
+    @ObservedObject var viewModel: EditOrderViewModel
+    var onViewCart: () -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            RemoteImage(url: suggestion.productImage, contentMode: .fill)
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(suggestion.productName)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                    .lineLimit(2)
-
-                HStack(spacing: 10) {
-                    LabelDotText(
-                        color: DashboardTheme.successGreen,
-                        text: "\(suggestion.totalQuantity) available"
-                    )
-
-                    if suggestion.lastOrderedQty > 0 {
-                        LabelDotText(
-                            color: DashboardTheme.warningYellow,
-                            text: "Last ordered quantity: \(suggestion.lastOrderedQty)"
-                        )
-                    }
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(12)
-        .background(DashboardTheme.surfaceVariant)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        EditOrderCartFooter(
+            itemCount: viewModel.totalItems,
+            grandTotal: viewModel.grandTotal,
+            buttonTitle: "View Cart",
+            onAction: onViewCart
+        )
     }
 }
 
-struct TopSellingSuggestionPlaceholderRow: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.white.opacity(0.8))
-                .frame(width: 40, height: 40)
-
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.8))
-                    .frame(height: 12)
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.6))
-                    .frame(width: 140, height: 10)
-            }
-
-            Spacer()
-        }
-        .padding(12)
-        .background(DashboardTheme.surfaceVariant)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
-
-struct LabelDotText: View {
-    let color: Color
-    let text: String
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(color)
-                .frame(width: 6, height: 6)
-            Text(text)
-                .font(.system(size: 11))
-                .foregroundStyle(DashboardTheme.neutralMedium)
-                .lineLimit(1)
-        }
+private extension Double {
+    var priceLabel: String {
+        String(self).priceLabel
     }
 }

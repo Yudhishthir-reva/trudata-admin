@@ -33,6 +33,7 @@ struct OrderDetailData: Decodable {
     var orderDate: String
     var deliveryDate: String
     var deliveryTime: String
+    var sellerId: Int
     var sellerName: String
     var sellerShopName: String
     var sellerMobile: String
@@ -48,18 +49,24 @@ struct OrderDetailData: Decodable {
     var invoiceLink: String
     var canDownloadInvoice: Bool
     var canDownloadPaymentReceipt: Bool
+    var paymentReceiptLink: String
     var orderNotDelivered: Bool
+    var canEditSeller: Bool?
+    var canEditOrder: Bool?
+    var canCancelOrder: Bool?
     var orderDetails: [OrderDetailProduct]
 
     enum CodingKeys: String, CodingKey {
-        case status, discount
+        case status, discount, name, mobile, seller
         case orderId = "order_id"
         case orderNo = "order_no"
         case orderDate = "order_date"
         case deliveryDate = "delivery_date"
         case deliveryTime = "delivery_time"
+        case sellerId = "seller_id"
         case sellerName = "seller_name"
         case sellerShopName = "seller_shop_name"
+        case shopName = "shop_name"
         case sellerMobile = "seller_mobile"
         case sellerAddress = "seller_address"
         case manualAddress = "manual_address"
@@ -71,8 +78,22 @@ struct OrderDetailData: Decodable {
         case invoiceLink = "invoice_link"
         case canDownloadInvoice = "can_download_invoice"
         case canDownloadPaymentReceipt = "canDownloadPaymentReceipt"
+        case canDownloadPaymentReceiptSnake = "can_download_payment_receipt"
+        case paymentReceiptLink = "payment_receipt_link"
         case orderNotDelivered = "order_not_delivered"
+        case canEditSeller = "can_edit_seller"
+        case canEditOrder = "can_edit_order"
+        case canCancelOrder = "can_cancel_order"
         case orderDetails = "order_details"
+    }
+
+    private enum NestedSellerKeys: String, CodingKey {
+        case id, name, mobile, address
+        case sellerId = "seller_id"
+        case sellerName = "seller_name"
+        case shopName = "shop_name"
+        case sellerShopName = "seller_shop_name"
+        case sellerMobile = "seller_mobile"
     }
 
     init(from decoder: Decoder) throws {
@@ -82,10 +103,46 @@ struct OrderDetailData: Decodable {
         orderDate = container.decodeStringLeniently(forKey: .orderDate) ?? ""
         deliveryDate = container.decodeStringLeniently(forKey: .deliveryDate) ?? ""
         deliveryTime = container.decodeStringLeniently(forKey: .deliveryTime) ?? ""
-        sellerName = container.decodeStringLeniently(forKey: .sellerName) ?? ""
-        sellerShopName = container.decodeStringLeniently(forKey: .sellerShopName) ?? ""
-        sellerMobile = container.decodeStringLeniently(forKey: .sellerMobile) ?? ""
+        sellerId = container.decodeIntLeniently(forKey: .sellerId) ?? 0
+        sellerShopName = Self.firstNonEmpty(
+            container.decodeStringLeniently(forKey: .sellerShopName),
+            container.decodeStringLeniently(forKey: .shopName)
+        )
+        sellerName = Self.firstNonEmpty(
+            container.decodeStringLeniently(forKey: .sellerName),
+            container.decodeStringLeniently(forKey: .name)
+        )
+        sellerMobile = Self.firstNonEmpty(
+            container.decodeStringLeniently(forKey: .sellerMobile),
+            container.decodeStringLeniently(forKey: .mobile)
+        )
         sellerAddress = container.decodeStringLeniently(forKey: .sellerAddress) ?? ""
+
+        if let nested = try? container.nestedContainer(keyedBy: NestedSellerKeys.self, forKey: .seller) {
+            sellerShopName = Self.firstNonEmpty(
+                sellerShopName.nilIfEmpty,
+                nested.decodeStringLeniently(forKey: .sellerShopName),
+                nested.decodeStringLeniently(forKey: .shopName)
+            )
+            sellerName = Self.firstNonEmpty(
+                sellerName.nilIfEmpty,
+                nested.decodeStringLeniently(forKey: .sellerName),
+                nested.decodeStringLeniently(forKey: .name)
+            )
+            sellerMobile = Self.firstNonEmpty(
+                sellerMobile.nilIfEmpty,
+                nested.decodeStringLeniently(forKey: .sellerMobile),
+                nested.decodeStringLeniently(forKey: .mobile)
+            )
+            if sellerAddress.isEmptyString {
+                sellerAddress = nested.decodeStringLeniently(forKey: .address) ?? ""
+            }
+            if sellerId == 0 {
+                sellerId = nested.decodeIntLeniently(forKey: .sellerId)
+                    ?? nested.decodeIntLeniently(forKey: .id)
+                    ?? 0
+            }
+        }
         manualAddress = container.decodeStringLeniently(forKey: .manualAddress) ?? ""
         staffName = container.decodeStringLeniently(forKey: .staffName) ?? ""
         riderName = container.decodeStringLeniently(forKey: .riderName) ?? ""
@@ -96,8 +153,14 @@ struct OrderDetailData: Decodable {
         transactionStatus = container.decodeStringLeniently(forKey: .transactionStatus) ?? ""
         invoiceLink = container.decodeStringLeniently(forKey: .invoiceLink) ?? ""
         canDownloadInvoice = container.decodeBoolLeniently(forKey: .canDownloadInvoice) ?? true
-        canDownloadPaymentReceipt = container.decodeBoolLeniently(forKey: .canDownloadPaymentReceipt) ?? false
+        canDownloadPaymentReceipt = container.decodeBoolLeniently(forKey: .canDownloadPaymentReceipt)
+            ?? container.decodeBoolLeniently(forKey: .canDownloadPaymentReceiptSnake)
+            ?? false
+        paymentReceiptLink = container.decodeStringLeniently(forKey: .paymentReceiptLink) ?? ""
         orderNotDelivered = container.decodeBoolLeniently(forKey: .orderNotDelivered) ?? false
+        canEditSeller = container.decodeBoolLeniently(forKey: .canEditSeller)
+        canEditOrder = container.decodeBoolLeniently(forKey: .canEditOrder)
+        canCancelOrder = container.decodeBoolLeniently(forKey: .canCancelOrder)
         orderDetails = (try? container.decode([OrderDetailProduct].self, forKey: .orderDetails)) ?? []
     }
 
@@ -107,6 +170,7 @@ struct OrderDetailData: Decodable {
         orderDate = ""
         deliveryDate = ""
         deliveryTime = ""
+        sellerId = 0
         sellerName = ""
         sellerShopName = ""
         sellerMobile = ""
@@ -122,13 +186,40 @@ struct OrderDetailData: Decodable {
         invoiceLink = ""
         canDownloadInvoice = true
         canDownloadPaymentReceipt = false
+        paymentReceiptLink = ""
         orderNotDelivered = false
+        canEditSeller = nil
+        canEditOrder = nil
+        canCancelOrder = nil
         orderDetails = []
     }
 
     var displayOrderNo: String {
         let value = orderNo.isEmptyString ? "\(orderId)" : orderNo
         return value.hasPrefix("#") ? value : "#\(value)"
+    }
+
+    var showsEditSeller: Bool {
+        canEditSeller ?? (sellerId > 0)
+    }
+
+    var showsEditOrder: Bool {
+        canEditOrder ?? (status == BillOrderStatus.pending.rawValue || status.lowercased() == "pending")
+    }
+
+    var showsCancelOrder: Bool {
+        canCancelOrder ?? (
+            (status == BillOrderStatus.pending.rawValue || status.lowercased() == "pending")
+            && (transactionStatus == "0" || transactionStatus.lowercased() == "pending")
+        )
+    }
+
+    var showsDownloadInvoice: Bool {
+        canDownloadInvoice
+    }
+
+    var showsDownloadSettlementReceipt: Bool {
+        canDownloadPaymentReceipt
     }
 
     var subtotal: Double {
@@ -150,6 +241,50 @@ struct OrderDetailData: Decodable {
         if sellerMobile.isEmptyString { return sellerShopName }
         if sellerShopName.isEmptyString { return sellerMobile }
         return "\(sellerShopName) (\(sellerMobile))"
+    }
+
+    var changeSellerDisplayName: String {
+        Self.formatSellerDisplay(
+            shop: sellerShopName,
+            name: sellerName,
+            mobile: sellerMobile,
+            address: sellerAddress,
+            sellerId: sellerId
+        )
+    }
+
+    static func formatSellerDisplay(
+        shop: String,
+        name: String,
+        mobile: String,
+        address: String,
+        sellerId: Int
+    ) -> String {
+        let shop = shop.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let mobile = mobile.trimmingCharacters(in: .whitespacesAndNewlines)
+        let address = address.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !shop.isEmpty && !name.isEmpty { return "\(shop) (\(name))" }
+        if !shop.isEmpty { return shop }
+        if !name.isEmpty { return name }
+        if !mobile.isEmpty { return mobile }
+        if !address.isEmpty { return address }
+        if sellerId > 0 { return "Seller #\(sellerId)" }
+        return "N/A"
+    }
+
+    private static func firstNonEmpty(_ values: String?...) -> String {
+        for value in values {
+            if let value, !value.isEmptyString { return value }
+        }
+        return ""
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmptyString ? nil : self
     }
 }
 
@@ -248,21 +383,21 @@ enum OrderDetailStatusMapper {
         switch status.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) {
         case "pending", "0":
             return OrderDetailStatusChip(
-                text: "Payment: Pending",
+                text: "Payment Status: Pending",
                 color: DashboardTheme.primaryBlue,
                 icon: "hourglass",
                 backgroundColor: DashboardTheme.primaryBlue.opacity(0.15)
             )
         case "remaining", "1":
             return OrderDetailStatusChip(
-                text: "Payment: Partially Paid",
+                text: "Payment Status: Partially Paid",
                 color: DashboardTheme.warningYellow,
                 icon: "hourglass.bottomhalf.filled",
                 backgroundColor: DashboardTheme.warningYellow.opacity(0.15)
             )
         case "complete", "completed", "2":
             return OrderDetailStatusChip(
-                text: "Payment: Paid",
+                text: "Payment Status: Paid",
                 color: DashboardTheme.successGreen,
                 icon: "checkmark.seal.fill",
                 backgroundColor: DashboardTheme.successGreen.opacity(0.15)
@@ -270,7 +405,7 @@ enum OrderDetailStatusMapper {
         default:
             let value = status.isEmptyString ? "Unknown" : status
             return OrderDetailStatusChip(
-                text: "Payment: \(value)",
+                text: "Payment Status: \(value)",
                 color: DashboardTheme.neutralMedium,
                 icon: "creditcard.fill",
                 backgroundColor: DashboardTheme.neutralMedium.opacity(0.15)

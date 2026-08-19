@@ -413,6 +413,13 @@ struct PaymentTransactionItem: Identifiable, Decodable, Hashable {
     var status: String
     var orderStatus: String
     var sellerId: String
+    var invoiceLink: String
+    var paymentReceiptLink: String
+    var canEditSeller: Bool?
+    var canEditOrder: Bool?
+    var canCancelOrder: Bool?
+    var canDownloadInvoice: Bool?
+    var canDownloadSettlementReceipt: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, amount, date, status
@@ -425,6 +432,13 @@ struct PaymentTransactionItem: Identifiable, Decodable, Hashable {
         case paymentMode = "payment_mode"
         case orderStatus = "order_status"
         case sellerId = "seller_id"
+        case invoiceLink = "invoice_link"
+        case paymentReceiptLink = "payment_receipt_link"
+        case canEditSeller = "can_edit_seller"
+        case canEditOrder = "can_edit_order"
+        case canCancelOrder = "can_cancel_order"
+        case canDownloadInvoice = "can_download_invoice"
+        case canDownloadSettlementReceipt = "can_download_settlement_receipt"
     }
 
     init(from decoder: Decoder) throws {
@@ -444,6 +458,51 @@ struct PaymentTransactionItem: Identifiable, Decodable, Hashable {
         status = container.decodeStringLeniently(forKey: .status) ?? ""
         orderStatus = container.decodeStringLeniently(forKey: .orderStatus) ?? ""
         sellerId = container.decodeStringLeniently(forKey: .sellerId) ?? ""
+        invoiceLink = container.decodeStringLeniently(forKey: .invoiceLink) ?? ""
+        paymentReceiptLink = container.decodeStringLeniently(forKey: .paymentReceiptLink) ?? ""
+        canEditSeller = container.decodeBoolLeniently(forKey: .canEditSeller)
+        canEditOrder = container.decodeBoolLeniently(forKey: .canEditOrder)
+        canCancelOrder = container.decodeBoolLeniently(forKey: .canCancelOrder)
+        canDownloadInvoice = container.decodeBoolLeniently(forKey: .canDownloadInvoice)
+        canDownloadSettlementReceipt = container.decodeBoolLeniently(forKey: .canDownloadSettlementReceipt)
+    }
+}
+
+extension PaymentTransactionItem {
+    var sellerIdInt: Int? {
+        guard let value = Int(sellerId), value > 0 else { return nil }
+        return value
+    }
+
+    var resolvedOrderId: String {
+        orderNo.isEmptyString ? transactionNo : orderNo
+    }
+
+    var displayOrderLabel: String {
+        let value = resolvedOrderId
+        guard !value.isEmptyString else { return "Bill" }
+        return value.hasPrefix("#") ? value : "#\(value)"
+    }
+
+    var showsEditSeller: Bool {
+        canEditSeller ?? (sellerIdInt != nil)
+    }
+
+    var showsEditOrder: Bool {
+        canEditOrder ?? (orderStatus == BillOrderStatus.pending.rawValue)
+    }
+
+    var showsCancelOrder: Bool {
+        canCancelOrder ?? (orderStatus == BillOrderStatus.pending.rawValue && status == "0")
+    }
+
+    var showsDownloadInvoice: Bool {
+        canDownloadInvoice ?? !resolvedOrderId.isEmptyString
+    }
+
+    var showsDownloadSettlementReceipt: Bool {
+        if let canDownloadSettlementReceipt { return canDownloadSettlementReceipt }
+        return status == "2" || deductAmount <= 0
     }
 }
 

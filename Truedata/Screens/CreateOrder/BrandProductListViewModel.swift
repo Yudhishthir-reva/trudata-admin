@@ -16,6 +16,7 @@ final class BrandProductListViewModel: ObservableObject {
     let brandName: String
     let sellerId: Int
     let brandId: Int
+    let isEditMode: Bool
 
     private let sellerIdString: String
     private let service: CreateOrderServiceManager
@@ -25,12 +26,14 @@ final class BrandProductListViewModel: ObservableObject {
         sellerId: Int,
         brandId: Int,
         brandName: String,
+        isEditMode: Bool = false,
         service: CreateOrderServiceManager = CreateOrderServiceManager()
     ) {
         self.sellerId = sellerId
         self.brandId = brandId
-        self.sellerIdString = String(sellerId)
         self.brandName = brandName
+        self.isEditMode = isEditMode
+        self.sellerIdString = String(sellerId)
         self.service = service
     }
 
@@ -48,7 +51,7 @@ final class BrandProductListViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        service.getActiveProducts(sellerId: sellerIdString, brandId: brandId)
+        service.getActiveProducts(sellerId: sellerIdString, brandId: brandId, isEditMode: isEditMode)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self else { return }

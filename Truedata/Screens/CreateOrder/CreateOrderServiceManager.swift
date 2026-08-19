@@ -34,13 +34,21 @@ class CreateOrderServiceManager {
         )
     }
 
-    func getActiveProducts(sellerId: String, brandId: Int) -> AnyPublisher<ActiveProductListResponse, Error> {
-        networkService.request(
+    func getActiveProducts(
+        sellerId: String,
+        brandId: Int,
+        isEditMode: Bool = false
+    ) -> AnyPublisher<ActiveProductListResponse, Error> {
+        var params: [String: Any] = [
+            "seller_id": sellerId,
+            "brand_id": brandId
+        ]
+        if isEditMode {
+            params["is_edit_mode"] = "1"
+        }
+        return networkService.request(
             APIRouter.productSearchWiseList,
-            params: [
-                "seller_id": sellerId,
-                "brand_id": brandId
-            ],
+            params: params,
             headers: authHeaders
         )
     }

@@ -246,6 +246,24 @@ extension Double {
         }
         return currencyLabel
     }
+
+    var indianCompactCurrencyLabel: String {
+        if self >= 10_000_000 {
+            let value = self / 10_000_000
+            let formatted = value.truncatingRemainder(dividingBy: 1) == 0
+                ? String(format: "%.0f", value)
+                : String(format: "%.1f", value)
+            return "₹\(formatted)Cr"
+        }
+        if self >= 100_000 {
+            let value = self / 100_000
+            let formatted = value.truncatingRemainder(dividingBy: 1) == 0
+                ? String(format: "%.0f", value)
+                : String(format: "%.1f", value)
+            return "₹\(formatted)L"
+        }
+        return compactCurrencyLabel
+    }
 }
 
 extension JSONValue {
