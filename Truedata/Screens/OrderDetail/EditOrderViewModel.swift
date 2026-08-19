@@ -32,11 +32,13 @@ final class EditOrderViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var hasLoadedRemoteDetails = false
     private var resolvedSellerId: Int
+    private var apiOrderId: String
 
     init(order: OrderDetailData) {
         orderId = order.displayOrderNo
         sellerId = order.sellerId
         resolvedSellerId = order.sellerId
+        apiOrderId = order.orderId > 0 ? String(order.orderId) : order.displayOrderNo
         fallbackOrderNo = order.displayOrderNo
         fallbackDiscount = order.discountValue
         deliveryDate = order.deliveryDate
@@ -240,7 +242,7 @@ final class EditOrderViewModel: ObservableObject {
         errorMessage = nil
 
         service.createOrderForEdit(
-            orderId: editOrderReference(),
+            orderId: apiOrderId,
             cartId: sessionCartId,
             deliveryDate: formattedDeliveryDate,
             discount: discount,
@@ -308,12 +310,7 @@ final class EditOrderViewModel: ObservableObject {
     }
 
     private func applySyncedCartItems(_ syncedItems: [EditOrderLineItem]) {
-        let priceByVariantId = Dictionary(
-            uniqueKeysWithValues: syncedItems.compactMap { item -> (Int, Double)? in
-                guard item.variantId > 0, item.perPrice > 0 else { return nil }
-                return (item.variantId, item.perPrice)
-            }
-        )
+        let priceByVariantId = pricesByVariantId(from: syncedItems)
 
         guard !priceByVariantId.isEmpty else { return }
 
@@ -326,16 +323,22 @@ final class EditOrderViewModel: ObservableObject {
         }
     }
 
+    private func pricesByVariantId(from items: [EditOrderLineItem]) -> [Int: Double] {
+        var prices: [Int: Double] = [:]
+        for item in items where item.variantId > 0 && item.perPrice > 0 {
+            prices[item.variantId] = item.perPrice
+        }
+        return prices
+    }
+
     private func applyPayload(_ payload: EditOrderDetailsPayload) {
-        let previousPrices = Dictionary(
-            uniqueKeysWithValues: items.compactMap { item -> (Int, Double)? in
-                guard item.variantId > 0, item.perPrice > 0 else { return nil }
-                return (item.variantId, item.perPrice)
-            }
-        )
+        let previousPrices = pricesByVariantId(from: items)
 
         if payload.sellerId > 0 {
             resolvedSellerId = payload.sellerId
+        }
+        if payload.numericOrderId > 0 {
+            apiOrderId = String(payload.numericOrderId)
         }
         if !payload.sellerShopName.isEmptyString {
             sellerShopName = payload.sellerShopName
