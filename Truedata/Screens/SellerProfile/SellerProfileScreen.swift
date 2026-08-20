@@ -16,12 +16,24 @@ struct SellerProfileScreen: View {
     @State private var sharePayload: SharePayload?
 
     private let visibleDatePresets: [SellerProfileDatePreset] = [.thisMonth, .lastMonth, .thisYear]
+    private let usesNavigationStack: Bool
 
-    init(sellerId: Int) {
+    init(sellerId: Int, usesNavigationStack: Bool = true) {
+        self.usesNavigationStack = usesNavigationStack
         _viewModel = StateObject(wrappedValue: SellerProfileViewModel(sellerId: sellerId))
     }
 
     var body: some View {
+        if usesNavigationStack {
+            NavigationStack {
+                profileContent
+            }
+        } else {
+            profileContent
+        }
+    }
+
+    private var profileContent: some View {
         ZStack {
             Color(hex: "F3F4F6").ignoresSafeArea()
 

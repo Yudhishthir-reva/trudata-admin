@@ -11,9 +11,19 @@ struct OrderInsightsScreen: View {
     @StateObject private var viewModel: OrderInsightsViewModel
     @State private var showFilterSheet = false
 
-    init(startDate: String? = nil, endDate: String? = nil) {
+    init(
+        startDate: String? = nil,
+        endDate: String? = nil,
+        datePreset: OrderInsightsDatePreset? = nil,
+        orderStatus: String? = nil
+    ) {
         _viewModel = StateObject(
-            wrappedValue: OrderInsightsViewModel(startDate: startDate, endDate: endDate)
+            wrappedValue: OrderInsightsViewModel(
+                startDate: startDate,
+                endDate: endDate,
+                datePreset: datePreset,
+                orderStatus: orderStatus
+            )
         )
     }
 

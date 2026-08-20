@@ -9,12 +9,18 @@ struct ChooseBrandScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ChooseBrandViewModel
+    @StateObject private var cartViewModel: CreateOrderCartViewModel
+    @State private var showCartSheet = false
+    @State private var showSubmitScreen = false
 
     private let sellerId: Int
+    private let onFinish: ((CreateOrderFinishAction) -> Void)?
 
-    init(sellerId: Int) {
+    init(sellerId: Int, onFinish: ((CreateOrderFinishAction) -> Void)? = nil) {
         self.sellerId = sellerId
+        self.onFinish = onFinish
         _viewModel = StateObject(wrappedValue: ChooseBrandViewModel(sellerId: sellerId))
+        _cartViewModel = StateObject(wrappedValue: CreateOrderCartViewModel(sellerId: sellerId))
     }
 
     var body: some View {
@@ -47,7 +53,10 @@ struct ChooseBrandScreen: View {
                                     BrandProductListScreen(
                                         sellerId: sellerId,
                                         brandId: brand.id,
-                                        brandName: brand.name
+                                        brandName: brand.name,
+                                        cartViewModel: cartViewModel,
+                                        onViewCart: { showCartSheet = true },
+                                        onProceedToSubmit: { showSubmitScreen = true }
                                     )
                                 } label: {
                                     BrandSelectionRow(brand: brand)
@@ -59,14 +68,41 @@ struct ChooseBrandScreen: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
-                        .padding(.bottom, 24)
+                        .padding(.bottom, cartViewModel.hasItems ? 88 : 24)
                     }
                 }
             }
+
+            CreateOrderCartFooterContainer(
+                viewModel: cartViewModel,
+                onViewCart: { showCartSheet = true }
+            )
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { viewModel.loadData() }
+        .navigationDestination(isPresented: $showSubmitScreen) {
+            CreateOrderSubmitScreen(
+                cartViewModel: cartViewModel,
+                onFinish: handleFinish
+            )
+        }
+        .sheet(isPresented: $showCartSheet) {
+            CreateOrderCartSheet(
+                cartViewModel: cartViewModel,
+                onDismiss: { showCartSheet = false },
+                onAddMore: { showCartSheet = false },
+                onContinue: { showSubmitScreen = true }
+            )
+        }
+    }
+
+    private func handleFinish(_ action: CreateOrderFinishAction) {
+        if let onFinish {
+            onFinish(action)
+        } else {
+            dismiss()
+        }
     }
 
     private func errorState(_ message: String) -> some View {

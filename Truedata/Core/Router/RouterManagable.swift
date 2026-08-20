@@ -16,12 +16,14 @@ protocol RouterManagable {
 extension RouterManagable {
 
     var baseURL: String {
+        let url: String
         switch currentEnvironment {
         case .stagging:
-            return "https://spicemonk.revateam.com/api"
+            url = APIBaseURL.staging
         case .production:
-            return "https://trudataa.com/api"
+            url = BASE_URL
         }
+        return url.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
     var urlString: String {

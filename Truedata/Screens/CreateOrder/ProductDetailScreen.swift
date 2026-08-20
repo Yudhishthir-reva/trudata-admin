@@ -13,7 +13,10 @@ struct ProductDetailScreen: View {
     @State private var showEditSpecialPrices = false
 
     private let editOrderViewModel: EditOrderViewModel?
+    private let createOrderCartViewModel: CreateOrderCartViewModel?
     private let onViewCart: (() -> Void)?
+    private let onProceedToSubmit: (() -> Void)?
+    @State private var showCartSheet = false
 
     init(
         product: ActiveProductItem,
@@ -21,7 +24,9 @@ struct ProductDetailScreen: View {
         sellerId: Int,
         brandId: Int,
         editOrderViewModel: EditOrderViewModel? = nil,
-        onViewCart: (() -> Void)? = nil
+        createOrderCartViewModel: CreateOrderCartViewModel? = nil,
+        onViewCart: (() -> Void)? = nil,
+        onProceedToSubmit: (() -> Void)? = nil
     ) {
         _viewModel = StateObject(
             wrappedValue: ProductDetailViewModel(
@@ -29,11 +34,14 @@ struct ProductDetailScreen: View {
                 brandName: brandName,
                 sellerId: sellerId,
                 brandId: brandId,
-                editOrderViewModel: editOrderViewModel
+                editOrderViewModel: editOrderViewModel,
+                createOrderCartViewModel: createOrderCartViewModel
             )
         )
         self.editOrderViewModel = editOrderViewModel
+        self.createOrderCartViewModel = createOrderCartViewModel
         self.onViewCart = onViewCart
+        self.onProceedToSubmit = onProceedToSubmit
     }
 
     var body: some View {
@@ -71,7 +79,7 @@ struct ProductDetailScreen: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
-                .padding(.bottom, 24)
+                .padding(.bottom, cartBottomPadding)
             }
             .background(Color(hex: "F3F4F6"))
 
@@ -80,10 +88,28 @@ struct ProductDetailScreen: View {
                     viewModel: editOrderViewModel,
                     onViewCart: onViewCart
                 )
+            } else if let createOrderCartViewModel {
+                CreateOrderCartFooterContainer(
+                    viewModel: createOrderCartViewModel,
+                    onViewCart: { resolvedOnViewCart() }
+                )
             }
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showCartSheet) {
+            if let createOrderCartViewModel {
+                CreateOrderCartSheet(
+                    cartViewModel: createOrderCartViewModel,
+                    onDismiss: { showCartSheet = false },
+                    onAddMore: { showCartSheet = false },
+                    onContinue: {
+                        showCartSheet = false
+                        onProceedToSubmit?()
+                    }
+                )
+            }
+        }
         .sheet(isPresented: $showEditSpecialPrices) {
             EditSpecialPricesSheet(
                 variants: viewModel.product.variants,
@@ -100,6 +126,21 @@ struct ProductDetailScreen: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.specialPriceMessage ?? "")
+        }
+    }
+
+    private var cartBottomPadding: CGFloat {
+        if editOrderViewModel != nil {
+            return 24
+        }
+        return createOrderCartViewModel?.hasItems == true ? 88 : 24
+    }
+
+    private func resolvedOnViewCart() {
+        if let onViewCart {
+            onViewCart()
+        } else {
+            showCartSheet = true
         }
     }
 

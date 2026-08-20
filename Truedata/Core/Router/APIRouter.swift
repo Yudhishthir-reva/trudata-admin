@@ -23,6 +23,8 @@ enum APIRouter: RouterManagable {
     case orderDetailsForEdit
     case addCartForEdit
     case createOrderForEdit
+    case addCart
+    case createOrder
     case orderListV2
     case orderListV3
     case staffList
@@ -58,6 +60,65 @@ enum APIRouter: RouterManagable {
     case productList
     case allTopSellingProducts
     case allTopSellingProductsExportExcel
+    case lastTenDaysSummary
+    case criticalInsightExportExcel
+    case deviceChangeRequestsList
+    case approveDeviceChange
+    case deviceChangeHistory
+    case loggedInUserProfile
+    case addSeller
+    case updateSeller
+    case updateSellerStatus
+    case sellerDetail
+    case updateProductStatus
+    case productEdit
+    case productSave
+    case productUpdate
+    case categoriesWithBrand
+    case quickShareOrderInvoice
+    case generateBulkInvoice
+    case catelogPdf
+    case checkAttendanceStatus
+    case markAttendance
+    case attendanceList
+    case regularizeList
+    case addRegularize
+    case leaveList
+    case addLeave
+    case allExpensesList
+    case updateExpenseStatus
+    case expenseList
+    case addExpense
+    case orderNotDeliveredHistory
+    case salesmanActivitiesSummary
+    case staffActivitiesHistory
+    case addStaff
+    case updateStaff
+    case updateStaffStatus
+    case vehicleListAdmin
+    case createVehicle
+    case updateVehicle
+    case deleteVehicle
+    case vehicleHistory
+    case assignVehicleToRider
+    case unassignVehicle
+    case beatList
+    case createBeat
+    case updateBeat
+    case deleteBeat
+    case salesTargetList
+    case createSalesTarget
+    case updateTarget
+    case deleteTarget
+    case targetHistory
+    case beatOrderSummary
+    case assignedBeatList
+    case assignBeat
+    case assignBeatDelete
+    case assignBeatStatusUpdate
+    case getRegisteredSellers
+    case teamWiseAttendanceList
+    case teamWiseLocationList
 
     var endPointUrl: String {
         switch self {
@@ -97,6 +158,10 @@ enum APIRouter: RouterManagable {
             return "add-cart-for-edit"
         case .createOrderForEdit:
             return "create-order-for-edit"
+        case .addCart:
+            return "add-cart"
+        case .createOrder:
+            return "order"
         case .orderListV2:
             return "V2/order-list2"
         case .orderListV3:
@@ -167,14 +232,132 @@ enum APIRouter: RouterManagable {
             return "V2/all-top-selling-products"
         case .allTopSellingProductsExportExcel:
             return "V2/all-top-selling-products-export-excel"
+        case .lastTenDaysSummary:
+            return "last-ten-days-summary"
+        case .criticalInsightExportExcel:
+            return "critical-insight-export-excel"
+        case .deviceChangeRequestsList:
+            return "device-change-requests-list"
+        case .approveDeviceChange:
+            return "approve-device-change"
+        case .deviceChangeHistory:
+            return "device-change-history"
+        case .loggedInUserProfile:
+            return "logged-in-user-profile"
+        case .addSeller:
+            return "add-seller"
+        case .updateSeller:
+            return "update-seller"
+        case .updateSellerStatus:
+            return "update-seller-status"
+        case .sellerDetail:
+            return "seller-detail"
+        case .updateProductStatus:
+            return "update-product-status"
+        case .productEdit:
+            return "product-edit"
+        case .productSave:
+            return "product-save"
+        case .productUpdate:
+            return "product-update"
+        case .categoriesWithBrand:
+            return "categories-with-brand"
+        case .quickShareOrderInvoice:
+            return "quick-share-order-invoice"
+        case .generateBulkInvoice:
+            return "generate-bulk-invoice"
+        case .catelogPdf:
+            return "catelog-pdf"
+        case .checkAttendanceStatus:
+            return "check-attendance-status"
+        case .markAttendance:
+            return "mark-attendance"
+        case .attendanceList:
+            return "attendance-list"
+        case .regularizeList:
+            return "regularize-list"
+        case .addRegularize:
+            return "add-regularize"
+        case .leaveList:
+            return "leave-list"
+        case .addLeave:
+            return "add-leave"
+        case .allExpensesList:
+            return "all-expenses-list"
+        case .updateExpenseStatus:
+            return "update-expense-status"
+        case .expenseList:
+            return "expense-list"
+        case .addExpense:
+            return "add-expense"
+        case .orderNotDeliveredHistory:
+            return "order-not-delivered-history"
+        case .salesmanActivitiesSummary:
+            return "salesman-activities-summery"
+        case .staffActivitiesHistory:
+            return "V2/staff-activities-history"
+        case .addStaff:
+            return "add-staff"
+        case .updateStaff:
+            return "update-staff"
+        case .updateStaffStatus:
+            return "update-staff-status"
+        case .vehicleListAdmin:
+            return "vehicle-list-admin"
+        case .createVehicle:
+            return "create-vehicle"
+        case .updateVehicle:
+            return "update-vehicle"
+        case .deleteVehicle:
+            return "delete-vehicle"
+        case .vehicleHistory:
+            return "vehicle-history"
+        case .assignVehicleToRider:
+            return "assign-vehicle-to-rider"
+        case .unassignVehicle:
+            return "unassign-vehicle"
+        case .beatList:
+            return "beat-list"
+        case .createBeat:
+            return "create-new-beat"
+        case .updateBeat:
+            return "update-beat"
+        case .deleteBeat:
+            return "delete-beat"
+        case .salesTargetList:
+            return "sales-target-list"
+        case .createSalesTarget:
+            return "create-sales-target"
+        case .updateTarget:
+            return "update-target"
+        case .deleteTarget:
+            return "delete-target"
+        case .targetHistory:
+            return "target-history"
+        case .beatOrderSummary:
+            return "beat-order-summary"
+        case .assignedBeatList:
+            return "assigned-beat-list"
+        case .assignBeat:
+            return "assign-beat"
+        case .assignBeatDelete:
+            return "assign-beat-delete"
+        case .assignBeatStatusUpdate:
+            return "assign-beat-active-inactive"
+        case .getRegisteredSellers:
+            return "get-registered-sellers"
+        case .teamWiseAttendanceList:
+            return "team-wise-attendance-list"
+        case .teamWiseLocationList:
+            return "team-wise-location-list"
         }
     }
 
     var contentType: RequestContentType {
         switch self {
-        case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit:
+        case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit, .addCart, .createOrder:
             return .json
-        case .paymentSave, .paymentSettlement, .shopLocationVisited:
+        case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense:
             return .multipartForm
         default:
             return .urlEncoded

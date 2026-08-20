@@ -81,4 +81,81 @@ class CreateOrderServiceManager {
             headers: authHeaders
         )
     }
+
+    func initCart(sellerId: Int) -> AnyPublisher<InitCartForEditResponse, Error> {
+        let staffIdString = UserDefaultManager.shared.getUserDefaultsString(key: .userId)
+        var params: [String: Any] = ["seller_id": sellerId]
+        if let staffId = Int(staffIdString), !staffIdString.isEmptyString {
+            params["staff_id"] = staffId
+        } else if !staffIdString.isEmptyString {
+            params["staff_id"] = staffIdString
+        }
+
+        return networkService.request(
+            APIRouter.addCart,
+            params: params,
+            headers: authHeaders
+        )
+    }
+
+    func addCart(cartId: Int, items: [EditOrderLineItem]) -> AnyPublisher<CreateOrderAddCartResponse, Error> {
+        networkService.request(
+            APIRouter.addCart,
+            params: addCartPayload(cartId: cartId, items: items),
+            headers: authHeaders
+        )
+    }
+
+    func submitOrder(
+        cartIds: [Int],
+        latitude: String,
+        longitude: String,
+        deliveryDate: String = "",
+        discount: Double = 0,
+        remark: String = "",
+        audioRemark: String = ""
+    ) -> AnyPublisher<SellerProfileActionResponse, Error> {
+        networkService.request(
+            APIRouter.createOrder,
+            params: [
+                "cart_id": cartIds,
+                "delivery_date": deliveryDate,
+                "discount": String(format: "%.1f", discount),
+                "lat": latitude,
+                "lng": longitude,
+                "remark": remark,
+                "audio_remark": audioRemark
+            ],
+            headers: authHeaders
+        )
+    }
+
+    private func addCartPayload(cartId: Int, items: [EditOrderLineItem]) -> [String: Any] {
+        let activeItems = items.filter { $0.quantity > 0 && $0.productId > 0 && $0.variantId > 0 }
+
+        var productsById: [Int: [EditOrderLineItem]] = [:]
+        for item in activeItems {
+            productsById[item.productId, default: []].append(item)
+        }
+
+        let products: [[String: Any]] = productsById.keys.sorted().map { productId in
+            let variants = (productsById[productId] ?? []).map { item in
+                [
+                    "variant_id": String(item.variantId),
+                    "qty": item.quantity
+                ] as [String: Any]
+            }
+            return [
+                "id": String(productId),
+                "variants": variants
+            ] as [String: Any]
+        }
+
+        return [
+            "cart_id": String(cartId),
+            "items": [
+                ["product": products]
+            ]
+        ]
+    }
 }

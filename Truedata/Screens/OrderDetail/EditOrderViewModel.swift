@@ -24,21 +24,20 @@ final class EditOrderViewModel: ObservableObject {
     @Published var isSaving = false
     @Published var isSubmitting = false
     @Published var shouldShowSubmitScreen = false
+    @Published var showSuccessScreen = false
     @Published var errorMessage: String?
-    @Published var didSaveSuccessfully = false
 
     private let service = OrderDetailServiceManager()
     private let createOrderService = CreateOrderServiceManager()
     private var cancellables = Set<AnyCancellable>()
     private var hasLoadedRemoteDetails = false
     private var resolvedSellerId: Int
-    private var apiOrderId: String
+    private var syncedCartLineIds: [Int] = []
 
     init(order: OrderDetailData) {
         orderId = order.displayOrderNo
         sellerId = order.sellerId
         resolvedSellerId = order.sellerId
-        apiOrderId = order.orderId > 0 ? String(order.orderId) : order.displayOrderNo
         fallbackOrderNo = order.displayOrderNo
         fallbackDiscount = order.discountValue
         deliveryDate = order.deliveryDate
@@ -50,9 +49,14 @@ final class EditOrderViewModel: ObservableObject {
         }
     }
 
+    var effectiveSellerId: Int {
+        resolvedSellerId > 0 ? resolvedSellerId : sellerId
+    }
+
     func reloadEditDetails() {
         hasLoadedRemoteDetails = false
         sessionCartId = 0
+        syncedCartLineIds = []
         loadEditDetails()
     }
 
@@ -74,6 +78,13 @@ final class EditOrderViewModel: ObservableObject {
 
     var canSaveChanges: Bool {
         sessionCartId > 0 && !items.filter({ $0.quantity > 0 }).isEmpty && !isSaving
+    }
+
+    var successMessage: String {
+        let base = "Your order changes have been saved successfully."
+        let dateLabel = displayDeliveryDateLabel
+        guard !dateLabel.isEmptyString else { return base }
+        return "\(base) Delivery date: \(dateLabel)."
     }
 
     func loadEditDetails() {
@@ -236,14 +247,15 @@ final class EditOrderViewModel: ObservableObject {
     }
 
     func submitOrder(remark: String, audioRemark: String = "") {
-        guard sessionCartId > 0, !isSubmitting else { return }
+        let cartIds = submitCartLineIds
+        guard !cartIds.isEmpty, !isSubmitting else { return }
 
         isSubmitting = true
         errorMessage = nil
 
         service.createOrderForEdit(
-            orderId: apiOrderId,
-            cartId: sessionCartId,
+            orderId: editOrderReference(),
+            cartIds: cartIds,
             deliveryDate: formattedDeliveryDate,
             discount: discount,
             remark: remark,
@@ -259,7 +271,7 @@ final class EditOrderViewModel: ObservableObject {
             guard let self else { return }
             self.isSubmitting = false
             if response.status {
-                self.didSaveSuccessfully = true
+                self.showSuccessScreen = true
             } else {
                 self.errorMessage = response.message.isEmptyString
                     ? "Failed to update order."
@@ -272,7 +284,7 @@ final class EditOrderViewModel: ObservableObject {
     private var formattedDeliveryDate: String {
         let trimmed = deliveryDate.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmptyString else {
-            return Self.todayDeliveryDate
+            return ""
         }
 
         let inputFormats = ["dd-MM-yyyy", "yyyy-MM-dd", "dd/MM/yyyy"]
@@ -292,11 +304,38 @@ final class EditOrderViewModel: ObservableObject {
         return trimmed
     }
 
-    private static var todayDeliveryDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_IN")
-        formatter.dateFormat = "dd-MM-yyyy"
-        return formatter.string(from: Date())
+    private var displayDeliveryDateLabel: String {
+        let trimmed = deliveryDate.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmptyString else { return "" }
+
+        let inputFormats = ["dd-MM-yyyy", "yyyy-MM-dd", "dd/MM/yyyy", "dd-MMM-yyyy"]
+        let parser = DateFormatter()
+        parser.locale = Locale(identifier: "en_IN")
+
+        for format in inputFormats {
+            parser.dateFormat = format
+            if let date = parser.date(from: trimmed) {
+                let output = DateFormatter()
+                output.locale = parser.locale
+                output.dateFormat = "dd-MM-yyyy"
+                return output.string(from: date)
+            }
+        }
+
+        return trimmed
+    }
+
+    private var submitCartLineIds: [Int] {
+        if !syncedCartLineIds.isEmpty {
+            return syncedCartLineIds
+        }
+        let lineIds = items.compactMap { item -> Int? in
+            item.quantity > 0 && item.cartLineId > 0 ? item.cartLineId : nil
+        }
+        if !lineIds.isEmpty {
+            return lineIds
+        }
+        return sessionCartId > 0 ? [sessionCartId] : []
     }
 
     private func editOrderReference(from payload: EditOrderDetailsPayload? = nil) -> String {
@@ -311,16 +350,30 @@ final class EditOrderViewModel: ObservableObject {
 
     private func applySyncedCartItems(_ syncedItems: [EditOrderLineItem]) {
         let priceByVariantId = pricesByVariantId(from: syncedItems)
+        let cartLineIdByVariantId = cartLineIdsByVariantId(from: syncedItems)
 
-        guard !priceByVariantId.isEmpty else { return }
+        syncedCartLineIds = syncedItems.compactMap { item in
+            item.cartLineId > 0 ? item.cartLineId : nil
+        }
 
         items = items.map { item in
             var updated = item
             if updated.perPrice <= 0, let price = priceByVariantId[updated.variantId] {
                 updated.perPrice = price
             }
+            if updated.cartLineId <= 0, let cartLineId = cartLineIdByVariantId[updated.variantId] {
+                updated.cartLineId = cartLineId
+            }
             return updated
         }
+    }
+
+    private func cartLineIdsByVariantId(from items: [EditOrderLineItem]) -> [Int: Int] {
+        var cartLineIds: [Int: Int] = [:]
+        for item in items where item.variantId > 0 && item.cartLineId > 0 {
+            cartLineIds[item.variantId] = item.cartLineId
+        }
+        return cartLineIds
     }
 
     private func pricesByVariantId(from items: [EditOrderLineItem]) -> [Int: Double] {
@@ -336,9 +389,6 @@ final class EditOrderViewModel: ObservableObject {
 
         if payload.sellerId > 0 {
             resolvedSellerId = payload.sellerId
-        }
-        if payload.numericOrderId > 0 {
-            apiOrderId = String(payload.numericOrderId)
         }
         if !payload.sellerShopName.isEmptyString {
             sellerShopName = payload.sellerShopName

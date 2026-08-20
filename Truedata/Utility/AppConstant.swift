@@ -5,7 +5,14 @@
 
 import Foundation
 
-let currentEnvironment: RequestEnvironmentType = .stagging
+enum APIBaseURL {
+    static let production = "https://trudataa.com/864963/api/"
+    static let staging = "https://spicemonk.revateam.com/api/"
+}
+
+let BASE_URL = APIBaseURL.production
+
+let currentEnvironment: RequestEnvironmentType = .production
 
 let kDateFormatterHHMMA: DateFormatter = {
     let dateFormatter = DateFormatter()

@@ -9,6 +9,7 @@ struct HomeAppBar: View {
     let title: String
     let role: String
     let profileUrl: String
+    var onProfileTap: () -> Void = {}
     var onRefresh: () -> Void
     var onLogout: () -> Void
 
@@ -74,26 +75,29 @@ struct HomeAppBar: View {
     }
 
     private var profileAvatar: some View {
-        ZStack {
-            Circle()
-                .stroke(.white.opacity(0.45), lineWidth: 2)
-                .frame(width: 52, height: 52)
-
-            if !profileUrl.isEmptyString {
-                RemoteImage(url: profileUrl)
-                    .frame(width: 46, height: 46)
-                    .clipShape(Circle())
-            } else {
+        Button(action: onProfileTap) {
+            ZStack {
                 Circle()
-                    .fill(.white.opacity(0.18))
-                    .frame(width: 46, height: 46)
-                    .overlay {
-                        Text(initial)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
+                    .stroke(.white.opacity(0.45), lineWidth: 2)
+                    .frame(width: 52, height: 52)
+
+                if !profileUrl.isEmptyString {
+                    RemoteImage(url: profileUrl)
+                        .frame(width: 46, height: 46)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(.white.opacity(0.18))
+                        .frame(width: 46, height: 46)
+                        .overlay {
+                            Text(initial)
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                }
             }
         }
+        .buttonStyle(.plain)
     }
 
     private var initial: String {

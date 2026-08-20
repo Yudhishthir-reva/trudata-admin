@@ -11,6 +11,7 @@ struct DashboardResponse: Decodable {
     var message: String
     var maintenanceMode: Bool
     var attendanceScreen: Bool
+    var attendanceRoute: String
     var isBeatSelected: Bool
     var data: DashboardData?
 
@@ -18,6 +19,7 @@ struct DashboardResponse: Decodable {
         case status, role, message, data
         case maintenanceMode = "maintenance_mode"
         case attendanceScreen = "attendance_screen"
+        case attendanceRoute = "attendance_route"
         case isBeatSelected = "is_beat_selected"
     }
 
@@ -32,6 +34,7 @@ struct DashboardResponse: Decodable {
         }
         maintenanceMode = container.decodeBoolLeniently(forKey: .maintenanceMode) ?? false
         attendanceScreen = container.decodeBoolLeniently(forKey: .attendanceScreen) ?? false
+        attendanceRoute = container.decodeStringLeniently(forKey: .attendanceRoute) ?? "attendance"
         isBeatSelected = container.decodeBoolLeniently(forKey: .isBeatSelected) ?? true
         data = try? container.decode(DashboardData.self, forKey: .data)
     }

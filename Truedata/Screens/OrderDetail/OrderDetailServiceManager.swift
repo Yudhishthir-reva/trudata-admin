@@ -90,7 +90,7 @@ class OrderDetailServiceManager {
     /// Step 5: Submit edited order.
     func createOrderForEdit(
         orderId: String,
-        cartId: Int,
+        cartIds: [Int],
         deliveryDate: String,
         discount: Double,
         remark: String = "",
@@ -100,7 +100,7 @@ class OrderDetailServiceManager {
             APIRouter.createOrderForEdit,
             params: createOrderForEditPayload(
                 orderId: orderId,
-                cartId: cartId,
+                cartIds: cartIds,
                 deliveryDate: deliveryDate,
                 discount: discount,
                 remark: remark,
@@ -172,14 +172,14 @@ class OrderDetailServiceManager {
 
     private func createOrderForEditPayload(
         orderId: String,
-        cartId: Int,
+        cartIds: [Int],
         deliveryDate: String,
         discount: Double,
         remark: String,
         audioRemark: String
     ) -> [String: Any] {
         [
-            "cart_id": [cartId],
+            "cart_id": cartIds,
             "order_id": orderId,
             "delivery_date": deliveryDate,
             "discount": discount.editOrderDiscountLabel,
@@ -191,9 +191,6 @@ class OrderDetailServiceManager {
 
 private extension Double {
     var editOrderDiscountLabel: String {
-        if truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f", self)
-        }
-        return String(format: "%.1f", self)
+        String(format: "%.1f", self)
     }
 }

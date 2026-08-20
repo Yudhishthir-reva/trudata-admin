@@ -12,17 +12,26 @@ struct EditOrderSheet: View {
     @StateObject private var viewModel: EditOrderViewModel
     @State private var showChooseBrand = false
     var onSaved: () -> Void
+    var onGoHome: (() -> Void)?
+    var onViewSeller: ((Int) -> Void)?
 
-    init(order: OrderDetailData, onSaved: @escaping () -> Void) {
+    init(
+        order: OrderDetailData,
+        onSaved: @escaping () -> Void,
+        onGoHome: (() -> Void)? = nil,
+        onViewSeller: ((Int) -> Void)? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: EditOrderViewModel(order: order))
         self.onSaved = onSaved
+        self.onGoHome = onGoHome
+        self.onViewSeller = onViewSeller
     }
 
     var body: some View {
         NavigationStack {
             sheetContent
                 .navigationDestination(isPresented: $viewModel.shouldShowSubmitScreen) {
-                    EditOrderSubmitScreen(viewModel: viewModel)
+                    EditOrderSubmitScreen(viewModel: viewModel, onFinish: handleFinish)
                 }
                 .navigationDestination(isPresented: $showChooseBrand) {
                     EditOrderChooseBrandScreen(
@@ -36,6 +45,23 @@ struct EditOrderSheet: View {
             if !isShowing {
                 viewModel.reloadEditDetails()
             }
+        }
+    }
+
+    private func handleFinish(_ action: EditOrderFinishAction) {
+        switch action {
+        case .viewOrders:
+            onSaved()
+            dismiss()
+        case .goToDashboard:
+            onSaved()
+            dismiss()
+            onGoHome?()
+        case .viewSeller:
+            let sellerId = viewModel.effectiveSellerId
+            onSaved()
+            dismiss()
+            onViewSeller?(sellerId)
         }
     }
 
@@ -77,11 +103,6 @@ struct EditOrderSheet: View {
         }
         .background(Color(hex: "F3F4F6"))
         .onAppear { viewModel.loadEditDetails() }
-        .onChange(of: viewModel.didSaveSuccessfully) { _, didSave in
-            guard didSave else { return }
-            onSaved()
-            dismiss()
-        }
         .alert("Notice", isPresented: errorBinding) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {

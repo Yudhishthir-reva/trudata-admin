@@ -117,7 +117,7 @@ struct DashboardItemCard: View {
             bulletColors: [DashboardTheme.warningYellow, DashboardTheme.primaryBlue],
             statusIcon: "key.fill",
             emptyText: "No Requests",
-            action: {}
+            action: { onNavigate("new_device_login_requests") }
         )
     }
 
@@ -130,9 +130,25 @@ struct DashboardItemCard: View {
                 DashboardBulletTitle(title: displayTitle("Scheduled Revisits"), systemImage: "clock.fill")
 
                 if sellers.isEmpty {
-                    Text("No revisits scheduled today.")
-                        .font(.system(size: 14))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
+                    VStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(DashboardTheme.surfaceVariant)
+                                .frame(width: 56, height: 56)
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
+                        Text("No Revisits Scheduled")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                        Text("All caught up! No sellers scheduled for revisits today.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
                 } else {
                     HStack(spacing: 8) {
                         Text("👆")
@@ -153,7 +169,12 @@ struct DashboardItemCard: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
                             ForEach(sellers) { seller in
-                                ScheduledSellerAvatar(seller: seller)
+                                ScheduledSellerAvatar(
+                                    seller: seller,
+                                    onLongPress: {
+                                        onNavigate("create_order_with_seller:\(seller.id)")
+                                    }
+                                )
                             }
                         }
                         .padding(.horizontal, 2)
@@ -176,11 +197,11 @@ struct DashboardItemCard: View {
         let deliveredAmount = today?.double(for: "todayDeliveredAmount", "today_delivered_amount") ?? 0
         let pendingAmount = today?.double(for: "todayPendingAmount", "today_pending_amount") ?? 0
         let approvedCollection = today?.double(for: "todayApprovedCollectionAmount") ?? 0
-        let totalCollectionAmount = today?.double(for: "todayCollectionAmount", "today_collection_amount") ?? 0
-        let settledAmount = approvedCollection > 0 ? approvedCollection : (totalCollectionAmount > 0 ? totalCollectionAmount : totalCollection)
         let pendingOrders = today?.int(for: "pending") ?? 0
         let cancelledOrders = today?.int(for: "cancelled") ?? 0
         let validOrders = today?.int(for: "totalWithoutCancelled") ?? (pendingOrders - cancelledOrders)
+        let totalOrdersCount = pendingOrders
+        let hasCollection = totalCollection > 0
         let products = topSellingProducts(
             from: today,
             fallback: globalTopSellingFallback ?? payload
@@ -223,19 +244,28 @@ struct DashboardItemCard: View {
                 .buttonStyle(.plain)
 
                 HStack(alignment: .top, spacing: 12) {
-                    VStack(spacing: 8) {
-                        DashboardDonutChart(
-                            segments: collectionSegments(cash: cash, upi: upi, cheque: cheque),
-                            centerTitle: totalCollection.compactCurrencyLabel,
-                            centerSubtitle: "Collections by Mode\n(\(totalCollection.currencyLabel))"
-                        )
-                        VStack(spacing: 4) {
-                            DashboardLegendRow(color: DashboardTheme.accentTeal, title: "Cash", value: cash.currencyLabel)
-                            DashboardLegendRow(color: DashboardTheme.secondaryPurple, title: "UPI", value: upi.currencyLabel)
-                            DashboardLegendRow(color: DashboardTheme.primaryBlue, title: "Cheque", value: cheque.currencyLabel)
+                    if hasCollection {
+                        VStack(spacing: 8) {
+                            DashboardDonutChart(
+                                segments: collectionSegments(cash: cash, upi: upi, cheque: cheque),
+                                centerTitle: totalCollection.compactCurrencyLabel,
+                                centerSubtitle: "Collections by Mode\n(\(totalCollection.currencyLabel))"
+                            )
+                            VStack(spacing: 4) {
+                                DashboardLegendRow(color: DashboardTheme.accentTeal, title: "Cash", value: cash.currencyLabel)
+                                DashboardLegendRow(color: DashboardTheme.secondaryPurple, title: "UPI", value: upi.currencyLabel)
+                                DashboardLegendRow(color: DashboardTheme.primaryBlue, title: "Cheque", value: cheque.currencyLabel)
+                            }
                         }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        DashboardDonutChart(
+                            segments: orderStatusChartSegments(from: today),
+                            centerTitle: "\(totalOrdersCount)",
+                            centerSubtitle: "Total Orders"
+                        )
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
 
                     VStack(spacing: 8) {
                         DashboardDonutChart(
@@ -284,20 +314,22 @@ struct DashboardItemCard: View {
                 .background(DashboardTheme.surfaceVariant)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                Divider()
-                DashboardSectionHeader(title: "Today's Collection")
-                VStack(spacing: 4) {
-                    Text("Settled Amount")
-                        .font(.system(size: 12))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                    Text(settledAmount.currencyLabel)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
+                if approvedCollection > 0 {
+                    Divider()
+                    DashboardSectionHeader(title: "Today's Collection")
+                    VStack(spacing: 4) {
+                        Text("Settled Amount")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                        Text(approvedCollection.currencyLabel)
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(DashboardTheme.surfaceVariant)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(DashboardTheme.surfaceVariant)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 Divider()
                 DashboardSectionHeader(title: "Total Valid Orders")
@@ -411,9 +443,24 @@ struct DashboardItemCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     DashboardBulletTitle(title: "All Time Orders")
                     HStack(spacing: 8) {
-                        DashboardStatPill(title: "Pending", value: "\(orders?.int(for: "pending") ?? 0)", valueColor: DashboardTheme.warningYellow)
-                        DashboardStatPill(title: "Dispatched", value: "\(orders?.int(for: "to_deliver", "toDeliver") ?? 0)", valueColor: DashboardTheme.infoBlue)
-                        DashboardStatPill(title: "Delivered", value: "\(orders?.int(for: "delivered") ?? 0)", valueColor: DashboardTheme.successGreen)
+                        DashboardStatPill(
+                            title: "Pending",
+                            value: "\(orders?.int(for: "pending") ?? 0)",
+                            valueColor: DashboardTheme.warningYellow,
+                            action: { onNavigate("order_history_pending_this_year") }
+                        )
+                        DashboardStatPill(
+                            title: "Dispatched",
+                            value: "\(orders?.int(for: "to_deliver", "toDeliver") ?? 0)",
+                            valueColor: DashboardTheme.infoBlue,
+                            action: { onNavigate("order_history_to_deliver_this_year") }
+                        )
+                        DashboardStatPill(
+                            title: "Delivered",
+                            value: "\(orders?.int(for: "delivered") ?? 0)",
+                            valueColor: DashboardTheme.successGreen,
+                            action: { onNavigate("order_history_delivered_this_year") }
+                        )
                     }
                     if pendingBills > 0 {
                         Text("Pending bills: \(pendingBills)")
@@ -435,7 +482,11 @@ struct DashboardItemCard: View {
                 Image(systemName: "chart.line.downtrend.xyaxis")
                     .foregroundStyle(DashboardTheme.warningYellow)
                 Spacer()
-                DashboardCompactButton(title: "View Summary →", color: DashboardTheme.warningYellow, action: {})
+                DashboardCompactButton(
+                    title: "View Summary →",
+                    color: DashboardTheme.warningYellow,
+                    action: { onNavigate("last_10_day_summery") }
+                )
             }
         }
     }
@@ -444,58 +495,56 @@ struct DashboardItemCard: View {
 
     private var staffActivitiesCard: some View {
         let activities = staffActivityRows
-        let showAmounts = ["admin", "sales manager"].contains(role.lowercased())
+        let showAmounts = DashboardRole.canShowStaffAmountDetails(role: role)
         return DashboardCardChrome(cornerRadius: 20) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(DashboardTheme.primaryBlue)
                         .frame(width: 4, height: 18)
                     Text(displayTitle("Today Staff Activities"))
-                        .font(.system(size: 17, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                 }
-
-                HStack {
-                    Text("#").frame(width: 24)
-                    Text("STAFF").frame(maxWidth: .infinity, alignment: .leading)
-                    Text("ORDERS").frame(width: 70, alignment: .trailing)
-                    if showAmounts {
-                        Text("SALES / COLLEC.").frame(width: 110, alignment: .trailing)
-                    }
-                }
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+                .padding(.bottom, 12)
 
                 if activities.isEmpty {
-                    Text("No staff activity today.")
-                        .font(.system(size: 14))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                } else {
-                    ForEach(Array(activities.prefix(5).enumerated()), id: \.offset) { index, row in
-                        HStack {
-                            Text("\(index + 1)")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(index == 0 ? DashboardTheme.pickupOrange : DashboardTheme.neutralMedium)
-                                .frame(width: 24)
-                            Text(row.name)
-                                .font(.system(size: 13, weight: .semibold))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text("\(row.orders) orders")
-                                .font(.system(size: 12))
-                                .frame(width: 70, alignment: .trailing)
-                            if showAmounts {
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(row.sales.currencyLabel)
-                                        .font(.system(size: 12, weight: .semibold))
-                                        .foregroundStyle(DashboardTheme.pickupOrange)
-                                    Text(row.collection.currencyLabel)
-                                        .font(.system(size: 11))
-                                }
-                                .frame(width: 110, alignment: .trailing)
-                            }
-                        }
+                    VStack(spacing: 6) {
+                        Text("No Activity Yet")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                        Text("Orders and sales will appear here.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
                     }
-                    DashboardOutlinedButton(title: "View All Activities", systemImage: "arrow.right")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+                } else {
+                    StaffActivityTableHeader(showAmountDetails: showAmounts)
+                        .padding(.horizontal, -16)
+
+                    ForEach(Array(activities.prefix(5).enumerated()), id: \.offset) { index, row in
+                        Button {
+                            onNavigate("today_staff_activities")
+                        } label: {
+                            StaffActivityTableRow(
+                                row: StaffActivityDisplayRow(
+                                    name: row.name,
+                                    orders: row.orders,
+                                    sales: row.sales,
+                                    collection: row.collection
+                                ),
+                                rank: index + 1,
+                                showAmountDetails: showAmounts
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, -16)
+                    }
+
+                    StaffActivitiesPillButton(title: "View All Activities") {
+                        onNavigate("today_staff_activities")
+                    }
+                    .padding(.top, 8)
                 }
             }
         }
@@ -519,7 +568,11 @@ struct DashboardItemCard: View {
                     .font(.system(size: 14))
                     .foregroundStyle(DashboardTheme.neutralMedium)
                     .frame(maxWidth: .infinity)
-                DashboardOutlinedButton(title: "View Staff", systemImage: "arrow.right")
+                DashboardOutlinedButton(
+                    title: "View Staff",
+                    systemImage: "arrow.right",
+                    action: { onNavigate("salesman_activities") }
+                )
             }
         }
     }
@@ -555,7 +608,11 @@ struct DashboardItemCard: View {
                         statBlock(label: "All Time", value: allTime, color: DashboardTheme.dangerRed)
                     }
                     Spacer()
-                    DashboardCompactButton(title: "View", color: DashboardTheme.dangerRed, action: {})
+                    DashboardCompactButton(
+                        title: "View",
+                        color: DashboardTheme.dangerRed,
+                        action: { onNavigate("order_not_delivered_history") }
+                    )
                 }
             }
         }
@@ -573,7 +630,7 @@ struct DashboardItemCard: View {
                     Text(enabled ? "Available" : "Unavailable")
                         .font(.system(size: 13))
                         .foregroundStyle(DashboardTheme.neutralMedium)
-                    DashboardCompactButton(title: "View", action: {})
+                    DashboardCompactButton(title: "View", action: { onNavigate("quick_share") })
                 }
             }
         }
@@ -592,7 +649,7 @@ struct DashboardItemCard: View {
                         .foregroundStyle(DashboardTheme.neutralMedium)
                 }
                 Spacer()
-                Button(action: {}) {
+                Button(action: { onNavigate("catalogue") }) {
                     HStack(spacing: 6) {
                         Image(systemName: "eye.fill")
                         Text("View Catalogue")
@@ -625,7 +682,9 @@ struct DashboardItemCard: View {
             primaryTitle: "View All →",
             primaryColor: DashboardTheme.accentTeal,
             secondaryTitle: showAdd ? "+ Add" : nil,
-            secondaryColor: DashboardTheme.successGreen
+            secondaryColor: DashboardTheme.successGreen,
+            primaryAction: { onNavigate("registered_sellers") },
+            secondaryAction: showAdd ? { onNavigate("add_new_sellers") } : nil
         )
     }
 
@@ -650,7 +709,9 @@ struct DashboardItemCard: View {
                         }
                     }
                     Spacer(minLength: 0)
-                    DashboardCompactButton(title: "View Products →", color: DashboardTheme.infoBlue, action: {})
+                    DashboardCompactButton(title: "View Products →", color: DashboardTheme.infoBlue, action: {
+                        onNavigate("view_products")
+                    })
                 }
 
                 if !products.isEmpty {
@@ -684,21 +745,36 @@ struct DashboardItemCard: View {
     }
 
     private var genericCard: some View {
-        DashboardCardChrome {
-            VStack(alignment: .leading, spacing: 8) {
-                DashboardBulletTitle(title: displayTitle(item.route.replacingOccurrences(of: "_", with: " ").capitalized))
-                if payload?["in_time"] != nil {
-                    DashboardStatRow(label: "In", value: payload?.string(for: "in_time") ?? "-")
-                    DashboardStatRow(label: "Out", value: payload?.string(for: "out_time") ?? "-")
-                } else if let pending = payload?.int(for: "pendingRequests"), pending > 0 {
-                    DashboardPendingTag(count: pending, suffix: "Pending")
-                } else {
-                    Text("Tap to open")
-                        .font(.system(size: 13))
-                        .foregroundStyle(AppTheme.textMuted)
+        Button(action: {
+            if !item.route.isEmptyString {
+                onNavigate(item.route)
+            }
+        }) {
+            DashboardCardChrome {
+                VStack(alignment: .leading, spacing: 8) {
+                    DashboardBulletTitle(title: displayTitle(item.route.replacingOccurrences(of: "_", with: " ").capitalized))
+                    if payload?["in_time"] != nil {
+                        DashboardStatRow(label: "In", value: payload?.string(for: "in_time") ?? "-")
+                        DashboardStatRow(label: "Out", value: payload?.string(for: "out_time") ?? "-")
+                    } else if let totalStaff = payload?.int(for: "totalStaff"), totalStaff > 0 {
+                        DashboardStatRow(label: "Present", value: "\(payload?.int(for: "presentStaff") ?? 0)/\(totalStaff)")
+                    } else if let totalRider = payload?.int(for: "totalRider"), totalRider > 0 {
+                        DashboardStatRow(label: "Present", value: "\(payload?.int(for: "presentRider") ?? 0)/\(totalRider)")
+                    } else if let pending = payload?.int(for: "pendingRequests"), pending > 0 {
+                        DashboardPendingTag(count: pending, suffix: "Pending")
+                    } else if let pendingLeave = payload?.int(for: "pendingLeaveCount"), pendingLeave > 0 {
+                        DashboardPendingTag(count: pendingLeave, suffix: "Pending")
+                    } else if let pendingRegularize = payload?.int(for: "pendingRegularizeCount"), pendingRegularize > 0 {
+                        DashboardPendingTag(count: pendingRegularize, suffix: "Pending")
+                    } else {
+                        Text("Tap to open")
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.textMuted)
+                    }
                 }
             }
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
@@ -727,13 +803,16 @@ struct DashboardItemCard: View {
     private var staffActivityRows: [StaffActivityRow] {
         let list = payload?.arrayValue.isEmpty == false ? payload?.arrayValue ?? [] : payload?["data"]?.arrayValue ?? []
         return list.compactMap { entry in
-            let name = entry.string(for: "staff_name", "staffName", "name")
-            guard !name.isEmptyString else { return nil }
+            let name = entry.string(for: "staff_name", "staffName", "name").trimmingCharacters(in: .whitespacesAndNewlines)
+            let orders = entry.int(for: "today_orders_count", "todayOrdersCount", "orders_count")
+            let sales = entry.double(for: "today_orders_total", "todayOrdersTotal", "orders_total")
+            let collection = entry.double(for: "today_transactions_sum", "todayTransactionsSum", "transactions_sum")
+            guard !name.isEmptyString || orders > 0 || sales > 0 || collection > 0 else { return nil }
             return StaffActivityRow(
-                name: name,
-                orders: entry.int(for: "today_orders_count", "todayOrdersCount"),
-                sales: entry.double(for: "today_orders_total", "todayOrdersTotal"),
-                collection: entry.double(for: "today_transactions_sum", "todayTransactionsSum")
+                name: name.isEmptyString ? "—" : name,
+                orders: orders,
+                sales: sales,
+                collection: collection
             )
         }
     }
@@ -745,7 +824,9 @@ struct DashboardItemCard: View {
         primaryTitle: String,
         primaryColor: Color,
         secondaryTitle: String?,
-        secondaryColor: Color
+        secondaryColor: Color,
+        primaryAction: @escaping () -> Void = {},
+        secondaryAction: (() -> Void)? = nil
     ) -> some View {
         DashboardCardChrome {
             HStack(alignment: .center) {
@@ -765,9 +846,9 @@ struct DashboardItemCard: View {
                 }
                 Spacer()
                 HStack(spacing: 8) {
-                    DashboardCompactButton(title: primaryTitle, color: primaryColor, action: {})
+                    DashboardCompactButton(title: primaryTitle, color: primaryColor, action: primaryAction)
                     if let secondaryTitle {
-                        DashboardCompactButton(title: secondaryTitle, color: secondaryColor, action: {})
+                        DashboardCompactButton(title: secondaryTitle, color: secondaryColor, action: secondaryAction ?? {})
                     }
                 }
             }
@@ -779,6 +860,18 @@ struct DashboardItemCard: View {
             DashboardChartSegment(value: cash, color: DashboardTheme.accentTeal),
             DashboardChartSegment(value: upi, color: DashboardTheme.secondaryPurple),
             DashboardChartSegment(value: cheque, color: DashboardTheme.primaryBlue)
+        ].filter { $0.value > 0 }
+    }
+
+    private func orderStatusChartSegments(from today: JSONValue?) -> [DashboardChartSegment] {
+        [
+            DashboardChartSegment(value: Double(today?.int(for: "delivered") ?? 0), color: DashboardTheme.successGreen),
+            DashboardChartSegment(value: Double(today?.int(for: "pending") ?? 0), color: DashboardTheme.warningYellow),
+            DashboardChartSegment(value: Double(today?.int(for: "to_deliver", "toDeliver") ?? 0), color: DashboardTheme.infoBlue),
+            DashboardChartSegment(value: Double(today?.int(for: "assigned") ?? 0), color: DashboardTheme.primaryBlue),
+            DashboardChartSegment(value: Double(today?.int(for: "pickup") ?? 0), color: DashboardTheme.pickupOrange),
+            DashboardChartSegment(value: Double(today?.int(for: "cancelled") ?? 0), color: DashboardTheme.dangerRed),
+            DashboardChartSegment(value: Double(today?.int(for: "returned") ?? 0), color: DashboardTheme.neutralMedium)
         ].filter { $0.value > 0 }
     }
 
@@ -959,6 +1052,7 @@ private struct ScheduledSeller: Identifiable {
 
 private struct ScheduledSellerAvatar: View {
     let seller: ScheduledSeller
+    var onLongPress: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 6) {
@@ -984,6 +1078,9 @@ private struct ScheduledSellerAvatar: View {
                 .foregroundStyle(DashboardTheme.neutralMedium)
                 .lineLimit(1)
                 .frame(width: 84)
+        }
+        .onLongPressGesture(minimumDuration: 0.7) {
+            onLongPress()
         }
     }
 }
@@ -1029,6 +1126,7 @@ struct DashboardStatRow: View {
 
 struct OperationsCard: View {
     let operations: [String]
+    var onOperationTap: (String) -> Void = { _ in }
 
     private let tileColors: [[Color]] = [
         [Color(hex: "E0F7FA"), Color(hex: "B2EBF2")],
@@ -1044,14 +1142,19 @@ struct OperationsCard: View {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     ForEach(Array(operations.enumerated()), id: \.element) { index, title in
                         let colors = tileColors[index % tileColors.count]
-                        Text(title)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.neutralDark)
-                            .frame(maxWidth: .infinity, minHeight: 56)
-                            .background(
-                                LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        Button {
+                            onOperationTap(title)
+                        } label: {
+                            Text(title)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(DashboardTheme.neutralDark)
+                                .frame(maxWidth: .infinity, minHeight: 56)
+                                .background(
+                                    LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

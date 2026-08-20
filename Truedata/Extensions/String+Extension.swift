@@ -15,6 +15,10 @@ extension String {
         trim.isEmpty
     }
 
+    var nilIfEmpty: String? {
+        isEmptyString ? nil : self
+    }
+
     var priceLabel: String {
         let trimmedString = trim
         return trimmedString.hasPrefix("₹") ? trimmedString : "₹\(trimmedString.removeZerosFromEnd(max: 2))"

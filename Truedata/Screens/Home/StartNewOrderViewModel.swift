@@ -38,11 +38,12 @@ final class StartNewOrderViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var hasAppliedPreference = false
 
+    var onDashboardBeatSaved: (() -> Void)?
+
     var canEditStateAndCity: Bool {
-        let role = UserDefaultManager.shared.getUserDefaultsString(key: .userRole)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-        return role == "admin" || role == "sales manager"
+        DashboardRole.canEditStateAndCity(
+            role: UserDefaultManager.shared.getUserDefaultsString(key: .userRole)
+        )
     }
 
     var isStateAndCityPrefilled: Bool {
@@ -228,11 +229,6 @@ final class StartNewOrderViewModel: ObservableObject {
         visibleListLimit += 8
     }
 
-    func sellerSelected(_ seller: StartNewOrderSeller) {
-        // Create Order cart flow will be wired in a follow-up screen.
-        errorMessage = "Create Order for \(seller.displayName) will open here."
-    }
-
     func applyReorderedSellers(_ sellers: [StartNewOrderSeller]) {
         self.sellers = sellers
         guard let beatId = selectedBeatId else { return }
@@ -272,7 +268,7 @@ final class StartNewOrderViewModel: ObservableObject {
 
     private func saveBeatAndLoadSellers(beatId: Int) {
         isSavingBeat = true
-        isFindingSellers = true
+        isFindingSellers = onDashboardBeatSaved == nil
         errorMessage = nil
         sellers = []
 
@@ -288,6 +284,10 @@ final class StartNewOrderViewModel: ObservableObject {
                 guard let self else { return }
                 self.isSavingBeat = false
                 if response.status {
+                    if let onDashboardBeatSaved {
+                        onDashboardBeatSaved()
+                        return
+                    }
                     self.isBeatCollapsed = true
                     self.loadSellers(beatId: beatId)
                     self.loadAreas()

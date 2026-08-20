@@ -282,12 +282,6 @@ struct OrderDetailData: Decodable {
     }
 }
 
-private extension String {
-    var nilIfEmpty: String? {
-        isEmptyString ? nil : self
-    }
-}
-
 struct OrderDetailProduct: Decodable, Identifiable, Hashable {
     var id: String { "\(productName)-\(variantName)-\(qty)-\(perPrice)" }
     var productName: String

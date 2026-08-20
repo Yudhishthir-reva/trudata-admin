@@ -20,6 +20,7 @@ final class ProductDetailViewModel: ObservableObject {
     let isEditMode: Bool
 
     private var editOrderViewModel: EditOrderViewModel?
+    private var createOrderCartViewModel: CreateOrderCartViewModel?
     private let service: CreateOrderServiceManager
     private var cancellables = Set<AnyCancellable>()
 
@@ -29,6 +30,7 @@ final class ProductDetailViewModel: ObservableObject {
         sellerId: Int,
         brandId: Int,
         editOrderViewModel: EditOrderViewModel? = nil,
+        createOrderCartViewModel: CreateOrderCartViewModel? = nil,
         service: CreateOrderServiceManager = CreateOrderServiceManager()
     ) {
         self.product = product
@@ -36,25 +38,41 @@ final class ProductDetailViewModel: ObservableObject {
         self.sellerId = sellerId
         self.brandId = brandId
         self.editOrderViewModel = editOrderViewModel
+        self.createOrderCartViewModel = createOrderCartViewModel
         self.isEditMode = editOrderViewModel != nil
         self.service = service
-        self.variantQuantities = Self.initialQuantities(for: product, editOrderViewModel: editOrderViewModel)
+        self.variantQuantities = Self.initialQuantities(
+            for: product,
+            editOrderViewModel: editOrderViewModel,
+            createOrderCartViewModel: createOrderCartViewModel
+        )
     }
 
     private static func initialQuantities(
         for product: ActiveProductItem,
-        editOrderViewModel: EditOrderViewModel?
+        editOrderViewModel: EditOrderViewModel?,
+        createOrderCartViewModel: CreateOrderCartViewModel?
     ) -> [Int: Int] {
-        guard let editOrderViewModel else { return [:] }
-
-        var seeded: [Int: Int] = [:]
-        for item in editOrderViewModel.items where item.quantity > 0 {
-            let belongsToProduct = item.productId == product.id
-                || (item.productId == 0 && product.variants.contains(where: { $0.id == item.variantId }))
-            guard belongsToProduct else { continue }
-            seeded[item.variantId] = item.quantity
+        if let editOrderViewModel {
+            var seeded: [Int: Int] = [:]
+            for item in editOrderViewModel.items where item.quantity > 0 {
+                let belongsToProduct = item.productId == product.id
+                    || (item.productId == 0 && product.variants.contains(where: { $0.id == item.variantId }))
+                guard belongsToProduct else { continue }
+                seeded[item.variantId] = item.quantity
+            }
+            return seeded
         }
-        return seeded
+
+        if let createOrderCartViewModel {
+            var seeded: [Int: Int] = [:]
+            for item in createOrderCartViewModel.items where item.quantity > 0 && item.productId == product.id {
+                seeded[item.variantId] = item.quantity
+            }
+            return seeded
+        }
+
+        return [:]
     }
 
     func quantity(for variantID: Int) -> Int {
@@ -71,16 +89,23 @@ final class ProductDetailViewModel: ObservableObject {
         }
         variantQuantities = updated
 
-        guard isEditMode,
-              let editOrderViewModel,
-              let variant = product.variants.first(where: { $0.id == variantID }) else { return }
+        guard let variant = product.variants.first(where: { $0.id == variantID }) else { return }
 
-        editOrderViewModel.updateProductVariant(
-            product: product,
-            brandName: brandName,
-            variant: variant,
-            quantity: clamped
-        )
+        if isEditMode, let editOrderViewModel {
+            editOrderViewModel.updateProductVariant(
+                product: product,
+                brandName: brandName,
+                variant: variant,
+                quantity: clamped
+            )
+        } else if let createOrderCartViewModel {
+            createOrderCartViewModel.updateProductVariant(
+                product: product,
+                brandName: brandName,
+                variant: variant,
+                quantity: clamped
+            )
+        }
     }
 
     var categoryBrandLabel: String {

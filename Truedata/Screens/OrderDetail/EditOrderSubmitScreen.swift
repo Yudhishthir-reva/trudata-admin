@@ -6,6 +6,12 @@
 import SwiftUI
 import UIKit
 
+enum EditOrderFinishAction {
+    case viewOrders
+    case goToDashboard
+    case viewSeller
+}
+
 struct EditOrderSubmitScreen: View {
 
     @ObservedObject var viewModel: EditOrderViewModel
@@ -13,8 +19,32 @@ struct EditOrderSubmitScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var remark = ""
+    var onFinish: (EditOrderFinishAction) -> Void
+
+    init(
+        viewModel: EditOrderViewModel,
+        onFinish: @escaping (EditOrderFinishAction) -> Void = { _ in }
+    ) {
+        self.viewModel = viewModel
+        self.onFinish = onFinish
+    }
 
     var body: some View {
+        ZStack {
+            submitContent
+
+            if viewModel.showSuccessScreen {
+                EditOrderSuccessOverlay(
+                    message: viewModel.successMessage,
+                    onViewOrders: { onFinish(.viewOrders) },
+                    onGoToDashboard: { onFinish(.goToDashboard) },
+                    onViewSeller: { onFinish(.viewSeller) }
+                )
+            }
+        }
+    }
+
+    private var submitContent: some View {
         VStack(spacing: 0) {
             SellerPaymentAppBar(
                 title: "Edit Order \(viewModel.orderNo)",
@@ -310,6 +340,91 @@ struct EditOrderSubmitScreen: View {
         }
 
         return "\(item.quantity) pkt"
+    }
+}
+
+private struct EditOrderSuccessOverlay: View {
+    let message: String
+    var onViewOrders: () -> Void
+    var onGoToDashboard: () -> Void
+    var onViewSeller: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(hex: "34C759"),
+                                    Color(hex: "28A745")
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 72, height: 72)
+                        .shadow(color: Color(hex: "34C759").opacity(0.35), radius: 10, y: 4)
+
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+
+                Text("Order Updated Successfully")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .multilineTextAlignment(.center)
+
+                Text(message)
+                    .font(.system(size: 14))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+
+                VStack(spacing: 10) {
+                    Button(action: onViewOrders) {
+                        Text("View Orders")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(AppTheme.darkMidnightBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onGoToDashboard) {
+                        Text("Go to Dashboard")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color(hex: "EAF2FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onViewSeller) {
+                        Text("View Seller")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 28)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: Color.black.opacity(0.12), radius: 18, y: 8)
+            .padding(.horizontal, 28)
+        }
     }
 }
 

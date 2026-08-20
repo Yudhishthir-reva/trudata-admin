@@ -242,3 +242,203 @@ struct SpecialPriceRequest: Encodable {
     let productId: Int
     let verientAndPrice: [String: String]
 }
+
+struct CreateOrderSubmitLineItem: Identifiable, Hashable {
+    var id: String
+    var productName: String
+    var variantName: String
+    var quantity: Int
+    var lineTotal: Double
+    var gstLabel: String
+    var weightKg: Double
+
+    var quantityLabel: String {
+        if !variantName.isEmptyString {
+            return "\(quantity) pkt X \(variantName)"
+        }
+        return "\(quantity) pkt"
+    }
+
+    var weightLabel: String {
+        guard weightKg > 0 else { return "" }
+        return String(format: "%.2f kg", weightKg)
+    }
+}
+
+struct CreateOrderAddCartResponse: Decodable {
+    var status: Bool
+    var message: String
+    var sellerShopName: String
+    var sellerAddress: String
+    var grandTotal: Double
+    var cartLineIds: [Int]
+    var submitItems: [CreateOrderSubmitLineItem]
+    var syncedItems: [EditOrderLineItem]
+
+    enum CodingKeys: String, CodingKey {
+        case status, message, data
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        status = container.decodeBoolLeniently(forKey: .status) ?? false
+        if let list = try? container.decode([String].self, forKey: .message) {
+            message = list.joined(separator: "\n")
+        } else {
+            message = container.decodeStringLeniently(forKey: .message) ?? ""
+        }
+
+        if let dataValue = try? container.decode(JSONValue.self, forKey: .data) {
+            let parsed = CreateOrderAddCartParser.parse(dataValue)
+            sellerShopName = parsed.sellerShopName
+            sellerAddress = parsed.sellerAddress
+            grandTotal = parsed.grandTotal
+            cartLineIds = parsed.cartLineIds
+            submitItems = parsed.submitItems
+            syncedItems = EditOrderDetailsPayloadParser.parseAddCartResponse(dataValue).items
+        } else {
+            sellerShopName = ""
+            sellerAddress = ""
+            grandTotal = 0
+            cartLineIds = []
+            submitItems = []
+            syncedItems = []
+        }
+    }
+}
+
+enum CreateOrderAddCartParser {
+
+    static func parse(_ root: JSONValue) -> (
+        sellerShopName: String,
+        sellerAddress: String,
+        grandTotal: Double,
+        cartLineIds: [Int],
+        submitItems: [CreateOrderSubmitLineItem]
+    ) {
+        let dataObject = dataContainer(from: root)
+        let grandTotal = dataObject.double(
+            for: "totalPriceIncludeGst", "total_price_include_gst",
+            "totalPriceWithoutGst", "total_price", "totalPrice", "grand_total"
+        )
+
+        guard let cartArray = dataObject["cart"]?.arrayValue, !cartArray.isEmpty else {
+            return ("", "", grandTotal, [], [])
+        }
+
+        let firstObject = cartArray.first?.objectValue ?? [:]
+        let sellerShopName = firstObject.string(for: "seller_shop_name", "sellerShopName", "shop_name")
+        let sellerAddress = firstObject.string(for: "seller_address", "sellerAddress", "address")
+
+        var submitItems: [CreateOrderSubmitLineItem] = []
+        var cartLineIds: [Int] = []
+
+        for (index, value) in cartArray.enumerated() {
+            guard case .object(let object) = value else { continue }
+
+            let productName = object.string(for: "product_name", "productName", "name")
+            let variantName = object.string(for: "variant_name", "varient_name", "variantName")
+            let qty = object.int(for: "qty", "quantity", "packet", "packets")
+            let cartLineId = object.int(for: "cart_id", "cartId", "cart_detail_id")
+            if cartLineId > 0 {
+                cartLineIds.append(cartLineId)
+            }
+
+            let perPrice = object.double(
+                for: "perQtyPice", "per_qty_price", "perQtyPrice", "per_price", "price", "og_price"
+            )
+            let totalPrice = object.double(for: "total_price", "totalPrice", "amount")
+            let lineTotal: Double
+            if totalPrice > 0 {
+                lineTotal = totalPrice
+            } else if perPrice > 0, qty > 0 {
+                lineTotal = perPrice * Double(qty)
+            } else {
+                lineTotal = 0
+            }
+
+            let gst = object.string(for: "gst", "gst_percentage", "gstPercentage")
+            let gstLabel: String
+            if gst.isEmptyString {
+                gstLabel = ""
+            } else if gst.contains("%") {
+                gstLabel = gst
+            } else {
+                gstLabel = "\(gst)% GST"
+            }
+
+            var weightKg = 0.0
+            if case .object(let weightObject) = object["weight"] {
+                weightKg = weightObject.double(for: "kilograms", "kg")
+                if weightKg <= 0 {
+                    let grams = weightObject.double(for: "grams")
+                    if grams > 0 {
+                        weightKg = grams / 1000.0
+                    }
+                }
+            }
+            if weightKg <= 0 {
+                let grams = CreateOrderVariantParser.weightInGrams(for: variantName)
+                    ?? CreateOrderVariantParser.weightInGrams(for: productName)
+                    ?? 0
+                if grams > 0, qty > 0 {
+                    weightKg = (grams * Double(qty)) / 1000.0
+                }
+            }
+
+            guard !productName.isEmptyString || !variantName.isEmptyString else { continue }
+
+            submitItems.append(
+                CreateOrderSubmitLineItem(
+                    id: "submit-\(index)-\(cartLineId)",
+                    productName: productName,
+                    variantName: variantName,
+                    quantity: qty,
+                    lineTotal: lineTotal,
+                    gstLabel: gstLabel,
+                    weightKg: weightKg
+                )
+            )
+        }
+
+        return (sellerShopName, sellerAddress, grandTotal, cartLineIds, submitItems)
+    }
+
+    private static func dataContainer(from root: JSONValue) -> [String: JSONValue] {
+        guard case .object(let object) = root else { return [:] }
+        if let nested = object["data"], case .object(let nestedObject) = nested, !nestedObject.isEmpty {
+            return nestedObject
+        }
+        return object
+    }
+}
+
+private extension Dictionary where Key == String, Value == JSONValue {
+    func string(for keys: String...) -> String {
+        for key in keys {
+            if let value = self[key] {
+                let string = value.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !string.isEmptyString { return string }
+            }
+        }
+        return ""
+    }
+
+    func int(for keys: String...) -> Int {
+        for key in keys {
+            if let value = self[key] {
+                return value.intValue
+            }
+        }
+        return 0
+    }
+
+    func double(for keys: String...) -> Double {
+        for key in keys {
+            if let value = self[key] {
+                return value.doubleValue
+            }
+        }
+        return 0
+    }
+}

@@ -50,16 +50,31 @@ final class OrderInsightsViewModel: ObservableObject {
     private var currentPage = 1
     private var canLoadMore = true
 
-    init(startDate: String? = nil, endDate: String? = nil) {
-        let today = OrderInsightsDateFormat.todayString
-        if let start = startDate, !start.isEmptyString,
-           let end = endDate, !end.isEmptyString {
-            self.startDate = OrderInsightsDateFormat.normalizedAPIString(from: start)
-            self.endDate = OrderInsightsDateFormat.normalizedAPIString(from: end)
-            self.selectedDatePreset = .custom
+    init(
+        startDate: String? = nil,
+        endDate: String? = nil,
+        datePreset: OrderInsightsDatePreset? = nil,
+        orderStatus: String? = nil
+    ) {
+        if let preset = datePreset, let range = OrderInsightsDatePreset.dateRange(for: preset) {
+            self.startDate = range.start
+            self.endDate = range.end
+            self.selectedDatePreset = preset
         } else {
-            self.startDate = today
-            self.endDate = today
+            let today = OrderInsightsDateFormat.todayString
+            if let start = startDate, !start.isEmptyString,
+               let end = endDate, !end.isEmptyString {
+                self.startDate = OrderInsightsDateFormat.normalizedAPIString(from: start)
+                self.endDate = OrderInsightsDateFormat.normalizedAPIString(from: end)
+                self.selectedDatePreset = .custom
+            } else {
+                self.startDate = today
+                self.endDate = today
+            }
+        }
+
+        if let orderStatus, !orderStatus.isEmptyString {
+            self.orderStatus = orderStatus
         }
     }
 

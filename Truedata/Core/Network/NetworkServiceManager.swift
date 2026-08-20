@@ -116,6 +116,7 @@ class NetworkServiceManager: NetworkServiceManagable {
         _ endpoint: RouterManagable,
         params: RequestConstants.Param,
         file: MultipartFileUpload?,
+        files: [MultipartFileUpload] = [],
         headers: RequestConstants.Header
     ) -> AnyPublisher<T, Error> {
         guard NetworkMonitor.shared.isConnected else {
@@ -137,7 +138,7 @@ class NetworkServiceManager: NetworkServiceManagable {
             RequestContentType.multipartForm.headerValue(boundary: boundary),
             forHTTPHeaderField: "Content-Type"
         )
-        request.httpBody = Self.multipartBody(from: params, boundary: boundary, file: file)
+        request.httpBody = Self.multipartBody(from: params, boundary: boundary, file: file, files: files)
 
         #if DEBUG
         print("===================================================================")
@@ -145,6 +146,7 @@ class NetworkServiceManager: NetworkServiceManagable {
         print("===================================================================")
         print("Parameter:\n", params)
         print("File attached:", file != nil)
+        print("Extra files:", files.count)
         print("===================================================================")
         #endif
 
@@ -181,7 +183,8 @@ class NetworkServiceManager: NetworkServiceManagable {
     private static func multipartBody(
         from params: RequestConstants.Param,
         boundary: String,
-        file: MultipartFileUpload? = nil
+        file: MultipartFileUpload? = nil,
+        files: [MultipartFileUpload] = []
     ) -> Data {
         var body = Data()
 
@@ -191,15 +194,20 @@ class NetworkServiceManager: NetworkServiceManagable {
             body.append(Data("\(value)\r\n".utf8))
         }
 
+        var uploads = files
         if let file {
+            uploads.append(file)
+        }
+
+        for upload in uploads {
             body.append(Data("--\(boundary)\r\n".utf8))
             body.append(
                 Data(
-                    "Content-Disposition: form-data; name=\"\(file.fieldName)\"; filename=\"\(file.fileName)\"\r\n".utf8
+                    "Content-Disposition: form-data; name=\"\(upload.fieldName)\"; filename=\"\(upload.fileName)\"\r\n".utf8
                 )
             )
-            body.append(Data("Content-Type: \(file.mimeType)\r\n\r\n".utf8))
-            body.append(file.data)
+            body.append(Data("Content-Type: \(upload.mimeType)\r\n\r\n".utf8))
+            body.append(upload.data)
             body.append(Data("\r\n".utf8))
         }
 

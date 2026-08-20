@@ -11,7 +11,10 @@ struct BrandProductListScreen: View {
     @StateObject private var viewModel: BrandProductListViewModel
 
     private let editOrderViewModel: EditOrderViewModel?
+    @ObservedObject private var cartViewModel: CreateOrderCartViewModel
     private let onViewCart: (() -> Void)?
+    private let onProceedToSubmit: (() -> Void)?
+    @State private var showCartSheet = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -24,10 +27,14 @@ struct BrandProductListScreen: View {
         brandName: String,
         isEditMode: Bool = false,
         editOrderViewModel: EditOrderViewModel? = nil,
-        onViewCart: (() -> Void)? = nil
+        cartViewModel: CreateOrderCartViewModel? = nil,
+        onViewCart: (() -> Void)? = nil,
+        onProceedToSubmit: (() -> Void)? = nil
     ) {
         self.editOrderViewModel = editOrderViewModel
         self.onViewCart = onViewCart
+        self.onProceedToSubmit = onProceedToSubmit
+        self.cartViewModel = cartViewModel ?? CreateOrderCartViewModel(sellerId: sellerId)
         _viewModel = StateObject(
             wrappedValue: BrandProductListViewModel(
                 sellerId: sellerId,
@@ -75,7 +82,9 @@ struct BrandProductListScreen: View {
                                             sellerId: viewModel.sellerId,
                                             brandId: viewModel.brandId,
                                             editOrderViewModel: editOrderViewModel,
-                                            onViewCart: onViewCart
+                                            createOrderCartViewModel: editOrderViewModel == nil ? cartViewModel : nil,
+                                            onViewCart: resolvedOnViewCart,
+                                            onProceedToSubmit: onProceedToSubmit
                                         )
                                     } label: {
                                         BrandProductGridCard(product: product)
@@ -85,7 +94,7 @@ struct BrandProductListScreen: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.top, 4)
-                            .padding(.bottom, 24)
+                            .padding(.bottom, cartBottomPadding)
                         }
                     }
                 }
@@ -96,11 +105,42 @@ struct BrandProductListScreen: View {
                     viewModel: editOrderViewModel,
                     onViewCart: onViewCart
                 )
+            } else {
+                CreateOrderCartFooterContainer(
+                    viewModel: cartViewModel,
+                    onViewCart: { resolvedOnViewCart() }
+                )
             }
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { viewModel.loadProducts() }
+        .sheet(isPresented: $showCartSheet) {
+            CreateOrderCartSheet(
+                cartViewModel: cartViewModel,
+                onDismiss: { showCartSheet = false },
+                onAddMore: { showCartSheet = false },
+                onContinue: {
+                    showCartSheet = false
+                    onProceedToSubmit?()
+                }
+            )
+        }
+    }
+
+    private var cartBottomPadding: CGFloat {
+        if editOrderViewModel != nil {
+            return 24
+        }
+        return cartViewModel.hasItems ? 88 : 24
+    }
+
+    private func resolvedOnViewCart() {
+        if let onViewCart {
+            onViewCart()
+        } else {
+            showCartSheet = true
+        }
     }
 
     private var searchField: some View {

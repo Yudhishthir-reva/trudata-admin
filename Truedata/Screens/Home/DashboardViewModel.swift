@@ -27,7 +27,13 @@ class DashboardViewModel: ObservableObject {
     }
 
     var role: String {
-        response?.role ?? UserDefaultManager.shared.getUserDefaultsString(key: .userRole)
+        let value = response?.role ?? UserDefaultManager.shared.getUserDefaultsString(key: .userRole)
+        return DashboardRole.normalized(value)
+    }
+
+    var displayRole: String {
+        let raw = response?.role ?? UserDefaultManager.shared.getUserDefaultsString(key: .userRole)
+        return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var profileUrl: String {
@@ -38,12 +44,27 @@ class DashboardViewModel: ObservableObject {
         response?.isBeatSelected ?? true
     }
 
+    var maintenanceMode: Bool {
+        response?.maintenanceMode ?? false
+    }
+
+    var attendanceScreen: Bool {
+        response?.attendanceScreen ?? false
+    }
+
+    var attendanceRoute: String {
+        let route = response?.attendanceRoute ?? "attendance"
+        return route.isEmptyString ? "attendance" : route
+    }
+
     var items: [DashboardItem] {
         response?.data?.items ?? []
     }
 
     var sections: [DashboardSection] {
-        response?.data?.sections ?? []
+        let all = response?.data?.sections ?? []
+        guard DashboardRole.shouldHideMyAreaSection(role: role) else { return all }
+        return all.filter { DashboardRole.normalized($0.title) != "my area" }
     }
 
     var gridColumns: Int {
@@ -52,8 +73,7 @@ class DashboardViewModel: ObservableObject {
 
     var operationTitles: [String] {
         var operations = ["Actions", "Seller", "Activity"]
-        let role = role.lowercased().trim
-        if ["admin", "sales manager", "accountant"].contains(role) {
+        if DashboardRole.canShowControlsOperation(role: role) {
             operations.append("Controls")
         }
         return operations
@@ -94,6 +114,9 @@ class DashboardViewModel: ObservableObject {
             self.isRefreshing = false
             if model.status {
                 self.response = model
+                if !model.role.isEmptyString {
+                    UserDefaultManager.shared.setUserDefaultsString(value: model.role, key: .userRole)
+                }
                 self.hasInitialLoadCompleted = true
                 self.errorMessage = nil
                 HomePrefetchManager.shared.fetchLocationConfig()

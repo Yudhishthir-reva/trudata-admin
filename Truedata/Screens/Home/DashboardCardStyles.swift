@@ -17,6 +17,10 @@ enum DashboardTheme {
     static let neutralDark = Color(hex: "1F2937")
     static let neutralMedium = Color(hex: "6B7280")
     static let surfaceVariant = Color(hex: "F3F4F6")
+    static let rankGold = Color(hex: "FFB300")
+    static let rankSilver = Color(hex: "78909C")
+    static let rankBronze = Color(hex: "8D6E63")
+    static let rankDefault = Color(hex: "ACC3F8")
 }
 
 struct DashboardCardChrome<Content: View>: View {
@@ -162,8 +166,22 @@ struct DashboardStatPill: View {
     let title: String
     let value: String
     var valueColor: Color = DashboardTheme.neutralDark
+    var action: (() -> Void)? = nil
 
     var body: some View {
+        Group {
+            if let action {
+                Button(action: action) {
+                    pillContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                pillContent
+            }
+        }
+    }
+
+    private var pillContent: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(size: 18, weight: .bold))

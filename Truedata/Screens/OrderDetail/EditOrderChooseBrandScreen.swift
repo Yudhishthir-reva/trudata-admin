@@ -185,12 +185,30 @@ struct EditOrderCartFooterContainer: View {
     var onViewCart: () -> Void
 
     var body: some View {
-        EditOrderCartFooter(
-            itemCount: viewModel.totalItems,
-            grandTotal: viewModel.grandTotal,
-            buttonTitle: "View Cart",
-            onAction: onViewCart
-        )
+        if viewModel.totalItems > 0 {
+            EditOrderCartFooter(
+                itemCount: viewModel.totalItems,
+                grandTotal: viewModel.grandTotal,
+                buttonTitle: "View Cart",
+                onAction: onViewCart
+            )
+        }
+    }
+}
+
+struct CreateOrderCartFooterContainer: View {
+    @ObservedObject var viewModel: CreateOrderCartViewModel
+    var onViewCart: () -> Void
+
+    var body: some View {
+        if viewModel.hasItems {
+            EditOrderCartFooter(
+                itemCount: viewModel.totalItems,
+                grandTotal: viewModel.grandTotal,
+                buttonTitle: "View Cart",
+                onAction: onViewCart
+            )
+        }
     }
 }
 

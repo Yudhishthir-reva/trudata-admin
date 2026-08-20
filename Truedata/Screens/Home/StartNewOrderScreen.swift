@@ -5,17 +5,47 @@
 
 import SwiftUI
 
+enum StartNewOrderPresentation {
+    case full
+    case dashboardBeatSelection
+}
+
 struct StartNewOrderScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = StartNewOrderViewModel()
+    var presentation: StartNewOrderPresentation = .full
+    var onBeatSaved: (() -> Void)? = nil
+    var onCreateOrder: ((Int) -> Void)? = nil
+    var onAddSeller: (() -> Void)? = nil
+    var onViewPendingBills: ((StartNewOrderSeller) -> Void)? = nil
     @State private var showAddSellerAlert = false
     @State private var showRearrangeSellers = false
     @State private var selectedSellerForOverview: StartNewOrderSeller?
     @State private var selectedSellerForProfile: StartNewOrderSeller?
+    @State private var selectedSellerForCreateOrder: StartNewOrderSeller?
     @State private var selectedSellerForStatusUpdate: StartNewOrderSeller?
 
     var body: some View {
+        Group {
+            switch presentation {
+            case .full:
+                fullScreen
+            case .dashboardBeatSelection:
+                dashboardBeatSelectionContent
+            }
+        }
+        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            if presentation == .dashboardBeatSelection {
+                viewModel.onDashboardBeatSaved = onBeatSaved
+            }
+            viewModel.initialize()
+        }
+    }
+
+    private var fullScreen: some View {
         ZStack(alignment: .bottomTrailing) {
             Color(hex: "F3F4F6").ignoresSafeArea()
 
@@ -41,9 +71,6 @@ struct StartNewOrderScreen: View {
 
             addSellerButton
         }
-        .navigationBarHidden(true)
-        .toolbar(.hidden, for: .navigationBar)
-        .onAppear { viewModel.initialize() }
         .navigationDestination(isPresented: $showRearrangeSellers) {
             if let beatId = viewModel.selectedBeatId {
                 RearrangeSellersScreen(
@@ -57,6 +84,9 @@ struct StartNewOrderScreen: View {
         }
         .navigationDestination(item: $selectedSellerForProfile) { seller in
             SellerProfileScreen(sellerId: seller.id)
+        }
+        .navigationDestination(item: $selectedSellerForCreateOrder) { seller in
+            ChooseBrandScreen(sellerId: seller.id)
         }
         .navigationDestination(item: $selectedSellerForStatusUpdate) { seller in
             UpdateSellerStatusScreen(
@@ -72,7 +102,9 @@ struct StartNewOrderScreen: View {
                 onRequestAccess: { viewModel.requestAccess(for: seller) },
                 onViewBills: {
                     selectedSellerForOverview = nil
-                    viewModel.errorMessage = "Pending bills for \(seller.displayName) will open here."
+                    if let onViewPendingBills {
+                        onViewPendingBills(seller)
+                    }
                 }
             )
             .presentationDetents([.large])
@@ -90,9 +122,36 @@ struct StartNewOrderScreen: View {
             Text("Your request has been sent to the admin for approval. You will be notified once the request is processed.")
         }
         .alert("Add Seller", isPresented: $showAddSellerAlert) {
-            Button("OK", role: .cancel) {}
+            Button("Cancel", role: .cancel) {}
+            Button("Continue") {
+                onAddSeller?()
+            }
         } message: {
-            Text("Add Seller flow will open here, same as Android.")
+            Text("Add a new seller to your beat.")
+        }
+        .alert(
+            "Notice",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+    }
+
+    private var dashboardBeatSelectionContent: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                beatSelectionCard
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 24)
         }
         .alert(
             "Notice",
@@ -121,6 +180,8 @@ struct StartNewOrderScreen: View {
 
             if viewModel.isBeatCollapsed && viewModel.selectedBeatId != nil {
                 collapsedBeatContent
+            } else if viewModel.isSavingBeat && presentation == .dashboardBeatSelection {
+                savingBeatView
             } else if viewModel.isFindingSellers && viewModel.selectedBeatId != nil && !viewModel.isBeatCollapsed {
                 loadingSellersView
             } else {
@@ -160,6 +221,18 @@ struct StartNewOrderScreen: View {
             ProgressView()
                 .tint(DashboardTheme.primaryBlue)
             Text("Loading sellers...")
+                .font(.system(size: 14))
+                .foregroundStyle(DashboardTheme.neutralMedium)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+    }
+
+    private var savingBeatView: some View {
+        VStack(spacing: 10) {
+            ProgressView()
+                .tint(DashboardTheme.primaryBlue)
+            Text("Saving beat selection...")
                 .font(.system(size: 14))
                 .foregroundStyle(DashboardTheme.neutralMedium)
         }
@@ -417,7 +490,14 @@ struct StartNewOrderScreen: View {
                 ForEach(viewModel.filteredSellers) { seller in
                     StartNewOrderSellerCard(
                         seller: seller,
-                        onCreateOrder: { viewModel.sellerSelected(seller) },
+                        onCreateOrder: {
+                            guard seller.createOrderStatus else { return }
+                            if let onCreateOrder {
+                                onCreateOrder(seller.id)
+                            } else {
+                                selectedSellerForCreateOrder = seller
+                            }
+                        },
                         onViewProfile: {
                             selectedSellerForProfile = seller
                         },

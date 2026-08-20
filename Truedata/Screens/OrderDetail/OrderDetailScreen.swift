@@ -14,6 +14,7 @@ struct OrderDetailScreen: View {
     @State private var showCancelConfirm = false
     @State private var showChangeSeller = false
     @State private var showEditOrder = false
+    @State private var sellerProfileId: Int?
 
     init(orderId: String) {
         _viewModel = StateObject(wrappedValue: OrderDetailViewModel(orderId: orderId))
@@ -73,9 +74,23 @@ struct OrderDetailScreen: View {
         }
         .fullScreenCover(isPresented: $showEditOrder) {
             if let order = viewModel.order {
-                EditOrderSheet(order: order) {
-                    viewModel.loadOrderDetail()
-                }
+                EditOrderSheet(
+                    order: order,
+                    onSaved: {
+                        viewModel.loadOrderDetail()
+                    },
+                    onGoHome: {
+                        dismiss()
+                    },
+                    onViewSeller: { sellerId in
+                        sellerProfileId = sellerId
+                    }
+                )
+            }
+        }
+        .fullScreenCover(isPresented: sellerProfileBinding) {
+            if let sellerId = sellerProfileId {
+                SellerProfileScreen(sellerId: sellerId)
             }
         }
     }
@@ -90,6 +105,13 @@ struct OrderDetailScreen: View {
 
     private var imagePreviewBinding: Binding<Bool> {
         Binding(get: { previewImageURL != nil }, set: { if !$0 { previewImageURL = nil } })
+    }
+
+    private var sellerProfileBinding: Binding<Bool> {
+        Binding(
+            get: { sellerProfileId != nil },
+            set: { if !$0 { sellerProfileId = nil } }
+        )
     }
 
     @ViewBuilder
