@@ -10,7 +10,7 @@ enum APIBaseURL {
     static let staging = "https://spicemonk.revateam.com/api/"
 }
 
-let BASE_URL = APIBaseURL.production
+let BASE_URL = APIBaseURL.staging
 
 let currentEnvironment: RequestEnvironmentType = .production
 

@@ -132,16 +132,12 @@ final class OrderInsightsViewModel: ObservableObject {
         isLoading = orders.isEmpty || isRefresh
         errorMessage = nil
 
-        let filterStaffId = staffId.isEmptyString
-            ? UserDefaultManager.shared.getUserDefaultsString(key: .userId)
-            : staffId
-
         service.getOrderHistory(
             page: currentPage,
             startDate: startDate,
             endDate: endDate,
             status: isCreatedOrderHistory ? orderStatus : orderStatus,
-            staffId: filterStaffId,
+            staffId: staffId,
             sellerId: sellerId,
             orderId: searchText.trim,
             beatId: beatId,

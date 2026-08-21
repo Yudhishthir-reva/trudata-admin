@@ -9,6 +9,7 @@ import Combine
 final class ChangeSellerViewModel: ObservableObject {
 
     let orderId: String
+    let dbOrderId: Int
     let currentSellerId: Int
 
     @Published private(set) var currentSellerDisplay: String
@@ -36,6 +37,7 @@ final class ChangeSellerViewModel: ObservableObject {
 
     init(order: OrderDetailData, orderId: String) {
         self.orderId = orderId
+        self.dbOrderId = order.orderId
         self.currentSellerId = order.sellerId
         self.currentSellerDisplay = order.changeSellerDisplayName
     }
@@ -246,7 +248,7 @@ final class ChangeSellerViewModel: ObservableObject {
         isUpdating = true
         errorMessage = nil
 
-        service.updateOrderSeller(orderId: orderId, sellerId: sellerId)
+        service.updateOrderSeller(orderId: dbOrderId, sellerId: sellerId)
             .receive(on: RunLoop.main)
             .sink { [weak self] completion in
                 self?.isUpdating = false

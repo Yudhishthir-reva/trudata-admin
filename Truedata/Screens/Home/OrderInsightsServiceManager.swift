@@ -33,12 +33,14 @@ class OrderInsightsServiceManager {
         isCreatedOrderHistory: Bool = false
     ) -> AnyPublisher<OrderInsightsResponse, Error> {
         var params: [String: Any] = [
-            "staff_id": staffId,
             "start_date": startDate,
             "end_date": endDate,
             "has_remark": hasRemark,
             "page": page
         ]
+        if !staffId.isEmptyString {
+            params["staff_id"] = staffId
+        }
         if !status.isEmptyString {
             params["status"] = status
         }

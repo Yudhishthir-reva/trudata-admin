@@ -45,7 +45,7 @@ class QuickShareServiceManager {
             status: orderStatus,
             staffId: staffId,
             sellerId: sellerId,
-            isCreatedOrderHistory: true
+            isCreatedOrderHistory: false
         )
     }
 
@@ -62,8 +62,8 @@ class QuickShareServiceManager {
         return downloadPDF(router: .quickShareOrderInvoice, params: params, acceptPDF: true)
     }
 
-    func downloadBulkInvoicePDF(selectedOrderNos: [String]) -> AnyPublisher<Data, Error> {
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: selectedOrderNos),
+    func downloadBulkInvoicePDF(selectedOrderIds: [Int]) -> AnyPublisher<Data, Error> {
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: selectedOrderIds),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
             return Fail(error: RequestError.unknownError).eraseToAnyPublisher()
         }

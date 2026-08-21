@@ -45,7 +45,7 @@ class OrderDetailServiceManager {
         return networkService.request(APIRouter.sellerList2, params: params, headers: authHeaders)
     }
 
-    func updateOrderSeller(orderId: String, sellerId: Int) -> AnyPublisher<SellerProfileActionResponse, Error> {
+    func updateOrderSeller(orderId: Int, sellerId: Int) -> AnyPublisher<SellerProfileActionResponse, Error> {
         networkService.request(
             APIRouter.updateOrderSeller,
             params: [

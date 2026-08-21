@@ -21,7 +21,7 @@ final class QuickShareViewModel: ObservableObject {
     @Published var staffList: [OrderInsightsStaffMember] = []
     @Published var sellerList: [OrderInsightsSellerItem] = []
     @Published var orders: [OrderInsightsOrder] = []
-    @Published var selectedOrderNos: Set<String> = []
+    @Published var selectedOrderIds: Set<Int> = []
 
     @Published var isLoadingFilters = false
     @Published var isLoadingOrders = false
@@ -66,7 +66,7 @@ final class QuickShareViewModel: ObservableObject {
 
     func onViewModeChanged(_ mode: QuickShareViewMode) {
         viewMode = mode
-        selectedOrderNos.removeAll()
+        selectedOrderIds.removeAll()
         if mode == .selectOrders {
             loadOrders(reset: true)
         }
@@ -74,7 +74,7 @@ final class QuickShareViewModel: ObservableObject {
 
     func onDateChanged(_ date: String) {
         selectedDate = OrderInsightsDateFormat.normalizedAPIString(from: date)
-        selectedOrderNos.removeAll()
+        selectedOrderIds.removeAll()
         if viewMode == .selectOrders {
             loadOrders(reset: true)
         }
@@ -94,7 +94,7 @@ final class QuickShareViewModel: ObservableObject {
         selectedSellerName = sellerName.isEmptyString ? "All Sellers" : sellerName
         selectedOrderStatus = orderStatus
         selectedOrderStatusLabel = orderStatusLabel.isEmptyString ? "All Orders" : orderStatusLabel
-        selectedOrderNos.removeAll()
+        selectedOrderIds.removeAll()
         if viewMode == .selectOrders {
             loadOrders(reset: true)
         }
@@ -111,11 +111,11 @@ final class QuickShareViewModel: ObservableObject {
         )
     }
 
-    func toggleOrderSelection(_ orderNo: String) {
-        if selectedOrderNos.contains(orderNo) {
-            selectedOrderNos.remove(orderNo)
+    func toggleOrderSelection(_ orderId: Int) {
+        if selectedOrderIds.contains(orderId) {
+            selectedOrderIds.remove(orderId)
         } else {
-            selectedOrderNos.insert(orderNo)
+            selectedOrderIds.insert(orderId)
         }
     }
 
@@ -136,7 +136,7 @@ final class QuickShareViewModel: ObservableObject {
         }
 
         if viewMode == .selectOrders {
-            guard !selectedOrderNos.isEmpty else {
+            guard !selectedOrderIds.isEmpty else {
                 exportAlertMessage = "Please select at least one order."
                 return
             }
@@ -170,7 +170,7 @@ final class QuickShareViewModel: ObservableObject {
         isExporting = true
         exportAlertMessage = nil
 
-        service.downloadBulkInvoicePDF(selectedOrderNos: Array(selectedOrderNos).sorted())
+        service.downloadBulkInvoicePDF(selectedOrderIds: Array(selectedOrderIds).sorted())
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self else { return }

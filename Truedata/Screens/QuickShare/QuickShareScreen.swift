@@ -32,14 +32,38 @@ struct QuickShareScreen: View {
                             exportButton
                         } else {
                             ordersContent
-                            if !viewModel.selectedOrderNos.isEmpty {
-                                exportButton
-                            }
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, viewModel.viewMode == .selectOrders && !viewModel.selectedOrderIds.isEmpty ? 90 : 24)
+                }
+            }
+
+            if viewModel.viewMode == .selectOrders && !viewModel.selectedOrderIds.isEmpty {
+                VStack {
+                    Spacer()
+                    Button {
+                        viewModel.exportInvoicePDF()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "list.bullet.rectangle")
+                                .font(.system(size: 18, weight: .semibold))
+
+                            Text("Generate Bulk Invoice (\(viewModel.selectedOrderIds.count))")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(DashboardTheme.primaryBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.isExporting)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
                 }
             }
 
@@ -180,8 +204,8 @@ struct QuickShareScreen: View {
     }
 
     private var exportButtonTitle: String {
-        if viewModel.viewMode == .selectOrders, !viewModel.selectedOrderNos.isEmpty {
-            return "Generate Bulk Invoice (\(viewModel.selectedOrderNos.count))"
+        if viewModel.viewMode == .selectOrders, !viewModel.selectedOrderIds.isEmpty {
+            return "Generate Bulk Invoice (\(viewModel.selectedOrderIds.count))"
         }
         return "Export Invoice PDF"
     }
@@ -201,14 +225,14 @@ struct QuickShareScreen: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
         } else {
-            if !viewModel.selectedOrderNos.isEmpty {
+            if !viewModel.selectedOrderIds.isEmpty {
                 HStack {
-                    Text("\(viewModel.selectedOrderNos.count) order(s) selected")
+                    Text("\(viewModel.selectedOrderIds.count) order(s) selected")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(DashboardTheme.primaryBlue)
                     Spacer()
                     Button("Clear") {
-                        viewModel.selectedOrderNos.removeAll()
+                        viewModel.selectedOrderIds.removeAll()
                     }
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DashboardTheme.dangerRed)
@@ -219,9 +243,9 @@ struct QuickShareScreen: View {
                 ForEach(viewModel.orders) { order in
                     QuickShareOrderRow(
                         order: order,
-                        isSelected: viewModel.selectedOrderNos.contains(order.orderNo)
+                        isSelected: viewModel.selectedOrderIds.contains(order.id)
                     ) {
-                        viewModel.toggleOrderSelection(order.orderNo)
+                        viewModel.toggleOrderSelection(order.id)
                     }
                     .onAppear {
                         viewModel.loadMoreOrdersIfNeeded(currentOrder: order)
@@ -333,22 +357,65 @@ private struct QuickShareOrderRow: View {
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(order.orderNo)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                    Text(order.sellerName)
-                        .font(.system(size: 13))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                    HStack {
-                        Text(order.status)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(order.orderNo)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(DashboardTheme.neutralDark)
+                            
+                            Text(order.orderDate)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.gray)
+                        }
                         Spacer()
                         Text("₹\(order.totalAmount.priceLabel)")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(DashboardTheme.neutralDark)
                     }
+                    
+                    Text(order.sellerName)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "phone.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.gray)
+                        Text("Mobile: \(order.sellerPhone)")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+
+                    HStack {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.gray)
+                            Text("Staff: \(order.staffName)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.gray)
+                            Text("Rider: \(order.riderName.isEmptyString ? "not assigned" : order.riderName)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
+                    }
+
+                    Text(order.status)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(statusColor)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(statusColor.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
             .padding(14)
@@ -360,5 +427,18 @@ private struct QuickShareOrderRow: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private var statusColor: Color {
+        switch order.status.lowercased() {
+        case "pending":
+            return Color.orange
+        case "delivered":
+            return Color.green
+        case "cancelled":
+            return Color.red
+        default:
+            return DashboardTheme.primaryBlue
+        }
     }
 }
