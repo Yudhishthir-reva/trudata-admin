@@ -19,6 +19,7 @@ struct StartNewOrderScreen: View {
     var onCreateOrder: ((Int) -> Void)? = nil
     var onAddSeller: (() -> Void)? = nil
     var onViewPendingBills: ((StartNewOrderSeller) -> Void)? = nil
+    var onViewProfile: ((Int) -> Void)? = nil
     @State private var showAddSellerAlert = false
     @State private var showRearrangeSellers = false
     @State private var selectedSellerForOverview: StartNewOrderSeller?
@@ -499,7 +500,11 @@ struct StartNewOrderScreen: View {
                             }
                         },
                         onViewProfile: {
-                            selectedSellerForProfile = seller
+                            if let onViewProfile {
+                                onViewProfile(seller.id)
+                            } else {
+                                selectedSellerForProfile = seller
+                            }
                         },
                         onRequestAccess: {
                             selectedSellerForOverview = seller

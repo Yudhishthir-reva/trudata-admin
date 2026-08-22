@@ -34,6 +34,14 @@ struct OrderDetailScreen: View {
                     .ignoresSafeArea()
 
                 content
+
+                if viewModel.isCancelling {
+                    Color.black.opacity(0.15)
+                        .ignoresSafeArea()
+                    ProgressView()
+                        .tint(DashboardTheme.primaryBlue)
+                        .scaleEffect(1.2)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -52,7 +60,12 @@ struct OrderDetailScreen: View {
             titleVisibility: .visible
         ) {
             Button("Cancel Order", role: .destructive) {
-                actionMessage = "Cancel order is not available in iOS yet."
+                viewModel.cancelOrder { success, message in
+                    actionMessage = message
+                    if success {
+                        viewModel.loadOrderDetail()
+                    }
+                }
             }
             Button("Dismiss", role: .cancel) {}
         }

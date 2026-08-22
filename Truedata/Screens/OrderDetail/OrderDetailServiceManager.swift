@@ -187,6 +187,11 @@ class OrderDetailServiceManager {
             "audio_remark": audioRemark
         ]
     }
+
+    func cancelOrder(orderId: String) -> AnyPublisher<StatusMessageResponse, Error> {
+        let params: [String: Any] = ["order_id": orderId]
+        return networkService.request(APIRouter.cancelOrder, params: params, headers: authHeaders)
+    }
 }
 
 private extension Double {

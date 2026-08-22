@@ -53,4 +53,36 @@ final class OrderDetailViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
+
+    @Published var isCancelling = false
+
+    func cancelOrder(onComplete: @escaping (Bool, String) -> Void) {
+        guard !orderId.isEmptyString else {
+            onComplete(false, "Order ID is missing.")
+            return
+        }
+
+        isCancelling = true
+        errorMessage = nil
+
+        service.cancelOrder(orderId: orderId)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.isCancelling = false
+                if case .failure(let error) = completion {
+                    let errMsg = (error as? RequestError)?.errorString ?? error.localizedDescription
+                    onComplete(false, errMsg)
+                }
+            } receiveValue: { [weak self] response in
+                guard let self else { return }
+                self.isCancelling = false
+                if response.status {
+                    onComplete(true, response.message.isEmptyString ? "Order cancelled successfully." : response.message)
+                } else {
+                    onComplete(false, response.message.isEmptyString ? "Failed to cancel order." : response.message)
+                }
+            }
+            .store(in: &cancellables)
+    }
 }

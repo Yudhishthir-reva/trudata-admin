@@ -132,6 +132,9 @@ struct HomeScreen: View {
                                         sellerName: seller.displayName
                                     )
                                 )
+                            },
+                            onViewProfile: { sellerId in
+                                navigationPath.append(HomeDestination.sellerProfile(sellerId: sellerId))
                             }
                         )
                     case .createOrder(let sellerId):

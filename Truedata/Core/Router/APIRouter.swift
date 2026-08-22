@@ -119,6 +119,7 @@ enum APIRouter: RouterManagable {
     case getRegisteredSellers
     case teamWiseAttendanceList
     case teamWiseLocationList
+    case cancelOrder
 
     var endPointUrl: String {
         switch self {
@@ -350,6 +351,8 @@ enum APIRouter: RouterManagable {
             return "team-wise-attendance-list"
         case .teamWiseLocationList:
             return "team-wise-location-list"
+        case .cancelOrder:
+            return "cancel-order"
         }
     }
 

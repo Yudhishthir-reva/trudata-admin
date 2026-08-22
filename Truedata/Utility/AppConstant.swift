@@ -12,7 +12,7 @@ enum APIBaseURL {
 
 let BASE_URL = APIBaseURL.staging
 
-let currentEnvironment: RequestEnvironmentType = .production
+let currentEnvironment: RequestEnvironmentType = .stagging
 
 let kDateFormatterHHMMA: DateFormatter = {
     let dateFormatter = DateFormatter()

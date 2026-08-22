@@ -75,18 +75,14 @@ final class CreateOrderCartViewModel: ObservableObject {
         let perPrice = variant.ogPriceValue > 0 ? variant.ogPriceValue : variant.priceValue
 
         if let index = items.firstIndex(where: { $0.variantId == variant.id }) {
-            if clamped == 0 {
-                items.remove(at: index)
-            } else {
-                items[index].quantity = clamped
-                items[index].productId = product.id
-                items[index].productName = product.name
-                items[index].variantName = variant.name
-                items[index].brandName = brandName
-                items[index].productImage = product.image
-                if items[index].perPrice <= 0, perPrice > 0 {
-                    items[index].perPrice = perPrice
-                }
+            items[index].quantity = clamped
+            items[index].productId = product.id
+            items[index].productName = product.name
+            items[index].variantName = variant.name
+            items[index].brandName = brandName
+            items[index].productImage = product.image
+            if items[index].perPrice <= 0, perPrice > 0 {
+                items[index].perPrice = perPrice
             }
         } else if clamped > 0 {
             items.append(
@@ -114,11 +110,7 @@ final class CreateOrderCartViewModel: ObservableObject {
     func updateQuantity(for itemId: String, quantity: Int) {
         guard let index = items.firstIndex(where: { $0.id == itemId }) else { return }
         let clamped = max(0, quantity)
-        if clamped == 0 {
-            items.remove(at: index)
-        } else {
-            items[index].quantity = clamped
-        }
+        items[index].quantity = clamped
         submitItems = []
         syncedCartLineIds = []
         apiGrandTotal = 0

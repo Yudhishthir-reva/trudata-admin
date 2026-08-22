@@ -44,6 +44,14 @@ final class OrderInsightsViewModel: ObservableObject {
     @Published var sellerCurrentPage = 1
     @Published var sellerLastPage = 1
 
+    @Published var isInSelectionMode = false
+    @Published var selectedOrderIds: Set<Int> = []
+    @Published var isExporting = false
+    @Published var exportAlertMessage: String?
+    @Published var exportShareURL: URL?
+
+    private let quickShareService = QuickShareServiceManager()
+
     private let service = OrderInsightsServiceManager()
     private var cancellables = Set<AnyCancellable>()
     private var searchCancellable: AnyCancellable?
@@ -127,6 +135,7 @@ final class OrderInsightsViewModel: ObservableObject {
         if isRefresh {
             currentPage = 1
             canLoadMore = true
+            exitSelectionMode()
         }
 
         isLoading = orders.isEmpty || isRefresh
@@ -353,5 +362,59 @@ final class OrderInsightsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    func toggleSelectionMode() {
+        isInSelectionMode.toggle()
+        if !isInSelectionMode {
+            selectedOrderIds.removeAll()
+        }
+    }
+
+    func toggleOrderSelection(orderId: Int) {
+        if selectedOrderIds.contains(orderId) {
+            selectedOrderIds.remove(orderId)
+        } else {
+            selectedOrderIds.insert(orderId)
+        }
+    }
+
+    func exitSelectionMode() {
+        isInSelectionMode = false
+        selectedOrderIds.removeAll()
+    }
+
+    func isOrderSelected(orderId: Int) -> Bool {
+        selectedOrderIds.contains(orderId)
+    }
+
+    func generateBulkInvoice() {
+        guard !selectedOrderIds.isEmpty else { return }
+        isExporting = true
+        exportAlertMessage = nil
+
+        quickShareService.downloadBulkInvoicePDF(selectedOrderIds: Array(selectedOrderIds).sorted())
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.isExporting = false
+                if case .failure(let error) = completion {
+                    self.exportAlertMessage = (error as? RequestError)?.errorString ?? error.localizedDescription
+                }
+            } receiveValue: { [weak self] data in
+                self?.sharePDF(data: data, prefix: "Bulk_Invoice")
+            }
+            .store(in: &cancellables)
+    }
+
+    private func sharePDF(data: Data, prefix: String) {
+        let fileName = "\(prefix)_\(Int(Date().timeIntervalSince1970)).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try data.write(to: url, options: .atomic)
+            exportShareURL = url
+        } catch {
+            exportAlertMessage = "Unable to prepare PDF for sharing."
+        }
     }
 }

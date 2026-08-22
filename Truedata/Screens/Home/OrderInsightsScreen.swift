@@ -10,6 +10,7 @@ struct OrderInsightsScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: OrderInsightsViewModel
     @State private var showFilterSheet = false
+    @State private var navigatedOrderNo: String? = nil
 
     init(
         startDate: String? = nil,
@@ -34,9 +35,12 @@ struct OrderInsightsScreen: View {
             VStack(spacing: 0) {
                 OrderInsightsAppBar(
                     title: viewModel.screenTitle,
+                    isInSelectionMode: viewModel.isInSelectionMode,
+                    selectionCount: viewModel.selectedOrderIds.count,
                     onBack: { dismiss() },
                     onHome: { dismiss() },
-                    onRefresh: { viewModel.loadOrders(isRefresh: true) }
+                    onRefresh: { viewModel.loadOrders(isRefresh: true) },
+                    onCancelSelection: { viewModel.exitSelectionMode() }
                 )
 
                 searchAndFilterBar
@@ -50,6 +54,35 @@ struct OrderInsightsScreen: View {
                 ProgressView()
                     .tint(DashboardTheme.primaryBlue)
             }
+
+            if viewModel.isInSelectionMode && !viewModel.selectedOrderIds.isEmpty {
+                VStack {
+                    Spacer()
+                    Button {
+                        viewModel.generateBulkInvoice()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if viewModel.isExporting {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "doc.text.fill")
+                            }
+                            Text("Generate Bulk Invoice (\(viewModel.selectedOrderIds.count))")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(DashboardTheme.primaryBlue)
+                        .clipShape(Capsule())
+                        .shadow(color: DashboardTheme.primaryBlue.opacity(0.4), radius: 8, x: 0, y: 4)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, 24)
+                    .disabled(viewModel.isExporting)
+                }
+            }
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -58,6 +91,38 @@ struct OrderInsightsScreen: View {
             OrderInsightsFilterSheet(viewModel: viewModel)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.exportShareURL != nil },
+            set: { isPresented in
+                if !isPresented { viewModel.exportShareURL = nil }
+            }
+        )) {
+            if let url = viewModel.exportShareURL {
+                ActivityShareSheet(items: [url])
+            }
+        }
+        .alert(isPresented: Binding(
+            get: { viewModel.exportAlertMessage != nil },
+            set: { isPresented in
+                if !isPresented { viewModel.exportAlertMessage = nil }
+            }
+        )) {
+            Alert(
+                title: Text("Export Bulk Invoice"),
+                message: Text(viewModel.exportAlertMessage ?? ""),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { navigatedOrderNo != nil },
+            set: { isPresented in
+                if !isPresented { navigatedOrderNo = nil }
+            }
+        )) {
+            if let orderNo = navigatedOrderNo {
+                OrderDetailScreen(orderId: orderNo)
+            }
         }
     }
 
@@ -203,12 +268,24 @@ struct OrderInsightsScreen: View {
             ScrollView {
                 LazyVStack(spacing: 14) {
                     ForEach(viewModel.orders) { order in
-                        NavigationLink {
-                            OrderDetailScreen(orderId: order.orderNo)
-                        } label: {
-                            OrderInsightsOrderCard(order: order)
+                        OrderInsightsOrderCard(
+                            order: order,
+                            isInSelectionMode: viewModel.isInSelectionMode,
+                            isSelected: viewModel.isOrderSelected(orderId: order.id)
+                        )
+                        .onTapGesture {
+                            if viewModel.isInSelectionMode {
+                                viewModel.toggleOrderSelection(orderId: order.id)
+                            } else {
+                                navigatedOrderNo = order.orderNo
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .onLongPressGesture {
+                            if !viewModel.isInSelectionMode {
+                                viewModel.toggleSelectionMode()
+                                viewModel.toggleOrderSelection(orderId: order.id)
+                            }
+                        }
                         .onAppear {
                             viewModel.loadMoreIfNeeded(currentOrder: order)
                         }
@@ -221,7 +298,7 @@ struct OrderInsightsScreen: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.bottom, viewModel.isInSelectionMode && !viewModel.selectedOrderIds.isEmpty ? 90 : 16)
             }
         }
     }
@@ -289,38 +366,57 @@ struct OrderInsightsScreen: View {
 
 private struct OrderInsightsAppBar: View {
     let title: String
+    var isInSelectionMode: Bool = false
+    var selectionCount: Int = 0
     var onBack: () -> Void
     var onHome: () -> Void
     var onRefresh: () -> Void
+    var onCancelSelection: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 8) {
-            Button(action: onBack) {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-            }
+            if isInSelectionMode {
+                Button(action: { onCancelSelection?() }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                }
 
-            Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+                Text("\(selectionCount) order\(selectionCount != 1 ? "s" : "") selected")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            } else {
+                Button(action: onBack) {
+                    Image(systemName: "arrow.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                }
+
+                Text(title)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
 
             Spacer(minLength: 0)
 
-            Button(action: onRefresh) {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-            }
+            if !isInSelectionMode {
+                Button(action: onRefresh) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                }
 
-            Button(action: onHome) {
-                Image(systemName: "house.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
+                Button(action: onHome) {
+                    Image(systemName: "house.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                }
             }
         }
         .padding(.horizontal, 12)
@@ -334,6 +430,8 @@ private struct OrderInsightsAppBar: View {
 
 private struct OrderInsightsOrderCard: View {
     let order: OrderInsightsOrder
+    var isInSelectionMode: Bool = false
+    var isSelected: Bool = false
 
     private var statusStyle: OrderInsightsStatusStyle {
         OrderInsightsStatusStyle.from(status: order.status)
@@ -341,76 +439,92 @@ private struct OrderInsightsOrderCard: View {
 
     private var borderColor: Color {
         if order.showRedBox { return DashboardTheme.dangerRed }
+        if isInSelectionMode && isSelected { return DashboardTheme.primaryBlue }
         return DashboardTheme.successGreen.opacity(0.55)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(order.displayOrderNo)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(DashboardTheme.neutralDark)
+        HStack(spacing: 0) {
+            if isInSelectionMode {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 20))
+                    .foregroundStyle(isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                    .padding(.leading, 12)
+            }
 
-                        Text(order.orderDate)
-                            .font(.system(size: 11))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(order.displayOrderNo)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(DashboardTheme.neutralDark)
 
-                        if order.orderNotDelivered {
-                            Text("Rescheduled")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(DashboardTheme.warningYellow)
+                            Text(order.orderDate)
+                                .font(.system(size: 11))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+
+                            if order.orderNotDelivered {
+                                Text("Rescheduled")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(DashboardTheme.warningYellow)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(DashboardTheme.warningYellow.opacity(0.12))
+                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            }
+                        }
+
+                        Spacer(minLength: 8)
+
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(order.totalAmount.priceLabel)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+
+                            Text(statusStyle.displayName)
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(statusStyle.color)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(DashboardTheme.warningYellow.opacity(0.12))
+                                .background(statusStyle.color.opacity(0.12))
                                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                
+                            if order.containsSpecialNote {
+                                BlinkingSpecialNoteView()
+                            }
                         }
                     }
 
-                    Spacer(minLength: 8)
-
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(order.totalAmount.priceLabel)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-
-                        Text(statusStyle.displayName)
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundStyle(statusStyle.color)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(statusStyle.color.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    }
-                }
-
-                VStack(spacing: 4) {
-                    detailRow(icon: "info.circle", label: "Seller", value: order.sellerName)
-                    detailRow(icon: "phone", label: "Mobile", value: order.sellerPhone)
-                    detailRow(icon: "mappin.and.ellipse", label: "Beat", value: order.beatName)
-                    detailRow(icon: "arrow.triangle.2.circlepath", label: "Delivered At", value: order.deliveryDateTime)
-                    HStack(spacing: 12) {
-                        detailRow(icon: "person", label: "Staff", value: order.staffName)
-                        detailRow(icon: "person", label: "Rider", value: order.displayRiderName)
-                    }
-                }
-
-                HStack {
-                    Spacer()
-                    Text("View Details")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 6)
-                        .overlay {
-                            Capsule()
-                                .stroke(DashboardTheme.primaryBlue.opacity(0.5), lineWidth: 1)
+                    VStack(spacing: 4) {
+                        detailRow(icon: "info.circle", label: "Seller", value: order.sellerName)
+                        detailRow(icon: "phone", label: "Mobile", value: order.sellerPhone)
+                        detailRow(icon: "mappin.and.ellipse", label: "Beat", value: order.beatName)
+                        detailRow(icon: "arrow.triangle.2.circlepath", label: "Delivered At", value: order.deliveryDateTime)
+                        HStack(spacing: 12) {
+                            detailRow(icon: "person", label: "Staff", value: order.staffName)
+                            detailRow(icon: "person", label: "Rider", value: order.displayRiderName)
                         }
+                    }
+
+                    if !isInSelectionMode {
+                        HStack {
+                            Spacer()
+                            Text("View Details")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .overlay {
+                                    Capsule()
+                                        .stroke(DashboardTheme.primaryBlue.opacity(0.5), lineWidth: 1)
+                                }
+                        }
+                        .padding(.top, 4)
+                    }
                 }
-                .padding(.top, 4)
+                .padding(12)
             }
-            .padding(12)
         }
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -537,6 +651,29 @@ private struct OrderInsightsStatCard: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(color.opacity(0.2), lineWidth: 1)
         }
+    }
+}
+
+private struct BlinkingSpecialNoteView: View {
+    @State private var isOpacityLow = false
+
+    var body: some View {
+        Text("Contain special note")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(AppTheme.errorRed)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .opacity(isOpacityLow ? 0.35 : 1.0)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 0.7)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    isOpacityLow = true
+                }
+            }
     }
 }
 
