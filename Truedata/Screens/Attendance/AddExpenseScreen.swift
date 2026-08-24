@@ -11,6 +11,7 @@ struct AddExpenseScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AddExpenseViewModel()
+    @State private var showCamera = false
     var onSubmitted: () -> Void = {}
 
     var body: some View {
@@ -80,6 +81,17 @@ struct AddExpenseScreen: View {
         .onChange(of: viewModel.selectedPhotoItem) { _, _ in
             viewModel.loadSelectedImage()
         }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImageCaptured: { image in
+                    viewModel.imageData = image.jpegData(compressionQuality: 0.8)
+                    showCamera = false
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
+        }
         .alert("Success", isPresented: $viewModel.showSuccessAlert) {
             Button("OK") {
                 viewModel.successMessage = nil
@@ -116,27 +128,46 @@ struct AddExpenseScreen: View {
                     .padding(8)
                 }
             } else {
-                PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 20))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                        Text("Upload Image")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(AppTheme.textSecondary)
+                HStack(spacing: 12) {
+                    Button {
+                        showCamera = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 18))
+                            Text("Camera")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(AppTheme.aliceBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(AppTheme.blue, lineWidth: 1.5)
+                        }
                     }
-                    .padding(.horizontal, 14)
-                    .frame(height: 52)
-                    .background(AppTheme.aliceBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(AppTheme.blue, lineWidth: 2)
+                    .buttonStyle(.plain)
+
+                    PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 18))
+                            Text("Gallery")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(AppTheme.aliceBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(AppTheme.blue, lineWidth: 1.5)
+                        }
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }

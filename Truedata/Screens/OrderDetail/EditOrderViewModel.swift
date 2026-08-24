@@ -165,26 +165,30 @@ final class EditOrderViewModel: ObservableObject {
         quantity: Int
     ) {
         let clamped = max(0, min(quantity, CreateOrderVariantParser.maxPacketsLimit))
-        let perPrice = variant.ogPriceValue > 0 ? variant.ogPriceValue : variant.priceValue
+        let perPrice = variant.priceValue > 0 ? variant.priceValue : variant.ogPriceValue
 
-        if let index = items.firstIndex(where: { $0.variantId == variant.id }) {
+        let itemIndex = items.firstIndex(where: { item in
+            (item.productId == product.id || (item.productId == 0 && item.productName == product.name)) &&
+            ((variant.id > 0 && item.variantId == variant.id) || item.variantName == variant.name)
+        })
+
+        if let index = itemIndex {
             if clamped == 0 {
                 items.remove(at: index)
             } else {
                 items[index].quantity = clamped
                 items[index].productId = product.id
+                items[index].variantId = variant.id
                 items[index].productName = product.name
                 items[index].variantName = variant.name
                 items[index].brandName = brandName
                 items[index].productImage = product.image
-                if items[index].perPrice <= 0, perPrice > 0 {
-                    items[index].perPrice = perPrice
-                }
+                items[index].perPrice = perPrice
             }
         } else if clamped > 0 {
             items.append(
                 EditOrderLineItem(
-                    id: "line-\(product.id)-\(variant.id)-\(items.count)",
+                    id: "line-\(product.id)-\(variant.id)-\(UUID().uuidString.prefix(8))",
                     orderItemId: 0,
                     cartLineId: 0,
                     productId: product.id,
@@ -197,6 +201,18 @@ final class EditOrderViewModel: ObservableObject {
                     quantity: clamped
                 )
             )
+        }
+    }
+
+    func updateVariantPrices(for productId: Int, variantPrices: [Int: Double]) {
+        items = items.map { item in
+            guard item.productId == productId || item.productId == 0,
+                  let newPrice = variantPrices[item.variantId], newPrice > 0 else {
+                return item
+            }
+            var updated = item
+            updated.perPrice = newPrice
+            return updated
         }
     }
 

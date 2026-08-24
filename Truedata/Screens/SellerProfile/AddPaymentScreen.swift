@@ -13,6 +13,7 @@ struct AddPaymentScreen: View {
     @StateObject private var viewModel: AddPaymentViewModel
     @State private var selectedDate = Date()
     @State private var showDatePicker = false
+    @State private var showCamera = false
 
     init(sellerId: Int, appBarTitle: String) {
         self.appBarTitle = appBarTitle
@@ -51,6 +52,17 @@ struct AddPaymentScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: viewModel.selectedPhotoItem) { _, _ in
             viewModel.loadSelectedImage()
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImageCaptured: { image in
+                    viewModel.imageData = image.jpegData(compressionQuality: 0.8)
+                    showCamera = false
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
         }
         .alert("Notice", isPresented: alertBinding) {
             Button("OK") {
@@ -186,26 +198,51 @@ struct AddPaymentScreen: View {
                     .padding(10)
                 }
             } else {
-                PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                    VStack(spacing: 10) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 28))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                        Text("Upload Cheque Image")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
+                HStack(spacing: 12) {
+                    Button {
+                        showCamera = true
+                    } label: {
+                        VStack(spacing: 8) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                            Text("Camera")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
+                                .foregroundStyle(DashboardTheme.primaryBlue.opacity(0.45))
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 180)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                            .foregroundStyle(DashboardTheme.primaryBlue.opacity(0.45))
+                    .buttonStyle(.plain)
+
+                    PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 24))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                            Text("Gallery")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
+                                .foregroundStyle(DashboardTheme.primaryBlue.opacity(0.45))
+                        }
                     }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }

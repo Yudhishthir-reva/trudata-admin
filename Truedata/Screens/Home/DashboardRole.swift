@@ -34,8 +34,8 @@ enum DashboardRole {
         return value == "admin" || value == "sales manager"
     }
 
-    /// Admin-facing roles use Operations instead of the My Area home section.
+    /// Whether to hide My Area section (default false to show all components provided by API).
     static func shouldHideMyAreaSection(role: String) -> Bool {
-        canShowControlsOperation(role: role)
+        false
     }
 }

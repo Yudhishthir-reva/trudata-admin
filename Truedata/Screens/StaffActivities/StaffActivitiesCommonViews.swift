@@ -137,18 +137,20 @@ struct StaffActivitiesPillButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Text(title)
+                    .font(.system(size: 13, weight: .semibold))
                 Image(systemName: "arrow.right")
                     .font(.system(size: 12, weight: .semibold))
             }
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(DashboardTheme.neutralMedium)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 8)
+            .foregroundStyle(Color(hex: "4B5563"))
+            .padding(.horizontal, 28)
+            .padding(.vertical, 10)
+            .background(Color.white)
+            .clipShape(Capsule())
             .overlay {
                 Capsule()
-                    .stroke(Color(hex: "D1D5DB").opacity(0.8), lineWidth: 1)
+                    .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
             }
         }
         .buttonStyle(.plain)

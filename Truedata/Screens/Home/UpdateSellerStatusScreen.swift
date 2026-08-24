@@ -11,6 +11,8 @@ struct UpdateSellerStatusScreen: View {
     @StateObject private var viewModel: UpdateSellerStatusViewModel
     @StateObject private var locationHelper = LocationHelper()
     @State private var showCamera = false
+    @State private var showSourceDialog = false
+    @State private var pickerSourceType: UIImagePickerController.SourceType = .camera
     @State private var showImagePreview = false
     @State private var showDatePicker = false
     @State private var selectedDate = Date()
@@ -55,8 +57,29 @@ struct UpdateSellerStatusScreen: View {
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { locationHelper.refreshLocation() }
+        .confirmationDialog(
+            "Choose Photo Source",
+            isPresented: $showSourceDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Camera") {
+                pickerSourceType = .camera
+                showCamera = true
+            }
+            Button("Photo Gallery") {
+                pickerSourceType = .photoLibrary
+                showCamera = true
+            }
+            if viewModel.capturedImage != nil {
+                Button("Remove Photo", role: .destructive) {
+                    viewModel.setCapturedImage(nil)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         .fullScreenCover(isPresented: $showCamera) {
             CameraImagePicker(
+                sourceType: pickerSourceType,
                 onImageCaptured: { image in
                     viewModel.setCapturedImage(image)
                     showCamera = false
@@ -216,22 +239,22 @@ struct UpdateSellerStatusScreen: View {
                     .buttonStyle(.plain)
 
                     Button {
-                        showCamera = true
+                        showSourceDialog = true
                     } label: {
-                        actionChip(title: "Retake", icon: "arrow.clockwise", style: .filled)
+                        actionChip(title: "Change", icon: "photo.on.rectangle.angled", style: .filled)
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.top, 12)
             } else {
                 Button {
-                    showCamera = true
+                    showSourceDialog = true
                 } label: {
                     VStack(spacing: 10) {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 36))
                             .foregroundStyle(DashboardTheme.primaryBlue)
-                        Text("Tap to capture")
+                        Text("Tap to add photo")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(DashboardTheme.primaryBlue)
                     }

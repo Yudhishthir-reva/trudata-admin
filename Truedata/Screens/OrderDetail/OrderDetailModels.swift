@@ -55,9 +55,11 @@ struct OrderDetailData: Decodable {
     var canEditOrder: Bool?
     var canCancelOrder: Bool?
     var orderDetails: [OrderDetailProduct]
+    var remark: String
+    var audioRemark: String
 
     enum CodingKeys: String, CodingKey {
-        case status, discount, name, mobile, seller
+        case status, discount, name, mobile, seller, remark, remarks
         case orderId = "order_id"
         case orderNo = "order_no"
         case orderDate = "order_date"
@@ -85,6 +87,12 @@ struct OrderDetailData: Decodable {
         case canEditOrder = "can_edit_order"
         case canCancelOrder = "can_cancel_order"
         case orderDetails = "order_details"
+        case textRemark = "text_remark"
+        case orderRemark = "order_remark"
+        case audioRemark = "audio_remark"
+        case audio = "audio"
+        case audioUrl = "audio_url"
+        case voiceRemark = "voice_remark"
     }
 
     private enum NestedSellerKeys: String, CodingKey {
@@ -162,6 +170,18 @@ struct OrderDetailData: Decodable {
         canEditOrder = container.decodeBoolLeniently(forKey: .canEditOrder)
         canCancelOrder = container.decodeBoolLeniently(forKey: .canCancelOrder)
         orderDetails = (try? container.decode([OrderDetailProduct].self, forKey: .orderDetails)) ?? []
+        remark = Self.firstNonEmpty(
+            container.decodeStringLeniently(forKey: .remark),
+            container.decodeStringLeniently(forKey: .remarks),
+            container.decodeStringLeniently(forKey: .textRemark),
+            container.decodeStringLeniently(forKey: .orderRemark)
+        )
+        audioRemark = Self.firstNonEmpty(
+            container.decodeStringLeniently(forKey: .audioRemark),
+            container.decodeStringLeniently(forKey: .audio),
+            container.decodeStringLeniently(forKey: .audioUrl),
+            container.decodeStringLeniently(forKey: .voiceRemark)
+        )
     }
 
     init() {
@@ -192,6 +212,16 @@ struct OrderDetailData: Decodable {
         canEditOrder = nil
         canCancelOrder = nil
         orderDetails = []
+        remark = ""
+        audioRemark = ""
+    }
+
+    var hasRemark: Bool {
+        !remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasAudioRemark: Bool {
+        !audioRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var displayOrderNo: String {

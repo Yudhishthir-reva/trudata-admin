@@ -101,6 +101,14 @@ final class AddStaffViewModel: ObservableObject {
         roleName = role.name
     }
 
+    func photo(for kind: StaffPhotoKind) -> UIImage? {
+        switch kind {
+        case .profile: return profileImage
+        case .aadharFront: return aadharFrontImage
+        case .aadharBack: return aadharBackImage
+        }
+    }
+
     func setPhoto(_ image: UIImage?, kind: StaffPhotoKind) {
         switch kind {
         case .profile: profileImage = image

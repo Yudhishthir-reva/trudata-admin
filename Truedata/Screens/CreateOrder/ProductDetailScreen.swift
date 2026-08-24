@@ -97,6 +97,9 @@ struct ProductDetailScreen: View {
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            viewModel.refreshQuantities()
+        }
         .sheet(isPresented: $showCartSheet) {
             if let createOrderCartViewModel {
                 CreateOrderCartSheet(

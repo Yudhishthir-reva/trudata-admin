@@ -11,6 +11,7 @@ struct AddProductScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: AddProductViewModel
     @State private var pickerSelection: AddProductPicker?
+    @State private var showCamera = false
 
     init(editProductId: Int? = nil) {
         _viewModel = StateObject(wrappedValue: AddProductViewModel(editProductId: editProductId))
@@ -57,6 +58,17 @@ struct AddProductScreen: View {
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImageCaptured: { image in
+                    viewModel.imageData = image.jpegData(compressionQuality: 0.8)
+                    showCamera = false
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
         }
         .alert("Success", isPresented: $viewModel.showSuccessAlert) {
             Button("Continue") { dismiss() }
@@ -259,12 +271,22 @@ struct AddProductScreen: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
 
-        HStack(spacing: 12) {
-            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                Text("Choose Photo")
+        HStack(spacing: 14) {
+            Button {
+                showCamera = true
+            } label: {
+                Label("Camera", systemImage: "camera.fill")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DashboardTheme.primaryBlue)
             }
+            .buttonStyle(.plain)
+
+            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                Label("Gallery", systemImage: "photo.on.rectangle.angled")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
+            }
+            .buttonStyle(.plain)
 
             if viewModel.imageData != nil || !viewModel.existingImageURL.isEmptyString {
                 Button("Remove") {
@@ -272,6 +294,7 @@ struct AddProductScreen: View {
                 }
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(DashboardTheme.dangerRed)
+                .buttonStyle(.plain)
             }
         }
     }

@@ -62,9 +62,7 @@ class DashboardViewModel: ObservableObject {
     }
 
     var sections: [DashboardSection] {
-        let all = response?.data?.sections ?? []
-        guard DashboardRole.shouldHideMyAreaSection(role: role) else { return all }
-        return all.filter { DashboardRole.normalized($0.title) != "my area" }
+        response?.data?.sections ?? []
     }
 
     var gridColumns: Int {

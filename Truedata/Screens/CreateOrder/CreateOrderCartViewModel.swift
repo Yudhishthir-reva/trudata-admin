@@ -51,6 +51,10 @@ final class CreateOrderCartViewModel: ObservableObject {
         totalItems > 0
     }
 
+    var allItemsHaveQuantity: Bool {
+        !items.isEmpty && items.allSatisfy { $0.quantity > 0 }
+    }
+
     var isCartSynced: Bool {
         !submitItems.isEmpty && !syncedCartLineIds.isEmpty
     }
@@ -72,22 +76,26 @@ final class CreateOrderCartViewModel: ObservableObject {
         quantity: Int
     ) {
         let clamped = max(0, min(quantity, CreateOrderVariantParser.maxPacketsLimit))
-        let perPrice = variant.ogPriceValue > 0 ? variant.ogPriceValue : variant.priceValue
+        let perPrice = variant.priceValue > 0 ? variant.priceValue : variant.ogPriceValue
 
-        if let index = items.firstIndex(where: { $0.variantId == variant.id }) {
+        let itemIndex = items.firstIndex(where: { item in
+            (item.productId == product.id || (item.productId == 0 && item.productName == product.name)) &&
+            ((variant.id > 0 && item.variantId == variant.id) || item.variantName == variant.name)
+        })
+
+        if let index = itemIndex {
             items[index].quantity = clamped
             items[index].productId = product.id
+            items[index].variantId = variant.id
             items[index].productName = product.name
             items[index].variantName = variant.name
             items[index].brandName = brandName
             items[index].productImage = product.image
-            if items[index].perPrice <= 0, perPrice > 0 {
-                items[index].perPrice = perPrice
-            }
+            items[index].perPrice = perPrice
         } else if clamped > 0 {
             items.append(
                 EditOrderLineItem(
-                    id: "line-\(product.id)-\(variant.id)-\(items.count)",
+                    id: "line-\(product.id)-\(variant.id)-\(UUID().uuidString.prefix(8))",
                     orderItemId: 0,
                     cartLineId: 0,
                     productId: product.id,
@@ -107,6 +115,25 @@ final class CreateOrderCartViewModel: ObservableObject {
         apiGrandTotal = 0
     }
 
+    func updateVariantPrices(for productId: Int, variantPrices: [Int: Double]) {
+        var changed = false
+        items = items.map { item in
+            guard item.productId == productId || item.productId == 0,
+                  let newPrice = variantPrices[item.variantId], newPrice > 0 else {
+                return item
+            }
+            var updated = item
+            updated.perPrice = newPrice
+            changed = true
+            return updated
+        }
+        if changed {
+            submitItems = []
+            syncedCartLineIds = []
+            apiGrandTotal = 0
+        }
+    }
+
     func updateQuantity(for itemId: String, quantity: Int) {
         guard let index = items.firstIndex(where: { $0.id == itemId }) else { return }
         let clamped = max(0, quantity)
@@ -118,6 +145,16 @@ final class CreateOrderCartViewModel: ObservableObject {
 
     func removeItem(_ itemId: String) {
         items.removeAll { $0.id == itemId }
+        submitItems = []
+        syncedCartLineIds = []
+        apiGrandTotal = 0
+    }
+
+    func removeProduct(_ productId: Int, productName: String = "") {
+        items.removeAll { item in
+            (productId > 0 && item.productId == productId) ||
+            (!productName.isEmptyString && item.productName == productName)
+        }
         submitItems = []
         syncedCartLineIds = []
         apiGrandTotal = 0

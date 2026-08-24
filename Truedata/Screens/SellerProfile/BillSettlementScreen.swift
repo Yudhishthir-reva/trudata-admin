@@ -11,6 +11,7 @@ struct BillSettlementScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: BillSettlementViewModel
+    @State private var showCamera = false
 
     init(sellerId: Int) {
         _viewModel = StateObject(wrappedValue: BillSettlementViewModel(sellerId: sellerId))
@@ -50,6 +51,17 @@ struct BillSettlementScreen: View {
         .onAppear { viewModel.loadBillList() }
         .onChange(of: viewModel.selectedPhotoItem) { _, _ in
             viewModel.loadSelectedImage()
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImageCaptured: { image in
+                    viewModel.imageData = image.jpegData(compressionQuality: 0.8)
+                    showCamera = false
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
         }
         .alert("Notice", isPresented: alertBinding) {
             Button("OK") {
@@ -237,19 +249,37 @@ struct BillSettlementScreen: View {
                             .padding(8)
                         }
                     } else {
-                        PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                            HStack {
-                                Image(systemName: "photo.on.rectangle")
-                                Text("Choose Receipt Image")
-                                    .font(.system(size: 14, weight: .semibold))
+                        HStack(spacing: 12) {
+                            Button {
+                                showCamera = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "camera.fill")
+                                    Text("Camera")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(DashboardTheme.primaryBlue.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             }
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(DashboardTheme.primaryBlue.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .buttonStyle(.plain)
+
+                            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                                HStack {
+                                    Image(systemName: "photo.on.rectangle")
+                                    Text("Gallery")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(DashboardTheme.primaryBlue.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }

@@ -34,7 +34,7 @@ final class UpdateSellerStatusViewModel: ObservableObject {
         self.service = service
     }
 
-    func setCapturedImage(_ image: UIImage) {
+    func setCapturedImage(_ image: UIImage?) {
         capturedImage = image
         validationMessage = nil
     }

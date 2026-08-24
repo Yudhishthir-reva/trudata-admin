@@ -46,6 +46,49 @@ final class ProductDetailViewModel: ObservableObject {
             editOrderViewModel: editOrderViewModel,
             createOrderCartViewModel: createOrderCartViewModel
         )
+
+        setupCartObservers()
+    }
+
+    private func setupCartObservers() {
+        if let editOrderViewModel {
+            editOrderViewModel.$items
+                .receive(on: RunLoop.main)
+                .sink { [weak self] items in
+                    guard let self else { return }
+                    self.syncQuantities(from: items)
+                }
+                .store(in: &cancellables)
+        } else if let createOrderCartViewModel {
+            createOrderCartViewModel.$items
+                .receive(on: RunLoop.main)
+                .sink { [weak self] items in
+                    guard let self else { return }
+                    self.syncQuantities(from: items)
+                }
+                .store(in: &cancellables)
+        }
+    }
+
+    func refreshQuantities() {
+        if let editOrderViewModel {
+            syncQuantities(from: editOrderViewModel.items)
+        } else if let createOrderCartViewModel {
+            syncQuantities(from: createOrderCartViewModel.items)
+        }
+    }
+
+    private func syncQuantities(from items: [EditOrderLineItem]) {
+        var synced: [Int: Int] = [:]
+        for item in items where item.quantity > 0 {
+            let belongsToProduct = (item.productId > 0 && item.productId == product.id)
+                || (item.productId == 0 && (item.productName == product.name || product.variants.contains(where: { $0.id == item.variantId && item.variantName == $0.name })))
+            guard belongsToProduct else { continue }
+            synced[item.variantId] = item.quantity
+        }
+        if variantQuantities != synced {
+            variantQuantities = synced
+        }
     }
 
     private static func initialQuantities(
@@ -56,8 +99,8 @@ final class ProductDetailViewModel: ObservableObject {
         if let editOrderViewModel {
             var seeded: [Int: Int] = [:]
             for item in editOrderViewModel.items where item.quantity > 0 {
-                let belongsToProduct = item.productId == product.id
-                    || (item.productId == 0 && product.variants.contains(where: { $0.id == item.variantId }))
+                let belongsToProduct = (item.productId > 0 && item.productId == product.id)
+                    || (item.productId == 0 && (item.productName == product.name || product.variants.contains(where: { $0.id == item.variantId && item.variantName == $0.name })))
                 guard belongsToProduct else { continue }
                 seeded[item.variantId] = item.quantity
             }
@@ -66,7 +109,10 @@ final class ProductDetailViewModel: ObservableObject {
 
         if let createOrderCartViewModel {
             var seeded: [Int: Int] = [:]
-            for item in createOrderCartViewModel.items where item.quantity > 0 && item.productId == product.id {
+            for item in createOrderCartViewModel.items where item.quantity > 0 {
+                let belongsToProduct = (item.productId > 0 && item.productId == product.id)
+                    || (item.productId == 0 && (item.productName == product.name || product.variants.contains(where: { $0.id == item.variantId && item.variantName == $0.name })))
+                guard belongsToProduct else { continue }
                 seeded[item.variantId] = item.quantity
             }
             return seeded
@@ -142,6 +188,7 @@ final class ProductDetailViewModel: ObservableObject {
             guard let self else { return }
             self.isSavingSpecialPrices = false
             if response.status {
+                self.applySpecialPrices(filtered)
                 self.reloadProduct()
                 self.specialPriceMessage = response.message.isEmpty ? "Special prices updated." : response.message
                 self.showSpecialPriceAlert = true
@@ -152,6 +199,23 @@ final class ProductDetailViewModel: ObservableObject {
             }
         }
         .store(in: &cancellables)
+    }
+
+    private func applySpecialPrices(_ prices: [Int: String]) {
+        var updatedVariants = product.variants
+        var priceByVariantId: [Int: Double] = [:]
+        for (index, variant) in updatedVariants.enumerated() {
+            if let newPriceStr = prices[variant.id], let newPrice = Double(newPriceStr), newPrice > 0 {
+                updatedVariants[index].price = newPriceStr
+                priceByVariantId[variant.id] = newPrice
+            }
+        }
+        self.product.variants = updatedVariants
+
+        if !priceByVariantId.isEmpty {
+            createOrderCartViewModel?.updateVariantPrices(for: product.id, variantPrices: priceByVariantId)
+            editOrderViewModel?.updateVariantPrices(for: product.id, variantPrices: priceByVariantId)
+        }
     }
 
     private func reloadProduct() {
@@ -165,6 +229,17 @@ final class ProductDetailViewModel: ObservableObject {
                 guard let self, response.status else { return }
                 if let updated = response.data.first(where: { $0.id == self.product.id }) {
                     self.product = updated
+                    var priceByVariantId: [Int: Double] = [:]
+                    for variant in updated.variants {
+                        let price = variant.priceValue > 0 ? variant.priceValue : variant.ogPriceValue
+                        if price > 0 {
+                            priceByVariantId[variant.id] = price
+                        }
+                    }
+                    if !priceByVariantId.isEmpty {
+                        self.createOrderCartViewModel?.updateVariantPrices(for: updated.id, variantPrices: priceByVariantId)
+                        self.editOrderViewModel?.updateVariantPrices(for: updated.id, variantPrices: priceByVariantId)
+                    }
                 }
             }
             .store(in: &cancellables)

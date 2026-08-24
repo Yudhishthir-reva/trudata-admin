@@ -12,6 +12,7 @@ struct AddSellerScreen: View {
     @StateObject private var locationHelper = LocationHelper()
     @State private var activePhotoKind: AddSellerPhotoKind?
     @State private var showCamera = false
+    @State private var pickerSourceType: UIImagePickerController.SourceType = .camera
     @State private var pickerSelection: AddSellerPicker?
 
     init(editSellerId: Int? = nil) {
@@ -71,6 +72,7 @@ struct AddSellerScreen: View {
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraImagePicker(
+                sourceType: pickerSourceType,
                 onImageCaptured: { image in
                     if let kind = activePhotoKind {
                         viewModel.setPhoto(image, kind: kind)
@@ -378,13 +380,28 @@ struct AddSellerScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
 
-            HStack(spacing: 10) {
-                Button("Camera") {
+            HStack(spacing: 14) {
+                Button {
                     activePhotoKind = kind
+                    pickerSourceType = .camera
                     showCamera = true
+                } label: {
+                    Label("Camera", systemImage: "camera.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
                 }
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(DashboardTheme.primaryBlue)
+                .buttonStyle(.plain)
+
+                Button {
+                    activePhotoKind = kind
+                    pickerSourceType = .photoLibrary
+                    showCamera = true
+                } label: {
+                    Label("Gallery", systemImage: "photo.on.rectangle.angled")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                }
+                .buttonStyle(.plain)
 
                 if image != nil {
                     Button("Remove") {
@@ -392,6 +409,7 @@ struct AddSellerScreen: View {
                     }
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DashboardTheme.dangerRed)
+                    .buttonStyle(.plain)
                 }
             }
         }

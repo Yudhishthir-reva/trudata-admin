@@ -1,9 +1,6 @@
-//
-//  OrderDetailScreen.swift
-//  Truedata
-//
-
 import SwiftUI
+import AVFoundation
+import Combine
 
 struct OrderDetailScreen: View {
 
@@ -175,6 +172,12 @@ struct OrderDetailScreen: View {
         OrderDetailStyledCard {
             VStack(alignment: .leading, spacing: 0) {
                 orderHeader(order)
+
+                if order.hasRemark || order.hasAudioRemark {
+                    Divider().overlay(DashboardTheme.surfaceVariant)
+                    remarksSection(order)
+                }
+
                 Divider().overlay(DashboardTheme.surfaceVariant)
 
                 VStack(alignment: .leading, spacing: 6) {
@@ -233,6 +236,35 @@ struct OrderDetailScreen: View {
             HStack(spacing: 8) {
                 statusChip(OrderDetailStatusMapper.deliveryStatus(order.status))
                 statusChip(OrderDetailStatusMapper.paymentStatus(order.transactionStatus))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func remarksSection(_ order: OrderDetailData) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Remarks")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+
+                Spacer()
+
+                if order.hasAudioRemark {
+                    Text("History")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.dangerRed)
+                }
+            }
+
+            if order.hasAudioRemark {
+                OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
+            }
+
+            if order.hasRemark {
+                OrderDetailTextRemarkView(remark: order.remark)
             }
         }
         .padding(.horizontal, 10)
@@ -602,6 +634,294 @@ private struct OrderProductImagePreview: View {
                 Spacer()
             }
         }
+    }
+}
+
+// MARK: - Remarks Components
+
+private struct OrderDetailTextRemarkView: View {
+    let remark: String
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "pencil")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: "F59E0B"))
+
+            Text(remark)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(DashboardTheme.neutralDark)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color(hex: "FFFBEB"))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct OrderDetailAudioPlayerView: View {
+    let audioURLString: String
+    @StateObject private var player = OrderDetailAudioPlayer()
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: { player.togglePlayPause() }) {
+                ZStack {
+                    Circle()
+                        .fill(DashboardTheme.primaryBlue)
+                        .frame(width: 38, height: 38)
+
+                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(x: player.isPlaying ? 0 : 1)
+                }
+            }
+            .buttonStyle(.plain)
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    HStack(spacing: 3) {
+                        ForEach(0..<24, id: \.self) { i in
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(DashboardTheme.primaryBlue.opacity(0.25))
+                                .frame(width: 3, height: waveformHeight(for: i))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    HStack(spacing: 3) {
+                        ForEach(0..<24, id: \.self) { i in
+                            let barProgress = Double(i) / 24.0
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(barProgress <= player.progress ? DashboardTheme.primaryBlue : DashboardTheme.primaryBlue.opacity(0.25))
+                                .frame(width: 3, height: waveformHeight(for: i))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            let newProg = value.location.x / geometry.size.width
+                            player.seek(to: Double(newProg))
+                        }
+                )
+            }
+            .frame(height: 24)
+
+            Text(player.formattedTime)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(DashboardTheme.neutralDark)
+                .frame(minWidth: 42, alignment: .trailing)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color(hex: "F0F4FA"))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .onAppear {
+            player.loadAudio(from: audioURLString)
+        }
+        .onDisappear {
+            player.cleanup()
+        }
+    }
+
+    private func waveformHeight(for index: Int) -> CGFloat {
+        let pattern: [CGFloat] = [8, 14, 18, 10, 16, 22, 12, 18, 14, 20, 16, 10, 18, 22, 14, 12, 20, 16, 10, 14, 18, 12, 8, 6]
+        return pattern[index % pattern.count]
+    }
+}
+
+final class OrderDetailAudioPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
+    @Published var isPlaying = false
+    @Published var currentTime: Double = 0
+    @Published var duration: Double = 0
+    @Published var progress: Double = 0
+
+    private var avPlayer: AVPlayer?
+    private var avAudioPlayer: AVAudioPlayer?
+    private var timeObserverToken: Any?
+    private var timer: Timer?
+    private var tempFileURL: URL?
+
+    func loadAudio(from source: String) {
+        let trimmed = source.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if trimmed.hasPrefix("data:audio") || (trimmed.count > 100 && !trimmed.hasPrefix("http")) {
+            loadBase64(trimmed)
+            return
+        }
+
+        let resolvedURLString: String
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            resolvedURLString = trimmed
+        } else {
+            let base = BASE_URL.replacingOccurrences(of: "/api/", with: "/")
+            resolvedURLString = base.hasSuffix("/") ? "\(base)\(trimmed)" : "\(base)/\(trimmed)"
+        }
+
+        if let url = URL(string: resolvedURLString) {
+            loadRemoteURL(url)
+        }
+    }
+
+    private func loadBase64(_ base64String: String) {
+        let clean = base64String.components(separatedBy: ",").last ?? base64String
+        guard let data = Data(base64Encoded: clean, options: .ignoreUnknownCharacters) else { return }
+        do {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("order-audio-\(UUID().uuidString).m4a")
+            try data.write(to: url)
+            self.tempFileURL = url
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.delegate = self
+            player.prepareToPlay()
+            self.duration = player.duration
+            self.avAudioPlayer = player
+        } catch {
+            print("Error loading base64 audio: \(error)")
+        }
+    }
+
+    private func loadRemoteURL(_ url: URL) {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .default)
+        try? session.setActive(true)
+
+        let playerItem = AVPlayerItem(url: url)
+        let player = AVPlayer(playerItem: playerItem)
+        self.avPlayer = player
+
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self else { return }
+            let current = CMTimeGetSeconds(time)
+            if !current.isNaN {
+                self.currentTime = current
+                let dur = CMTimeGetSeconds(self.avPlayer?.currentItem?.duration ?? .zero)
+                if dur > 0 && !dur.isNaN {
+                    self.duration = dur
+                    self.progress = min(max(current / dur, 0), 1)
+                }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(playerItemDidReachEnd),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: playerItem
+        )
+    }
+
+    func togglePlayPause() {
+        if let player = avAudioPlayer {
+            if player.isPlaying {
+                player.pause()
+                isPlaying = false
+                stopTimer()
+            } else {
+                let session = AVAudioSession.sharedInstance()
+                try? session.setCategory(.playback, mode: .default)
+                try? session.setActive(true)
+                player.play()
+                isPlaying = true
+                startTimer()
+            }
+            return
+        }
+
+        guard let player = avPlayer else { return }
+        if isPlaying {
+            player.pause()
+            isPlaying = false
+        } else {
+            let session = AVAudioSession.sharedInstance()
+            try? session.setCategory(.playback, mode: .default)
+            try? session.setActive(true)
+            if progress >= 1.0 {
+                player.seek(to: .zero)
+                progress = 0
+                currentTime = 0
+            }
+            player.play()
+            isPlaying = true
+        }
+    }
+
+    func seek(to newProgress: Double) {
+        let clamped = min(max(newProgress, 0), 1)
+        progress = clamped
+        let targetTime = duration * clamped
+        currentTime = targetTime
+
+        if let player = avAudioPlayer {
+            player.currentTime = targetTime
+        } else if let player = avPlayer {
+            player.seek(to: CMTime(seconds: targetTime, preferredTimescale: 600))
+        }
+    }
+
+    @objc private func playerItemDidReachEnd() {
+        isPlaying = false
+        progress = 0
+        currentTime = 0
+        avPlayer?.seek(to: .zero)
+    }
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        isPlaying = false
+        progress = 0
+        currentTime = 0
+        stopTimer()
+    }
+
+    private func startTimer() {
+        stopTimer()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self, let player = self.avAudioPlayer else { return }
+            self.currentTime = player.currentTime
+            if self.duration > 0 {
+                self.progress = min(max(player.currentTime / self.duration, 0), 1)
+            }
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    func cleanup() {
+        if let token = timeObserverToken {
+            avPlayer?.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        NotificationCenter.default.removeObserver(self)
+        avPlayer?.pause()
+        avPlayer = nil
+        avAudioPlayer?.stop()
+        avAudioPlayer = nil
+        stopTimer()
+        if let url = tempFileURL {
+            try? FileManager.default.removeItem(at: url)
+            tempFileURL = nil
+        }
+    }
+
+    deinit {
+        cleanup()
+    }
+
+    var formattedTime: String {
+        let displaySeconds = isPlaying || currentTime > 0 ? Int(currentTime) : Int(duration)
+        let mins = displaySeconds / 60
+        let secs = displaySeconds % 60
+        return String(format: "%02d:%02d", mins, secs)
     }
 }
 

@@ -36,9 +36,13 @@ struct SyncedKgPktQuantityFields: View {
                 onTextChange: handlePacketInputChange
             )
         }
-        .onAppear { syncBothFieldsFromQuantity() }
-        .onChange(of: quantity) { _, _ in
-            if !isKgFocused && !isPacketFocused {
+        .onAppear {
+            isKgFocused = false
+            isPacketFocused = false
+            syncBothFieldsFromQuantity()
+        }
+        .onChange(of: quantity) { _, newQuantity in
+            if newQuantity == 0 || (!isKgFocused && !isPacketFocused) {
                 syncBothFieldsFromQuantity()
             }
         }

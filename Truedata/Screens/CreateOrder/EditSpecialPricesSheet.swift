@@ -14,6 +14,26 @@ struct EditSpecialPricesSheet: View {
 
     @State private var specialPrices: [Int: String] = [:]
 
+    init(
+        variants: [ActiveProductVariant],
+        isSaving: Bool,
+        onCancel: @escaping () -> Void,
+        onSave: @escaping ([Int: String]) -> Void
+    ) {
+        self.variants = variants
+        self.isSaving = isSaving
+        self.onCancel = onCancel
+        self.onSave = onSave
+        var initial: [Int: String] = [:]
+        for v in variants {
+            let p = v.priceValue > 0 ? v.priceValue : v.ogPriceValue
+            if p > 0 {
+                initial[v.id] = p.formattedPrice
+            }
+        }
+        _specialPrices = State(initialValue: initial)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {

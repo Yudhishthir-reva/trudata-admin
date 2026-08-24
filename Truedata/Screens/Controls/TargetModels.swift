@@ -231,10 +231,10 @@ struct TargetFilters: Equatable {
     var staffId: String = ""
     var staffName: String = ""
     var targetStatus: String = ""
-    var month: String = ""
+    var month: String = TargetAPIDateFormat.currentMonth
 
     var isActive: Bool {
-        !staffId.isEmpty || !targetStatus.isEmpty || !month.isEmpty
+        !staffId.isEmpty || !targetStatus.isEmpty || month != TargetAPIDateFormat.currentMonth
     }
 }
 

@@ -212,12 +212,13 @@ struct TargetFilterSheet: View {
                         showStatusPicker = true
                     }
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Month")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(DashboardTheme.neutralDark)
-                        TextField("YYYY-MM", text: $draftFilters.month)
-                            .textFieldStyle(.roundedBorder)
+                    TargetMonthPickerField(
+                        label: "Month",
+                        monthString: draftFilters.month,
+                        placeholder: "Select Month",
+                        allowsClear: true
+                    ) { selected in
+                        draftFilters.month = selected
                     }
 
                     HStack(spacing: 12) {
@@ -345,15 +346,13 @@ struct TargetFormSheet: View {
                         .textFieldStyle(.roundedBorder)
                     }
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Target Month")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(DashboardTheme.neutralDark)
-                        TextField("YYYY-MM", text: $form.month)
-                            .textFieldStyle(.roundedBorder)
-                            .onChange(of: form.month) { _, newValue in
-                                onMonthChange(newValue)
-                            }
+                    TargetMonthPickerField(
+                        label: "Target Month",
+                        monthString: form.month,
+                        placeholder: "Select Target Month"
+                    ) { selected in
+                        form.month = selected
+                        onMonthChange(selected)
                     }
 
                     TargetDatePickerField(label: "Start Date", dateString: form.targetStartDate) {
@@ -554,6 +553,202 @@ struct TargetDatePickerField: View {
             }
             .presentationDetents([.medium])
         }
+    }
+}
+
+struct TargetMonthPickerField: View {
+    let label: String
+    let monthString: String
+    var placeholder: String = "Select month"
+    var allowsClear: Bool = false
+    var onMonthSelected: (String) -> Void
+
+    @State private var showPicker = false
+
+    private var displayMonthText: String {
+        guard !monthString.isEmptyString else { return placeholder }
+        if let date = TargetAPIDateFormat.monthFormatter.date(from: monthString) {
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateFormat = "MMMM yyyy"
+            return displayFormatter.string(from: date)
+        }
+        return monthString
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(DashboardTheme.neutralDark)
+
+            Button {
+                showPicker = true
+            } label: {
+                HStack {
+                    Text(displayMonthText)
+                        .font(.system(size: 15))
+                        .foregroundStyle(monthString.isEmptyString ? DashboardTheme.neutralMedium : DashboardTheme.neutralDark)
+                    Spacer()
+                    if allowsClear && !monthString.isEmptyString {
+                        Button {
+                            onMonthSelected("")
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 4)
+                    }
+                    Image(systemName: "calendar")
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .sheet(isPresented: $showPicker) {
+            TargetMonthPickerSheet(
+                initialMonth: monthString,
+                onCancel: { showPicker = false },
+                onSelect: { selected in
+                    onMonthSelected(selected)
+                    showPicker = false
+                }
+            )
+            .presentationDetents([.height(390)])
+            .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+struct TargetMonthPickerSheet: View {
+    let initialMonth: String
+    var onCancel: () -> Void
+    var onSelect: (String) -> Void
+
+    @State private var selectedYear: Int
+    @State private var selectedMonth: Int
+
+    private let months = [
+        "Jan", "Feb", "Mar", "Apr",
+        "May", "Jun", "Jul", "Aug",
+        "Sep", "Oct", "Nov", "Dec"
+    ]
+
+    init(
+        initialMonth: String,
+        onCancel: @escaping () -> Void,
+        onSelect: @escaping (String) -> Void
+    ) {
+        self.initialMonth = initialMonth
+        self.onCancel = onCancel
+        self.onSelect = onSelect
+
+        let date = TargetAPIDateFormat.monthFormatter.date(from: initialMonth) ?? Date()
+        let cal = Calendar.current
+        _selectedYear = State(initialValue: cal.component(.year, from: date))
+        _selectedMonth = State(initialValue: cal.component(.month, from: date))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Button {
+                    selectedYear -= 1
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .frame(width: 36, height: 36)
+                        .background(DashboardTheme.primaryBlue.opacity(0.1))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Text("\(selectedYear)")
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+
+                Spacer()
+
+                Button {
+                    selectedYear += 1
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .frame(width: 36, height: 36)
+                        .background(DashboardTheme.primaryBlue.opacity(0.1))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(1...12, id: \.self) { monthIndex in
+                    let isSelected = (monthIndex == selectedMonth)
+                    Button {
+                        selectedMonth = monthIndex
+                    } label: {
+                        Text(months[monthIndex - 1])
+                            .font(.system(size: 15, weight: isSelected ? .bold : .medium))
+                            .foregroundStyle(isSelected ? .white : DashboardTheme.neutralDark)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 42)
+                            .background(isSelected ? DashboardTheme.primaryBlue : Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(isSelected ? DashboardTheme.primaryBlue : Color(hex: "E5E7EB"), lineWidth: 1)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 4)
+
+            Spacer()
+
+            HStack(spacing: 12) {
+                Button("Cancel", action: onCancel)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(Color(hex: "F3F4F6"))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .buttonStyle(.plain)
+
+                Button {
+                    let formattedMonth = String(format: "%04d-%02d", selectedYear, selectedMonth)
+                    onSelect(formattedMonth)
+                } label: {
+                    Text("Select Month")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(DashboardTheme.primaryBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .background(Color(hex: "F9FAFB"))
     }
 }
 

@@ -504,8 +504,12 @@ struct DashboardItemCard: View {
                         .frame(width: 4, height: 18)
                     Text(displayTitle("Today Staff Activities"))
                         .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(DashboardTheme.neutralDark)
                 }
                 .padding(.bottom, 12)
+
+                StaffActivityTableHeader(showAmountDetails: showAmounts)
+                    .padding(.horizontal, -16)
 
                 if activities.isEmpty {
                     VStack(spacing: 6) {
@@ -517,11 +521,8 @@ struct DashboardItemCard: View {
                             .foregroundStyle(DashboardTheme.neutralMedium)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 16)
                 } else {
-                    StaffActivityTableHeader(showAmountDetails: showAmounts)
-                        .padding(.horizontal, -16)
-
                     ForEach(Array(activities.prefix(5).enumerated()), id: \.offset) { index, row in
                         Button {
                             onNavigate("today_staff_activities")
@@ -540,12 +541,12 @@ struct DashboardItemCard: View {
                         .buttonStyle(.plain)
                         .padding(.horizontal, -16)
                     }
-
-                    StaffActivitiesPillButton(title: "View All Activities") {
-                        onNavigate("today_staff_activities")
-                    }
-                    .padding(.top, 8)
                 }
+
+                StaffActivitiesPillButton(title: "View All Activities") {
+                    onNavigate("today_staff_activities")
+                }
+                .padding(.top, 12)
             }
         }
     }
@@ -802,14 +803,13 @@ struct DashboardItemCard: View {
 
     private var staffActivityRows: [StaffActivityRow] {
         let list = payload?.arrayValue.isEmpty == false ? payload?.arrayValue ?? [] : payload?["data"]?.arrayValue ?? []
-        return list.compactMap { entry in
+        return list.map { entry in
             let name = entry.string(for: "staff_name", "staffName", "name").trimmingCharacters(in: .whitespacesAndNewlines)
             let orders = entry.int(for: "today_orders_count", "todayOrdersCount", "orders_count")
             let sales = entry.double(for: "today_orders_total", "todayOrdersTotal", "orders_total")
             let collection = entry.double(for: "today_transactions_sum", "todayTransactionsSum", "transactions_sum")
-            guard !name.isEmptyString || orders > 0 || sales > 0 || collection > 0 else { return nil }
             return StaffActivityRow(
-                name: name.isEmptyString ? "—" : name,
+                name: name,
                 orders: orders,
                 sales: sales,
                 collection: collection

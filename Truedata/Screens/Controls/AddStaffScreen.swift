@@ -11,6 +11,8 @@ struct AddStaffScreen: View {
     @StateObject private var viewModel: AddStaffViewModel
     @State private var activePhotoKind: StaffPhotoKind?
     @State private var showCamera = false
+    @State private var showSourceDialog = false
+    @State private var pickerSourceType: UIImagePickerController.SourceType = .camera
     @State private var pickerSelection: StaffPickerItem?
 
     init(editStaffId: Int? = nil, editMember: RegisteredStaffMember? = nil) {
@@ -61,8 +63,32 @@ struct AddStaffScreen: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
+        .confirmationDialog(
+            "Choose Photo Source",
+            isPresented: $showSourceDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Camera") {
+                pickerSourceType = .camera
+                showCamera = true
+            }
+            Button("Photo Gallery") {
+                pickerSourceType = .photoLibrary
+                showCamera = true
+            }
+            if let kind = activePhotoKind, viewModel.photo(for: kind) != nil {
+                Button("Remove Photo", role: .destructive) {
+                    viewModel.setPhoto(nil, kind: kind)
+                    activePhotoKind = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                activePhotoKind = nil
+            }
+        }
         .fullScreenCover(isPresented: $showCamera) {
             CameraImagePicker(
+                sourceType: pickerSourceType,
                 onImageCaptured: { image in
                     if let kind = activePhotoKind {
                         viewModel.setPhoto(image, kind: kind)
@@ -278,7 +304,7 @@ struct AddStaffScreen: View {
 
             Button {
                 activePhotoKind = kind
-                showCamera = true
+                showSourceDialog = true
             } label: {
                 HStack(spacing: 12) {
                     if let image {

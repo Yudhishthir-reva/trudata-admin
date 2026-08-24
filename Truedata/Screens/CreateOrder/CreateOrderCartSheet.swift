@@ -20,21 +20,18 @@ struct CreateOrderCartSheet: View {
                     emptyState
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(cartViewModel.items) { item in
-                                CreateOrderCartItemRow(
-                                    item: item,
-                                    onQuantityChange: { cartViewModel.updateQuantity(for: item.id, quantity: $0) },
-                                    onDelete: { cartViewModel.removeItem(item.id) }
+                        LazyVStack(spacing: 12) {
+                            ForEach(groupedProducts, id: \.groupKey) { group in
+                                CartProductGroupCard(
+                                    group: group,
+                                    onDeleteProduct: { cartViewModel.removeProduct(group.productId, productName: group.productName) },
+                                    onDeleteVariant: { cartViewModel.removeItem($0) },
+                                    onQuantityChange: { itemId, qty in
+                                        cartViewModel.updateQuantity(for: itemId, quantity: qty)
+                                    }
                                 )
-
-                                if item.id != cartViewModel.items.last?.id {
-                                    Divider().overlay(DashboardTheme.surfaceVariant.opacity(0.8))
-                                }
                             }
                         }
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .padding(.horizontal, 12)
                         .padding(.top, 12)
                         .padding(.bottom, 120)
@@ -81,6 +78,10 @@ struct CreateOrderCartSheet: View {
             get: { cartViewModel.errorMessage != nil },
             set: { if !$0 { cartViewModel.errorMessage = nil } }
         )
+    }
+
+    private var continueButtonDisabled: Bool {
+        cartViewModel.isSyncing || !cartViewModel.hasItems || !cartViewModel.allItemsHaveQuantity
     }
 
     private var emptyState: some View {
@@ -150,11 +151,11 @@ struct CreateOrderCartSheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(AppTheme.darkMidnightBlue)
+                    .background(continueButtonDisabled ? AppTheme.darkMidnightBlue.opacity(0.45) : AppTheme.darkMidnightBlue)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .disabled(cartViewModel.isSyncing || !cartViewModel.hasItems)
+                .disabled(continueButtonDisabled)
             }
         }
         .padding(.horizontal, 16)
@@ -167,9 +168,111 @@ struct CreateOrderCartSheet: View {
                 .frame(height: 1)
         }
     }
+
+    fileprivate struct CartProductGroup {
+        let groupKey: String
+        let productId: Int
+        let productName: String
+        let brandName: String
+        let productImage: String
+        let items: [EditOrderLineItem]
+    }
+
+    private var groupedProducts: [CartProductGroup] {
+        var groups: [String: CartProductGroup] = [:]
+        var order: [String] = []
+        for item in cartViewModel.items {
+            let key = item.productId > 0 ? "pid-\(item.productId)" : "pname-\(item.productName)"
+            if groups[key] == nil {
+                groups[key] = CartProductGroup(
+                    groupKey: key,
+                    productId: item.productId,
+                    productName: item.productName,
+                    brandName: item.brandName,
+                    productImage: item.productImage,
+                    items: [item]
+                )
+                order.append(key)
+            } else {
+                var group = groups[key]!
+                group = CartProductGroup(
+                    groupKey: group.groupKey,
+                    productId: group.productId,
+                    productName: group.productName,
+                    brandName: group.brandName,
+                    productImage: group.productImage,
+                    items: group.items + [item]
+                )
+                groups[key] = group
+            }
+        }
+        return order.compactMap { groups[$0] }
+    }
 }
 
-private struct CreateOrderCartItemRow: View {
+private struct CartProductGroupCard: View {
+    let group: CreateOrderCartSheet.CartProductGroup
+    var onDeleteProduct: () -> Void
+    var onDeleteVariant: (String) -> Void
+    var onQuantityChange: (String, Int) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Product header with red delete button
+            HStack(alignment: .top, spacing: 10) {
+                RemoteImage(url: group.productImage, contentMode: .fill)
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(DashboardTheme.surfaceVariant)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(group.productName)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+                        .lineLimit(2)
+
+                    Text(group.brandName)
+                        .font(.system(size: 13))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                }
+
+                Spacer(minLength: 8)
+
+                Button(action: onDeleteProduct) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(DashboardTheme.dangerRed)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+
+            // Variant rows
+            ForEach(group.items) { item in
+                CartVariantRow(
+                    item: item,
+                    onQuantityChange: { onQuantityChange(item.id, $0) },
+                    onDelete: { onDeleteVariant(item.id) }
+                )
+
+                if item.id != group.items.last?.id {
+                    Divider()
+                        .overlay(DashboardTheme.surfaceVariant.opacity(0.6))
+                        .padding(.horizontal, 12)
+                }
+            }
+        }
+        .padding(.bottom, 12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+private struct CartVariantRow: View {
     let item: EditOrderLineItem
     var onQuantityChange: (Int) -> Void
     var onDelete: () -> Void
@@ -181,36 +284,17 @@ private struct CreateOrderCartItemRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 10) {
-                RemoteImage(url: item.productImage, contentMode: .fill)
-                    .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .background(DashboardTheme.surfaceVariant)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(item.unitPriceLabel)
+                    .font(.system(size: 13))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.productName.uppercased())
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                        .lineLimit(2)
+                Spacer(minLength: 8)
 
-                    Text(item.brandName)
-                        .font(.system(size: 13))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(item.unitPriceLabel)
-                            .font(.system(size: 12))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-
-                        Spacer(minLength: 8)
-
-                        Text(item.lineTotal.priceLabel)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                    }
-                }
+                Text(item.lineTotal.priceLabel)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
             }
 
             HStack(spacing: 8) {
@@ -230,7 +314,7 @@ private struct CreateOrderCartItemRow: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
     }
 }
 
