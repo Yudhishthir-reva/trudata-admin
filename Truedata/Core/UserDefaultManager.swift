@@ -21,6 +21,9 @@ class UserDefaultManager {
         case isUserWorking
         case locationUpdateInterval
         case locationPriority
+        case assignOrderRiderId
+        case assignOrderVehicleId
+        case assignOrderBeatIds
     }
 
     func setUserDefaultsString(value: String, key: PersistenceKeys) {
@@ -78,6 +81,49 @@ class UserDefaultManager {
         setUserDefaultsBool(value: false, key: .isUserWorking)
         setUserDefaultsString(value: "", key: .locationUpdateInterval)
         setUserDefaultsString(value: "", key: .locationPriority)
+        clearAssignOrderSavedSelection()
+    }
+
+    func setAssignOrderSavedSelection(riderId: Int?, vehicleId: Int?, beatIds: [Int]) {
+        if let riderId {
+            UserDefaults.standard.set(riderId, forKey: PersistenceKeys.assignOrderRiderId.rawValue)
+        } else {
+            UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderRiderId.rawValue)
+        }
+
+        if let vehicleId {
+            UserDefaults.standard.set(vehicleId, forKey: PersistenceKeys.assignOrderVehicleId.rawValue)
+        } else {
+            UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderVehicleId.rawValue)
+        }
+
+        if !beatIds.isEmpty {
+            UserDefaults.standard.set(beatIds, forKey: PersistenceKeys.assignOrderBeatIds.rawValue)
+        } else {
+            UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderBeatIds.rawValue)
+        }
+        UserDefaults.standard.synchronize()
+    }
+
+    var savedAssignOrderRiderId: Int? {
+        let val = UserDefaults.standard.integer(forKey: PersistenceKeys.assignOrderRiderId.rawValue)
+        return val > 0 ? val : nil
+    }
+
+    var savedAssignOrderVehicleId: Int? {
+        let val = UserDefaults.standard.integer(forKey: PersistenceKeys.assignOrderVehicleId.rawValue)
+        return val > 0 ? val : nil
+    }
+
+    var savedAssignOrderBeatIds: [Int] {
+        UserDefaults.standard.array(forKey: PersistenceKeys.assignOrderBeatIds.rawValue) as? [Int] ?? []
+    }
+
+    func clearAssignOrderSavedSelection() {
+        UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderRiderId.rawValue)
+        UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderVehicleId.rawValue)
+        UserDefaults.standard.removeObject(forKey: PersistenceKeys.assignOrderBeatIds.rawValue)
+        UserDefaults.standard.synchronize()
     }
 
     func updateLocationConfig(_ config: LocationConfigData) {

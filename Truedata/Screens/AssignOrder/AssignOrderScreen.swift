@@ -44,7 +44,7 @@ struct AssignOrderScreen: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
-                    .padding(.bottom, viewModel.canAssign ? 110 : 24)
+                    .padding(.bottom, viewModel.canAssign ? 125 : 24)
                 }
             }
 
@@ -61,7 +61,9 @@ struct AssignOrderScreen: View {
                 .presentationDragIndicator(.hidden)
         }
         .alert("Success", isPresented: $viewModel.showSuccessAlert) {
-            Button("OK") {}
+            Button("OK") {
+                dismiss()
+            }
         } message: {
             Text(viewModel.successMessage)
         }
@@ -100,18 +102,27 @@ struct AssignOrderScreen: View {
                     icon: "person.fill",
                     text: viewModel.selectedRider?.name ?? "No rider",
                     isActive: viewModel.selectedRider != nil
-                )
+                ) {
+                    viewModel.selectionStep = .rider
+                    viewModel.showSelectionSheet = true
+                }
                 summaryChip(
                     icon: "car.fill",
                     text: vehicleSummaryText,
                     isActive: viewModel.selectedVehicle != nil
-                )
+                ) {
+                    viewModel.selectionStep = .vehicle
+                    viewModel.showSelectionSheet = true
+                }
                 summaryChip(
                     icon: "mappin.and.ellipse",
                     text: beatsSummaryText,
                     isActive: !viewModel.selectedBeats.isEmpty,
                     badge: viewModel.selectedBeats.isEmpty ? nil : "\(viewModel.selectedBeats.count)"
-                )
+                ) {
+                    viewModel.selectionStep = .beats
+                    viewModel.showSelectionSheet = true
+                }
             }
 
             if !viewModel.selectedOrderIds.isEmpty {
@@ -149,28 +160,33 @@ struct AssignOrderScreen: View {
         return "\(viewModel.selectedBeats.count) beats"
     }
 
-    private func summaryChip(icon: String, text: String, isActive: Bool, badge: String? = nil) -> some View {
-        HStack(spacing: 5) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: icon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(isActive ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
-                if let badge {
-                    Text(badge)
-                        .font(.system(size: 7, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(3)
-                        .background(DashboardTheme.primaryBlue)
-                        .clipShape(Circle())
-                        .offset(x: 6, y: -6)
+    private func summaryChip(icon: String, text: String, isActive: Bool, badge: String? = nil, action: (() -> Void)? = nil) -> some View {
+        Button {
+            action?()
+        } label: {
+            HStack(spacing: 5) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: icon)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(isActive ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                    if let badge {
+                        Text(badge)
+                            .font(.system(size: 7, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(3)
+                            .background(DashboardTheme.primaryBlue)
+                            .clipShape(Circle())
+                            .offset(x: 6, y: -6)
+                    }
                 }
+                Text(text)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .lineLimit(1)
             }
-            Text(text)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(DashboardTheme.neutralDark)
-                .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .buttonStyle(.plain)
     }
 
     // MARK: - Content
@@ -305,34 +321,140 @@ struct AssignOrderScreen: View {
     }
 
     private var assignBar: some View {
-        VStack {
+        VStack(spacing: 0) {
             Spacer()
-            Button {
-                viewModel.assignOrdersToRider()
-            } label: {
-                HStack(spacing: 8) {
-                    if viewModel.isLoading {
-                        ProgressView().tint(.white)
-                    }
-                    Text("Assign \(viewModel.selectedOrderIds.count) Order(s)")
-                        .font(.system(size: 15, weight: .semibold))
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(assignBarSubtitle)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .lineLimit(1)
+
+                AssignOrderSlideToConfirmView(
+                    text: slideAssignText,
+                    isLoading: viewModel.isLoading,
+                    isEnabled: !viewModel.isLoading
+                ) {
+                    viewModel.assignOrdersToRider()
                 }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(DashboardTheme.primaryBlue)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .buttonStyle(.plain)
-            .disabled(viewModel.isLoading)
+            .padding(12)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(DashboardTheme.surfaceVariant, lineWidth: 1)
+            }
+            .shadow(color: Color.black.opacity(0.08), radius: 10, y: -2)
             .padding(.horizontal, 12)
-            .padding(.bottom, 10)
-            .background(
-                Color.white
-                    .shadow(color: .black.opacity(0.08), radius: 10, y: -2)
-                    .ignoresSafeArea(edges: .bottom)
-            )
+            .padding(.bottom, 8)
         }
+    }
+
+    private var assignBarSubtitle: String {
+        let count = viewModel.selectedOrderIds.count
+        let orderText = "\(count) order\(count > 1 ? "s" : "")"
+        let riderName = viewModel.selectedRider?.name ?? "Rider"
+        let vehicleName = viewModel.selectedVehicle?.name ?? "Vehicle"
+        return "\(orderText) -> \(riderName) (\(vehicleName))"
+    }
+
+    private var slideAssignText: String {
+        let count = viewModel.selectedOrderIds.count
+        return "Slide to assign \(count) order\(count > 1 ? "s" : "")"
+    }
+}
+
+// MARK: - Slide To Confirm
+
+private struct AssignOrderSlideToConfirmView: View {
+    let text: String
+    var isLoading: Bool = false
+    var isEnabled: Bool = true
+    let onConfirmed: () -> Void
+
+    @State private var dragOffset: CGFloat = 0
+
+    private let handleWidth: CGFloat = 52
+    private let handleHeight: CGFloat = 44
+    private let trackHeight: CGFloat = 52
+    private let horizontalPadding: CGFloat = 4
+
+    var body: some View {
+        GeometryReader { proxy in
+            let maxOffset = max(proxy.size.width - handleWidth - (horizontalPadding * 2), 0)
+            let progress = maxOffset > 0 ? min(max(dragOffset / maxOffset, 0), 1) : 0
+
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(AppTheme.darkMidnightBlue)
+
+                if isLoading {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .tint(.white)
+                        Text("Assigning...")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    Text(text)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.92))
+                        .frame(maxWidth: .infinity)
+                        .opacity(Double(1.0 - (progress * 0.85)))
+                }
+
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(Color(hex: "CBD5E1"), lineWidth: 1)
+                    }
+                    .overlay {
+                        if isLoading {
+                            ProgressView()
+                                .tint(DashboardTheme.primaryBlue)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                        }
+                    }
+                    .frame(width: handleWidth, height: handleHeight)
+                    .offset(x: horizontalPadding + dragOffset)
+                    .gesture(
+                        DragGesture(minimumDistance: 2)
+                            .onChanged { value in
+                                guard isEnabled && !isLoading else { return }
+                                dragOffset = min(max(value.translation.width, 0), maxOffset)
+                            }
+                            .onEnded { _ in
+                                guard isEnabled && !isLoading else { return }
+                                if dragOffset >= maxOffset * 0.80 {
+                                    withAnimation(.easeOut(duration: 0.18)) {
+                                        dragOffset = maxOffset
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                                        onConfirmed()
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                } else {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        dragOffset = 0
+                                    }
+                                }
+                            }
+                    )
+            }
+            .frame(height: trackHeight)
+        }
+        .frame(height: trackHeight)
+        .opacity(isEnabled ? 1 : 0.6)
+        .allowsHitTesting(isEnabled && !isLoading)
     }
 }
 
@@ -627,7 +749,12 @@ private struct AssignOrderSelectionSheet: View {
                         name: rider.name,
                         isSelected: viewModel.selectedRider?.id == rider.id
                     ) {
-                        viewModel.selectedRider = rider
+                        viewModel.selectRider(rider)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                viewModel.selectionStep = .vehicle
+                            }
+                        }
                     }
                 }
             }
@@ -645,7 +772,12 @@ private struct AssignOrderSelectionSheet: View {
                         isSelected: viewModel.selectedVehicle?.id == vehicle.id
                     ) {
                         guard vehicle.isSelectable else { return }
-                        viewModel.selectedVehicle = vehicle
+                        viewModel.selectVehicle(vehicle)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                viewModel.selectionStep = .beats
+                            }
+                        }
                     }
                 }
             }
@@ -730,7 +862,7 @@ private struct AssignOrderSelectionSheet: View {
         HStack(spacing: 8) {
             if viewModel.selectionStep != .rider {
                 Button("Back") {
-                    withAnimation {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
                         viewModel.selectionStep = AssignOrderSelectionStep(rawValue: viewModel.selectionStep.rawValue - 1) ?? .rider
                     }
                 }
@@ -747,11 +879,13 @@ private struct AssignOrderSelectionSheet: View {
             }
 
             Button(viewModel.selectionStep == .beats ? "Apply" : "Next") {
-                if viewModel.selectionStep == .beats {
-                    viewModel.completeSelectionIfPossible()
-                    dismiss()
-                } else {
-                    viewModel.goToNextSelectionStep()
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                    if viewModel.selectionStep == .beats {
+                        viewModel.completeSelectionIfPossible()
+                        dismiss()
+                    } else {
+                        viewModel.goToNextSelectionStep()
+                    }
                 }
             }
             .font(.system(size: 14, weight: .semibold))
@@ -784,41 +918,49 @@ private struct AssignOrderStepIndicator: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            stepCircle(number: 1, isActive: currentStep == .rider, isCompleted: viewModel.selectedRider != nil)
+            stepButton(step: .rider, number: 1, isCompleted: viewModel.selectedRider != nil)
             connector
-            stepCircle(number: 2, isActive: currentStep == .vehicle, isCompleted: viewModel.selectedVehicle != nil)
+            stepButton(step: .vehicle, number: 2, isCompleted: viewModel.selectedVehicle != nil)
             connector
-            stepCircle(number: 3, isActive: currentStep == .beats, isCompleted: !viewModel.selectedBeats.isEmpty)
+            stepButton(step: .beats, number: 3, isCompleted: !viewModel.selectedBeats.isEmpty)
         }
     }
 
     private var connector: some View {
         Rectangle()
             .fill(DashboardTheme.surfaceVariant)
-            .frame(width: 12, height: 2)
+            .frame(width: 10, height: 2)
             .clipShape(Capsule())
     }
 
-    private func stepCircle(number: Int, isActive: Bool, isCompleted: Bool) -> some View {
-        ZStack {
-            Circle()
-                .fill(
-                    isCompleted ? DashboardTheme.successGreen :
-                    isActive ? DashboardTheme.primaryBlue :
-                    DashboardTheme.surfaceVariant
-                )
-                .frame(width: 24, height: 24)
+    private func stepButton(step: AssignOrderSelectionStep, number: Int, isCompleted: Bool) -> some View {
+        let isActive = currentStep == step
+        return Button {
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                viewModel.selectionStep = step
+            }
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(
+                        isActive ? DashboardTheme.primaryBlue :
+                        isCompleted ? DashboardTheme.successGreen :
+                        DashboardTheme.surfaceVariant
+                    )
+                    .frame(width: 24, height: 24)
 
-            if isCompleted {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-            } else {
-                Text("\(number)")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(isActive ? .white : DashboardTheme.neutralMedium)
+                if isCompleted && !isActive {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                } else {
+                    Text("\(number)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(isActive || isCompleted ? .white : DashboardTheme.neutralMedium)
+                }
             }
         }
+        .buttonStyle(.plain)
     }
 }
 

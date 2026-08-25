@@ -144,10 +144,6 @@ private struct RearrangeSellerRow: View {
             }
 
             Spacer(minLength: 0)
-
-            Image(systemName: "line.3.horizontal")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(DashboardTheme.neutralMedium.opacity(0.5))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)

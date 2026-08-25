@@ -59,9 +59,6 @@ final class AssignOrderViewModel: ObservableObject {
 
     func onAppear() {
         loadBootstrapData()
-        if selectedRider == nil || selectedVehicle == nil || selectedBeats.isEmpty {
-            showSelectionSheet = true
-        }
     }
 
     func loadBootstrapData() {
@@ -102,8 +99,64 @@ final class AssignOrderViewModel: ObservableObject {
                         self.errorMessage = (error as? RequestError)?.errorString ?? error.localizedDescription
                     }
                 }
+
+                self.restoreSavedSelections()
             }
             .store(in: &cancellables)
+    }
+
+    private func restoreSavedSelections() {
+        let defaults = UserDefaultManager.shared
+
+        if let savedRiderId = defaults.savedAssignOrderRiderId,
+           let matchedRider = self.riders.first(where: { $0.id == savedRiderId }) {
+            self.selectedRider = matchedRider
+        }
+
+        if let savedVehicleId = defaults.savedAssignOrderVehicleId,
+           let matchedVehicle = self.vehicles.first(where: { $0.id == savedVehicleId && $0.isSelectable }) {
+            self.selectedVehicle = matchedVehicle
+        }
+
+        let savedBeatIds = defaults.savedAssignOrderBeatIds
+        if !savedBeatIds.isEmpty {
+            let matchedBeats = self.beats.filter { savedBeatIds.contains($0.id) }
+            if !matchedBeats.isEmpty {
+                self.selectedBeats = matchedBeats
+            }
+        }
+
+        if selectedRider != nil && selectedVehicle != nil && !selectedBeats.isEmpty {
+            self.showSelectionSheet = false
+            self.loadOrdersForSelectedBeats()
+        } else {
+            if selectedRider == nil {
+                self.selectionStep = .rider
+            } else if selectedVehicle == nil {
+                self.selectionStep = .vehicle
+            } else {
+                self.selectionStep = .beats
+            }
+            self.showSelectionSheet = true
+        }
+    }
+
+    func saveSelectionsLocally() {
+        UserDefaultManager.shared.setAssignOrderSavedSelection(
+            riderId: selectedRider?.id,
+            vehicleId: selectedVehicle?.id,
+            beatIds: selectedBeats.map(\.id)
+        )
+    }
+
+    func selectRider(_ rider: RiderItem) {
+        selectedRider = rider
+        saveSelectionsLocally()
+    }
+
+    func selectVehicle(_ vehicle: VehicleItem) {
+        selectedVehicle = vehicle
+        saveSelectionsLocally()
     }
 
     func loadOrdersForSelectedBeats() {
@@ -144,6 +197,7 @@ final class AssignOrderViewModel: ObservableObject {
         } else {
             selectedBeats.append(beat)
         }
+        saveSelectionsLocally()
     }
 
     func selectAllBeats(_ select: Bool, from source: [BeatWithOrdersItem]? = nil) {
@@ -158,6 +212,7 @@ final class AssignOrderViewModel: ObservableObject {
             let ids = Set(beats.map(\.id))
             selectedBeats.removeAll { ids.contains($0.id) }
         }
+        saveSelectionsLocally()
     }
 
     func toggleOrder(_ orderId: String) {
@@ -170,20 +225,24 @@ final class AssignOrderViewModel: ObservableObject {
 
     func completeSelectionIfPossible() {
         guard selectedRider != nil, selectedVehicle != nil, !selectedBeats.isEmpty else { return }
+        saveSelectionsLocally()
         showSelectionSheet = false
         loadOrdersForSelectedBeats()
     }
 
     func goToNextSelectionStep() {
-        switch selectionStep {
-        case .rider:
-            guard selectedRider != nil else { return }
-            selectionStep = .vehicle
-        case .vehicle:
-            guard selectedVehicle != nil else { return }
-            selectionStep = .beats
-        case .beats:
-            completeSelectionIfPossible()
+        saveSelectionsLocally()
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+            switch selectionStep {
+            case .rider:
+                guard selectedRider != nil else { return }
+                selectionStep = .vehicle
+            case .vehicle:
+                guard selectedVehicle != nil else { return }
+                selectionStep = .beats
+            case .beats:
+                completeSelectionIfPossible()
+            }
         }
     }
 
