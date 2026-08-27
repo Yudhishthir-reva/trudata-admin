@@ -42,7 +42,6 @@
 		DDB6593830342A01005C1E91 /* DashboardCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593230342A01005C1E91 /* DashboardCards.swift */; };
 		DDB6593930342A01005C1E91 /* DashboardServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */; };
 		DDB6593A30342A01005C1E91 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593430342A01005C1E91 /* DashboardViewModel.swift */; };
-		DDB65B3B30342A24005C1E91 /* DashboardRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3C30342A24005C1E91 /* DashboardRole.swift */; };
 		DDB6593B30342A01005C1E91 /* HomeAppBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593530342A01005C1E91 /* HomeAppBar.swift */; };
 		DDB6593C30342A02005C1E91 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593D30342A02005C1E91 /* PermissionManager.swift */; };
 		DDB6593E30342A02005C1E91 /* PermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593F30342A02005C1E91 /* PermissionRequestView.swift */; };
@@ -114,12 +113,21 @@
 		DDB659DB30342A17005C1E91 /* LocationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DC30342A17005C1E91 /* LocationHelper.swift */; };
 		DDB659DD30342A17005C1E91 /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DE30342A17005C1E91 /* CameraImagePicker.swift */; };
 		DDB659E130342A17005C1E91 /* CreateOrderQuantityFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E230342A17005C1E91 /* CreateOrderQuantityFields.swift */; };
-		DDB65A3030342A20005C1E91 /* CreateOrderCartViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */; };
-		DDB65A3230342A20005C1E91 /* CreateOrderCartSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */; };
 		DDB659E330342A18005C1E91 /* HomePrefetchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659DF30342A18005C1E91 /* HomePrefetchModels.swift */; };
 		DDB659E430342A18005C1E91 /* HomePrefetchServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E030342A18005C1E91 /* HomePrefetchServiceManager.swift */; };
 		DDB659E530342A18005C1E91 /* HomePrefetchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E130342A18005C1E91 /* HomePrefetchStore.swift */; };
 		DDB659E630342A18005C1E91 /* HomePrefetchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E230342A18005C1E91 /* HomePrefetchManager.swift */; };
+		DDB659E730342A19005C1E91 /* TopSellingProductsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */; };
+		DDB659E930342A19005C1E91 /* TopSellingProductsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */; };
+		DDB659EB30342A19005C1E91 /* TopSellingProductsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */; };
+		DDB659ED30342A19005C1E91 /* TopSellingProductsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */; };
+		DDB659EF30342A19005C1E91 /* TopSellingProductsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */; };
+		DDB659F630342A1A005C1E91 /* PaymentInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */; };
+		DDB659F830342A1A005C1E91 /* PaymentInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */; };
+		DDB659FA30342A1A005C1E91 /* PaymentInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */; };
+		DDB659FC30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */; };
+		DDB659FE30342A1A005C1E91 /* PaymentInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */; };
+		DDB65A0130342A1E005C1E91 /* AudioRemarkRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */; };
 		DDB65A0630342A1B005C1E91 /* CriticalInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0230342A1B005C1E91 /* CriticalInsightsModels.swift */; };
 		DDB65A0730342A1B005C1E91 /* CriticalInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0330342A1B005C1E91 /* CriticalInsightsServiceManager.swift */; };
 		DDB65A0830342A1B005C1E91 /* CriticalInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */; };
@@ -134,21 +142,12 @@
 		DDB65A2630342A1D005C1E91 /* MyProfileServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2230342A1D005C1E91 /* MyProfileServiceManager.swift */; };
 		DDB65A2730342A1D005C1E91 /* MyProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2330342A1D005C1E91 /* MyProfileViewModel.swift */; };
 		DDB65A2830342A1D005C1E91 /* MyProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2430342A1D005C1E91 /* MyProfileScreen.swift */; };
+		DDB65A3030342A20005C1E91 /* CreateOrderCartViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */; };
 		DDB65A3230342A1D005C1E91 /* RegisteredSellersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2A30342A1D005C1E91 /* RegisteredSellersModels.swift */; };
+		DDB65A3230342A20005C1E91 /* CreateOrderCartSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */; };
 		DDB65A3330342A1D005C1E91 /* RegisteredSellersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2B30342A1D005C1E91 /* RegisteredSellersServiceManager.swift */; };
 		DDB65A3430342A1D005C1E91 /* RegisteredSellersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2C30342A1D005C1E91 /* RegisteredSellersViewModel.swift */; };
 		DDB65A3530342A1D005C1E91 /* RegisteredSellersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2D30342A1D005C1E91 /* RegisteredSellersScreen.swift */; };
-		DDB65C3030342A29005C1E91 /* SellerReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2530342A29005C1E91 /* SellerReportModels.swift */; };
-		DDB65C3130342A29005C1E91 /* SellerReportServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2630342A29005C1E91 /* SellerReportServiceManager.swift */; };
-		DDB65C3230342A29005C1E91 /* SellerReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2730342A29005C1E91 /* SellerReportViewModel.swift */; };
-		DDB65C3330342A29005C1E91 /* SellerReportCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2830342A29005C1E91 /* SellerReportCommonViews.swift */; };
-		DDB65C5130342A2C005C1E91 /* StaffProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */; };
-		DDB65C5030342A2C005C1E91 /* StaffProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */; };
-		DDB65C4F30342A2C005C1E91 /* StaffReportServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */; };
-		DDB65C4E30342A2C005C1E91 /* StaffReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */; };
-		DDB65C4930342A2B005C1E91 /* StaffReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */; };
-		DDB65C4830342A2B005C1E91 /* StaffReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */; };
-		DDB65C3430342A29005C1E91 /* SellerReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2930342A29005C1E91 /* SellerReportScreen.swift */; };
 		DDB65A3630342A1D005C1E91 /* AddSellerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2E30342A1D005C1E91 /* AddSellerModels.swift */; };
 		DDB65A3730342A1D005C1E91 /* AddSellerServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A2F30342A1D005C1E91 /* AddSellerServiceManager.swift */; };
 		DDB65A3830342A1D005C1E91 /* AddSellerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A3030342A1D005C1E91 /* AddSellerViewModel.swift */; };
@@ -170,6 +169,35 @@
 		DDB65A5C30342A1E005C1E91 /* OperationsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A5930342A1E005C1E91 /* OperationsModels.swift */; };
 		DDB65A5D30342A1E005C1E91 /* OperationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A5A30342A1E005C1E91 /* OperationsViewModel.swift */; };
 		DDB65A5E30342A1E005C1E91 /* OperationsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A5B30342A1E005C1E91 /* OperationsScreen.swift */; };
+		DDB65A6630342A1E005C1E91 /* MarkAttendanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6030342A1E005C1E91 /* MarkAttendanceModels.swift */; };
+		DDB65A6730342A1E005C1E91 /* MarkAttendanceServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6130342A1E005C1E91 /* MarkAttendanceServiceManager.swift */; };
+		DDB65A6830342A1E005C1E91 /* MarkAttendanceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6230342A1E005C1E91 /* MarkAttendanceViewModel.swift */; };
+		DDB65A6930342A1E005C1E91 /* MarkAttendanceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6330342A1E005C1E91 /* MarkAttendanceScreen.swift */; };
+		DDB65A6A30342A1E005C1E91 /* SlideToConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6430342A1E005C1E91 /* SlideToConfirmView.swift */; };
+		DDB65A6B30342A1E005C1E91 /* AttendanceDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6530342A1E005C1E91 /* AttendanceDetailSheet.swift */; };
+		DDB65A7530342A1E005C1E91 /* AttendanceCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6C30342A1E005C1E91 /* AttendanceCommonViews.swift */; };
+		DDB65A7630342A1E005C1E91 /* RegularizationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6D30342A1E005C1E91 /* RegularizationModels.swift */; };
+		DDB65A7730342A1E005C1E91 /* RegularizationServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6E30342A1E005C1E91 /* RegularizationServiceManager.swift */; };
+		DDB65A7830342A1E005C1E91 /* RegularizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6F30342A1E005C1E91 /* RegularizationViewModel.swift */; };
+		DDB65A7930342A1E005C1E91 /* RegularizationListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7030342A1E005C1E91 /* RegularizationListScreen.swift */; };
+		DDB65A7A30342A1E005C1E91 /* LeaveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7130342A1E005C1E91 /* LeaveModels.swift */; };
+		DDB65A7B30342A1E005C1E91 /* LeaveServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7230342A1E005C1E91 /* LeaveServiceManager.swift */; };
+		DDB65A7C30342A1E005C1E91 /* LeaveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7330342A1E005C1E91 /* LeaveViewModel.swift */; };
+		DDB65A7D30342A1E005C1E91 /* LeaveListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7430342A1E005C1E91 /* LeaveListScreen.swift */; };
+		DDB65A8230342A1E005C1E91 /* AddLeaveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7E30342A1E005C1E91 /* AddLeaveViewModel.swift */; };
+		DDB65A8330342A1E005C1E91 /* AddLeaveScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7F30342A1E005C1E91 /* AddLeaveScreen.swift */; };
+		DDB65A8430342A1E005C1E91 /* AddRegularizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8030342A1E005C1E91 /* AddRegularizationViewModel.swift */; };
+		DDB65A8530342A1E005C1E91 /* AddRegularizationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8130342A1E005C1E91 /* AddRegularizationScreen.swift */; };
+		DDB65A8630342A1E005C1E91 /* SellerOperationsCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8730342A1E005C1E91 /* SellerOperationsCards.swift */; };
+		DDB65A8830342A1F005C1E91 /* ActivityOperationsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8930342A1F005C1E91 /* ActivityOperationsCard.swift */; };
+		DDB65A8A30342A1F005C1E91 /* AchievementHistoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8B30342A1F005C1E91 /* AchievementHistoryModels.swift */; };
+		DDB65A8C30342A1F005C1E91 /* AchievementHistoryServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8D30342A1F005C1E91 /* AchievementHistoryServiceManager.swift */; };
+		DDB65A8E30342A1F005C1E91 /* AchievementHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8F30342A1F005C1E91 /* AchievementHistoryViewModel.swift */; };
+		DDB65A9030342A1F005C1E91 /* AchievementHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9130342A1F005C1E91 /* AchievementHistoryScreen.swift */; };
+		DDB65A9230342A20005C1E91 /* ProductCatalogueServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */; };
+		DDB65A9430342A20005C1E91 /* ProductCatalogueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */; };
+		DDB65A9630342A20005C1E91 /* ProductCatalogueScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */; };
+		DDB65A9830342A20005C1E91 /* ProductCalculatorScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */; };
 		DDB65AA430342A20005C1E91 /* ControlsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AA130342A20005C1E91 /* ControlsScreen.swift */; };
 		DDB65AA530342A20005C1E91 /* ControlsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AA230342A20005C1E91 /* ControlsViewModel.swift */; };
 		DDB65AA630342A20005C1E91 /* ControlsCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AA330342A20005C1E91 /* ControlsCommonViews.swift */; };
@@ -180,6 +208,23 @@
 		DDB65ABB30342A21005C1E91 /* StaffCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AB430342A21005C1E91 /* StaffCommonViews.swift */; };
 		DDB65ABC30342A21005C1E91 /* RegisteredStaffListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AB530342A21005C1E91 /* RegisteredStaffListScreen.swift */; };
 		DDB65ABD30342A21005C1E91 /* AddStaffScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65AB630342A21005C1E91 /* AddStaffScreen.swift */; };
+		DDB65B1630342A21005C1E91 /* FailedOrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */; };
+		DDB65B1730342A21005C1E91 /* FailedOrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */; };
+		DDB65B1830342A21005C1E91 /* FailedOrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */; };
+		DDB65B1930342A21005C1E91 /* FailedOrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */; };
+		DDB65B1A30342A21005C1E91 /* FailedOrdersFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */; };
+		DDB65B2530342A22005C1E91 /* SalesmanActivitiesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */; };
+		DDB65B2630342A22005C1E91 /* SalesmanActivitiesServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */; };
+		DDB65B2730342A22005C1E91 /* SalesmanActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */; };
+		DDB65B2830342A22005C1E91 /* SalesmanActivitiesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */; };
+		DDB65B2B30342A22005C1E91 /* SalesmanActivityDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */; };
+		DDB65B2C30342A22005C1E91 /* SalesmanActivityDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */; };
+		DDB65B3630342A23005C1E91 /* StaffActivitiesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */; };
+		DDB65B3730342A23005C1E91 /* StaffActivitiesServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */; };
+		DDB65B3830342A23005C1E91 /* StaffActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */; };
+		DDB65B3930342A23005C1E91 /* StaffActivitiesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */; };
+		DDB65B3A30342A23005C1E91 /* StaffActivitiesCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */; };
+		DDB65B3B30342A24005C1E91 /* DashboardRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3C30342A24005C1E91 /* DashboardRole.swift */; };
 		DDB65BD030342A24005C1E91 /* VehicleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC030342A24005C1E91 /* VehicleModels.swift */; };
 		DDB65BD130342A24005C1E91 /* VehicleServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */; };
 		DDB65BD230342A24005C1E91 /* ViewVehiclesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */; };
@@ -210,68 +255,27 @@
 		DDB65C2230342A28005C1E91 /* AssignBeatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C1730342A28005C1E91 /* AssignBeatViewModel.swift */; };
 		DDB65C2330342A28005C1E91 /* AssignBeatCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C1830342A28005C1E91 /* AssignBeatCommonViews.swift */; };
 		DDB65C2430342A28005C1E91 /* AssignBeatScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C1930342A28005C1E91 /* AssignBeatScreen.swift */; };
-		DDB65C4530342A2A005C1E91 /* AddExpenseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */; };
-		DDB65C4430342A2A005C1E91 /* AddExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */; };
-		DDB65C4330342A2A005C1E91 /* ExpenseListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */; };
-		DDB65C4230342A2A005C1E91 /* ExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */; };
-		DDB65C4130342A2A005C1E91 /* ExpenseServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */; };
+		DDB65C3030342A29005C1E91 /* SellerReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2530342A29005C1E91 /* SellerReportModels.swift */; };
+		DDB65C3130342A29005C1E91 /* SellerReportServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2630342A29005C1E91 /* SellerReportServiceManager.swift */; };
+		DDB65C3230342A29005C1E91 /* SellerReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2730342A29005C1E91 /* SellerReportViewModel.swift */; };
+		DDB65C3330342A29005C1E91 /* SellerReportCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2830342A29005C1E91 /* SellerReportCommonViews.swift */; };
+		DDB65C3430342A29005C1E91 /* SellerReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C2930342A29005C1E91 /* SellerReportScreen.swift */; };
 		DDB65C4030342A2A005C1E91 /* ExpenseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3530342A2A005C1E91 /* ExpenseModels.swift */; };
-		DDB65A6630342A1E005C1E91 /* MarkAttendanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6030342A1E005C1E91 /* MarkAttendanceModels.swift */; };
-		DDB65A6730342A1E005C1E91 /* MarkAttendanceServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6130342A1E005C1E91 /* MarkAttendanceServiceManager.swift */; };
-		DDB65A6830342A1E005C1E91 /* MarkAttendanceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6230342A1E005C1E91 /* MarkAttendanceViewModel.swift */; };
-		DDB65A6930342A1E005C1E91 /* MarkAttendanceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6330342A1E005C1E91 /* MarkAttendanceScreen.swift */; };
-		DDB65A6A30342A1E005C1E91 /* SlideToConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6430342A1E005C1E91 /* SlideToConfirmView.swift */; };
-		DDB65A6B30342A1E005C1E91 /* AttendanceDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6530342A1E005C1E91 /* AttendanceDetailSheet.swift */; };
-		DDB65A7530342A1E005C1E91 /* AttendanceCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6C30342A1E005C1E91 /* AttendanceCommonViews.swift */; };
-		DDB65A7630342A1E005C1E91 /* RegularizationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6D30342A1E005C1E91 /* RegularizationModels.swift */; };
-		DDB65A7730342A1E005C1E91 /* RegularizationServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6E30342A1E005C1E91 /* RegularizationServiceManager.swift */; };
-		DDB65A7830342A1E005C1E91 /* RegularizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A6F30342A1E005C1E91 /* RegularizationViewModel.swift */; };
-		DDB65A7930342A1E005C1E91 /* RegularizationListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7030342A1E005C1E91 /* RegularizationListScreen.swift */; };
-		DDB65A7A30342A1E005C1E91 /* LeaveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7130342A1E005C1E91 /* LeaveModels.swift */; };
-		DDB65A7B30342A1E005C1E91 /* LeaveServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7230342A1E005C1E91 /* LeaveServiceManager.swift */; };
-		DDB65A7C30342A1E005C1E91 /* LeaveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7330342A1E005C1E91 /* LeaveViewModel.swift */; };
-		DDB65A7D30342A1E005C1E91 /* LeaveListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7430342A1E005C1E91 /* LeaveListScreen.swift */; };
-		DDB65A8230342A1E005C1E91 /* AddLeaveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7E30342A1E005C1E91 /* AddLeaveViewModel.swift */; };
-		DDB65A8330342A1E005C1E91 /* AddLeaveScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A7F30342A1E005C1E91 /* AddLeaveScreen.swift */; };
-		DDB65A8430342A1E005C1E91 /* AddRegularizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8030342A1E005C1E91 /* AddRegularizationViewModel.swift */; };
-		DDB65A8530342A1E005C1E91 /* AddRegularizationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8130342A1E005C1E91 /* AddRegularizationScreen.swift */; };
-		DDB65A8630342A1E005C1E91 /* SellerOperationsCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8730342A1E005C1E91 /* SellerOperationsCards.swift */; };
-		DDB65A8830342A1F005C1E91 /* ActivityOperationsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8930342A1F005C1E91 /* ActivityOperationsCard.swift */; };
-		DDB65A8A30342A1F005C1E91 /* AchievementHistoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8B30342A1F005C1E91 /* AchievementHistoryModels.swift */; };
-		DDB65A8C30342A1F005C1E91 /* AchievementHistoryServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8D30342A1F005C1E91 /* AchievementHistoryServiceManager.swift */; };
-		DDB65A8E30342A1F005C1E91 /* AchievementHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A8F30342A1F005C1E91 /* AchievementHistoryViewModel.swift */; };
-		DDB65A9030342A1F005C1E91 /* AchievementHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9130342A1F005C1E91 /* AchievementHistoryScreen.swift */; };
-		DDB65A9230342A20005C1E91 /* ProductCatalogueServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */; };
-		DDB65A9430342A20005C1E91 /* ProductCatalogueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */; };
-		DDB65A9630342A20005C1E91 /* ProductCatalogueScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */; };
-		DDB65A9830342A20005C1E91 /* ProductCalculatorScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */; };
-		DDB65B1630342A21005C1E91 /* FailedOrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */; };
-		DDB65B1730342A21005C1E91 /* FailedOrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */; };
-		DDB65B1830342A21005C1E91 /* FailedOrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */; };
-		DDB65B1930342A21005C1E91 /* FailedOrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */; };
-		DDB65B1A30342A21005C1E91 /* FailedOrdersFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */; };
-		DDB65B2530342A22005C1E91 /* SalesmanActivitiesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */; };
-		DDB65B2630342A22005C1E91 /* SalesmanActivitiesServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */; };
-		DDB65B2730342A22005C1E91 /* SalesmanActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */; };
-		DDB65B2830342A22005C1E91 /* SalesmanActivitiesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */; };
-		DDB65B2B30342A22005C1E91 /* SalesmanActivityDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */; };
-		DDB65B2C30342A22005C1E91 /* SalesmanActivityDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */; };
-		DDB65B3630342A23005C1E91 /* StaffActivitiesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */; };
-		DDB65B3730342A23005C1E91 /* StaffActivitiesServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */; };
-		DDB65B3830342A23005C1E91 /* StaffActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */; };
-		DDB65B3930342A23005C1E91 /* StaffActivitiesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */; };
-		DDB65B3A30342A23005C1E91 /* StaffActivitiesCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */; };
-		DDB659E730342A19005C1E91 /* TopSellingProductsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */; };
-		DDB659E930342A19005C1E91 /* TopSellingProductsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */; };
-		DDB659EB30342A19005C1E91 /* TopSellingProductsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */; };
-		DDB659ED30342A19005C1E91 /* TopSellingProductsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */; };
-		DDB659EF30342A19005C1E91 /* TopSellingProductsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */; };
-		DDB659F630342A1A005C1E91 /* PaymentInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */; };
-		DDB659F830342A1A005C1E91 /* PaymentInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */; };
-		DDB659FA30342A1A005C1E91 /* PaymentInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */; };
-		DDB659FC30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */; };
-		DDB659FE30342A1A005C1E91 /* PaymentInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */; };
-		DDB65A0130342A1E005C1E91 /* AudioRemarkRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */; };
+		DDB65C4130342A2A005C1E91 /* ExpenseServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */; };
+		DDB65C4230342A2A005C1E91 /* ExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */; };
+		DDB65C4330342A2A005C1E91 /* ExpenseListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */; };
+		DDB65C4430342A2A005C1E91 /* AddExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */; };
+		DDB65C4530342A2A005C1E91 /* AddExpenseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */; };
+		DDB65C4830342A2B005C1E91 /* StaffReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */; };
+		DDB65C4930342A2B005C1E91 /* StaffReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */; };
+		DDB65C4E30342A2C005C1E91 /* StaffReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */; };
+		DDB65C4F30342A2C005C1E91 /* StaffReportServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */; };
+		DDB65C5030342A2C005C1E91 /* StaffProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */; };
+		DDB65C5130342A2C005C1E91 /* StaffProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */; };
+		DDB65C6430342A2D005C1E91 /* RiderInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6030342A2D005C1E91 /* RiderInsightsModels.swift */; };
+		DDB65C6530342A2D005C1E91 /* RiderInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6130342A2D005C1E91 /* RiderInsightsServiceManager.swift */; };
+		DDB65C6630342A2D005C1E91 /* RiderInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6230342A2D005C1E91 /* RiderInsightsViewModel.swift */; };
+		DDB65C6730342A2D005C1E91 /* RiderInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6330342A2D005C1E91 /* RiderInsightsScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -313,7 +317,6 @@
 		DDB6593230342A01005C1E91 /* DashboardCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCards.swift; sourceTree = "<group>"; };
 		DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardServiceManager.swift; sourceTree = "<group>"; };
 		DDB6593430342A01005C1E91 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
-		DDB65B3C30342A24005C1E91 /* DashboardRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardRole.swift; sourceTree = "<group>"; };
 		DDB6593530342A01005C1E91 /* HomeAppBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppBar.swift; sourceTree = "<group>"; };
 		DDB6593D30342A02005C1E91 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionManager.swift; sourceTree = "<group>"; };
 		DDB6593F30342A02005C1E91 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
@@ -388,9 +391,18 @@
 		DDB659E030342A18005C1E91 /* HomePrefetchServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchServiceManager.swift; sourceTree = "<group>"; };
 		DDB659E130342A18005C1E91 /* HomePrefetchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchStore.swift; sourceTree = "<group>"; };
 		DDB659E230342A17005C1E91 /* CreateOrderQuantityFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateOrderQuantityFields.swift; sourceTree = "<group>"; };
-		DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateOrderCartViewModel.swift; sourceTree = "<group>"; };
-		DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateOrderCartSheet.swift; sourceTree = "<group>"; };
 		DDB659E230342A18005C1E91 /* HomePrefetchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePrefetchManager.swift; sourceTree = "<group>"; };
+		DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsModels.swift; sourceTree = "<group>"; };
+		DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsServiceManager.swift; sourceTree = "<group>"; };
+		DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsViewModel.swift; sourceTree = "<group>"; };
+		DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsScreen.swift; sourceTree = "<group>"; };
+		DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsFilterSheet.swift; sourceTree = "<group>"; };
+		DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsModels.swift; sourceTree = "<group>"; };
+		DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsServiceManager.swift; sourceTree = "<group>"; };
+		DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsViewModel.swift; sourceTree = "<group>"; };
+		DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsFilterSheet.swift; sourceTree = "<group>"; };
+		DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsScreen.swift; sourceTree = "<group>"; };
+		DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRemarkRecorder.swift; sourceTree = "<group>"; };
 		DDB65A0230342A1B005C1E91 /* CriticalInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsModels.swift; sourceTree = "<group>"; };
 		DDB65A0330342A1B005C1E91 /* CriticalInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsViewModel.swift; sourceTree = "<group>"; };
@@ -409,21 +421,12 @@
 		DDB65A2B30342A1D005C1E91 /* RegisteredSellersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredSellersServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A2C30342A1D005C1E91 /* RegisteredSellersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredSellersViewModel.swift; sourceTree = "<group>"; };
 		DDB65A2D30342A1D005C1E91 /* RegisteredSellersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredSellersScreen.swift; sourceTree = "<group>"; };
-		DDB65C2530342A29005C1E91 /* SellerReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportModels.swift; sourceTree = "<group>"; };
-		DDB65C2630342A29005C1E91 /* SellerReportServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportServiceManager.swift; sourceTree = "<group>"; };
-		DDB65C2730342A29005C1E91 /* SellerReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportViewModel.swift; sourceTree = "<group>"; };
-		DDB65C2830342A29005C1E91 /* SellerReportCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportCommonViews.swift; sourceTree = "<group>"; };
-		DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffProfileScreen.swift; sourceTree = "<group>"; };
-		DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffProfileViewModel.swift; sourceTree = "<group>"; };
-		DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportServiceManager.swift; sourceTree = "<group>"; };
-		DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportModels.swift; sourceTree = "<group>"; };
-		DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportScreen.swift; sourceTree = "<group>"; };
-		DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportViewModel.swift; sourceTree = "<group>"; };
-		DDB65C2930342A29005C1E91 /* SellerReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportScreen.swift; sourceTree = "<group>"; };
 		DDB65A2E30342A1D005C1E91 /* AddSellerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSellerModels.swift; sourceTree = "<group>"; };
 		DDB65A2F30342A1D005C1E91 /* AddSellerServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSellerServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A3030342A1D005C1E91 /* AddSellerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSellerViewModel.swift; sourceTree = "<group>"; };
 		DDB65A3130342A1D005C1E91 /* AddSellerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSellerScreen.swift; sourceTree = "<group>"; };
+		DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateOrderCartViewModel.swift; sourceTree = "<group>"; };
+		DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateOrderCartSheet.swift; sourceTree = "<group>"; };
 		DDB65A3A30342A1E005C1E91 /* ManageProductsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageProductsModels.swift; sourceTree = "<group>"; };
 		DDB65A3B30342A1E005C1E91 /* ManageProductsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageProductsServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A3C30342A1E005C1E91 /* ManageProductsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageProductsViewModel.swift; sourceTree = "<group>"; };
@@ -441,6 +444,35 @@
 		DDB65A5930342A1E005C1E91 /* OperationsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsModels.swift; sourceTree = "<group>"; };
 		DDB65A5A30342A1E005C1E91 /* OperationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsViewModel.swift; sourceTree = "<group>"; };
 		DDB65A5B30342A1E005C1E91 /* OperationsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsScreen.swift; sourceTree = "<group>"; };
+		DDB65A6030342A1E005C1E91 /* MarkAttendanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceModels.swift; sourceTree = "<group>"; };
+		DDB65A6130342A1E005C1E91 /* MarkAttendanceServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A6230342A1E005C1E91 /* MarkAttendanceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceViewModel.swift; sourceTree = "<group>"; };
+		DDB65A6330342A1E005C1E91 /* MarkAttendanceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceScreen.swift; sourceTree = "<group>"; };
+		DDB65A6430342A1E005C1E91 /* SlideToConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideToConfirmView.swift; sourceTree = "<group>"; };
+		DDB65A6530342A1E005C1E91 /* AttendanceDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendanceDetailSheet.swift; sourceTree = "<group>"; };
+		DDB65A6C30342A1E005C1E91 /* AttendanceCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendanceCommonViews.swift; sourceTree = "<group>"; };
+		DDB65A6D30342A1E005C1E91 /* RegularizationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationModels.swift; sourceTree = "<group>"; };
+		DDB65A6E30342A1E005C1E91 /* RegularizationServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A6F30342A1E005C1E91 /* RegularizationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationViewModel.swift; sourceTree = "<group>"; };
+		DDB65A7030342A1E005C1E91 /* RegularizationListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationListScreen.swift; sourceTree = "<group>"; };
+		DDB65A7130342A1E005C1E91 /* LeaveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveModels.swift; sourceTree = "<group>"; };
+		DDB65A7230342A1E005C1E91 /* LeaveServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A7330342A1E005C1E91 /* LeaveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveViewModel.swift; sourceTree = "<group>"; };
+		DDB65A7430342A1E005C1E91 /* LeaveListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveListScreen.swift; sourceTree = "<group>"; };
+		DDB65A7E30342A1E005C1E91 /* AddLeaveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLeaveViewModel.swift; sourceTree = "<group>"; };
+		DDB65A7F30342A1E005C1E91 /* AddLeaveScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLeaveScreen.swift; sourceTree = "<group>"; };
+		DDB65A8030342A1E005C1E91 /* AddRegularizationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRegularizationViewModel.swift; sourceTree = "<group>"; };
+		DDB65A8130342A1E005C1E91 /* AddRegularizationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRegularizationScreen.swift; sourceTree = "<group>"; };
+		DDB65A8730342A1E005C1E91 /* SellerOperationsCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerOperationsCards.swift; sourceTree = "<group>"; };
+		DDB65A8930342A1F005C1E91 /* ActivityOperationsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOperationsCard.swift; sourceTree = "<group>"; };
+		DDB65A8B30342A1F005C1E91 /* AchievementHistoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryModels.swift; sourceTree = "<group>"; };
+		DDB65A8D30342A1F005C1E91 /* AchievementHistoryServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A8F30342A1F005C1E91 /* AchievementHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryViewModel.swift; sourceTree = "<group>"; };
+		DDB65A9130342A1F005C1E91 /* AchievementHistoryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryScreen.swift; sourceTree = "<group>"; };
+		DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueViewModel.swift; sourceTree = "<group>"; };
+		DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueScreen.swift; sourceTree = "<group>"; };
+		DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCalculatorScreen.swift; sourceTree = "<group>"; };
 		DDB65AA130342A20005C1E91 /* ControlsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlsScreen.swift; sourceTree = "<group>"; };
 		DDB65AA230342A20005C1E91 /* ControlsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlsViewModel.swift; sourceTree = "<group>"; };
 		DDB65AA330342A20005C1E91 /* ControlsCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlsCommonViews.swift; sourceTree = "<group>"; };
@@ -451,6 +483,23 @@
 		DDB65AB430342A21005C1E91 /* StaffCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffCommonViews.swift; sourceTree = "<group>"; };
 		DDB65AB530342A21005C1E91 /* RegisteredStaffListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredStaffListScreen.swift; sourceTree = "<group>"; };
 		DDB65AB630342A21005C1E91 /* AddStaffScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddStaffScreen.swift; sourceTree = "<group>"; };
+		DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersModels.swift; sourceTree = "<group>"; };
+		DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersServiceManager.swift; sourceTree = "<group>"; };
+		DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersViewModel.swift; sourceTree = "<group>"; };
+		DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersScreen.swift; sourceTree = "<group>"; };
+		DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersFilterSheet.swift; sourceTree = "<group>"; };
+		DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesModels.swift; sourceTree = "<group>"; };
+		DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesServiceManager.swift; sourceTree = "<group>"; };
+		DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesViewModel.swift; sourceTree = "<group>"; };
+		DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesScreen.swift; sourceTree = "<group>"; };
+		DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivityDetailViewModel.swift; sourceTree = "<group>"; };
+		DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivityDetailScreen.swift; sourceTree = "<group>"; };
+		DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesModels.swift; sourceTree = "<group>"; };
+		DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesServiceManager.swift; sourceTree = "<group>"; };
+		DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesViewModel.swift; sourceTree = "<group>"; };
+		DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesScreen.swift; sourceTree = "<group>"; };
+		DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesCommonViews.swift; sourceTree = "<group>"; };
+		DDB65B3C30342A24005C1E91 /* DashboardRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardRole.swift; sourceTree = "<group>"; };
 		DDB65BC030342A24005C1E91 /* VehicleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels.swift; sourceTree = "<group>"; };
 		DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleServiceManager.swift; sourceTree = "<group>"; };
 		DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewVehiclesViewModel.swift; sourceTree = "<group>"; };
@@ -481,68 +530,27 @@
 		DDB65C1730342A28005C1E91 /* AssignBeatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignBeatViewModel.swift; sourceTree = "<group>"; };
 		DDB65C1830342A28005C1E91 /* AssignBeatCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignBeatCommonViews.swift; sourceTree = "<group>"; };
 		DDB65C1930342A28005C1E91 /* AssignBeatScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignBeatScreen.swift; sourceTree = "<group>"; };
-		DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseScreen.swift; sourceTree = "<group>"; };
-		DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseViewModel.swift; sourceTree = "<group>"; };
-		DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseListScreen.swift; sourceTree = "<group>"; };
-		DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViewModel.swift; sourceTree = "<group>"; };
-		DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C2530342A29005C1E91 /* SellerReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportModels.swift; sourceTree = "<group>"; };
+		DDB65C2630342A29005C1E91 /* SellerReportServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C2730342A29005C1E91 /* SellerReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportViewModel.swift; sourceTree = "<group>"; };
+		DDB65C2830342A29005C1E91 /* SellerReportCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportCommonViews.swift; sourceTree = "<group>"; };
+		DDB65C2930342A29005C1E91 /* SellerReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerReportScreen.swift; sourceTree = "<group>"; };
 		DDB65C3530342A2A005C1E91 /* ExpenseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseModels.swift; sourceTree = "<group>"; };
-		DDB65A6030342A1E005C1E91 /* MarkAttendanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceModels.swift; sourceTree = "<group>"; };
-		DDB65A6130342A1E005C1E91 /* MarkAttendanceServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceServiceManager.swift; sourceTree = "<group>"; };
-		DDB65A6230342A1E005C1E91 /* MarkAttendanceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceViewModel.swift; sourceTree = "<group>"; };
-		DDB65A6330342A1E005C1E91 /* MarkAttendanceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkAttendanceScreen.swift; sourceTree = "<group>"; };
-		DDB65A6430342A1E005C1E91 /* SlideToConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideToConfirmView.swift; sourceTree = "<group>"; };
-		DDB65A6530342A1E005C1E91 /* AttendanceDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendanceDetailSheet.swift; sourceTree = "<group>"; };
-		DDB65A6C30342A1E005C1E91 /* AttendanceCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendanceCommonViews.swift; sourceTree = "<group>"; };
-		DDB65A6D30342A1E005C1E91 /* RegularizationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationModels.swift; sourceTree = "<group>"; };
-		DDB65A6E30342A1E005C1E91 /* RegularizationServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationServiceManager.swift; sourceTree = "<group>"; };
-		DDB65A6F30342A1E005C1E91 /* RegularizationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationViewModel.swift; sourceTree = "<group>"; };
-		DDB65A7030342A1E005C1E91 /* RegularizationListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizationListScreen.swift; sourceTree = "<group>"; };
-		DDB65A7130342A1E005C1E91 /* LeaveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveModels.swift; sourceTree = "<group>"; };
-		DDB65A7230342A1E005C1E91 /* LeaveServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveServiceManager.swift; sourceTree = "<group>"; };
-		DDB65A7330342A1E005C1E91 /* LeaveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveViewModel.swift; sourceTree = "<group>"; };
-		DDB65A7430342A1E005C1E91 /* LeaveListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveListScreen.swift; sourceTree = "<group>"; };
-		DDB65A7E30342A1E005C1E91 /* AddLeaveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLeaveViewModel.swift; sourceTree = "<group>"; };
-		DDB65A7F30342A1E005C1E91 /* AddLeaveScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLeaveScreen.swift; sourceTree = "<group>"; };
-		DDB65A8030342A1E005C1E91 /* AddRegularizationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRegularizationViewModel.swift; sourceTree = "<group>"; };
-		DDB65A8130342A1E005C1E91 /* AddRegularizationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRegularizationScreen.swift; sourceTree = "<group>"; };
-		DDB65A8730342A1E005C1E91 /* SellerOperationsCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerOperationsCards.swift; sourceTree = "<group>"; };
-		DDB65A8930342A1F005C1E91 /* ActivityOperationsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOperationsCard.swift; sourceTree = "<group>"; };
-		DDB65A8B30342A1F005C1E91 /* AchievementHistoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryModels.swift; sourceTree = "<group>"; };
-		DDB65A8D30342A1F005C1E91 /* AchievementHistoryServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryServiceManager.swift; sourceTree = "<group>"; };
-		DDB65A8F30342A1F005C1E91 /* AchievementHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryViewModel.swift; sourceTree = "<group>"; };
-		DDB65A9130342A1F005C1E91 /* AchievementHistoryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementHistoryScreen.swift; sourceTree = "<group>"; };
-		DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueServiceManager.swift; sourceTree = "<group>"; };
-		DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueViewModel.swift; sourceTree = "<group>"; };
-		DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalogueScreen.swift; sourceTree = "<group>"; };
-		DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCalculatorScreen.swift; sourceTree = "<group>"; };
-		DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersModels.swift; sourceTree = "<group>"; };
-		DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersServiceManager.swift; sourceTree = "<group>"; };
-		DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersViewModel.swift; sourceTree = "<group>"; };
-		DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersScreen.swift; sourceTree = "<group>"; };
-		DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailedOrdersFilterSheet.swift; sourceTree = "<group>"; };
-		DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesModels.swift; sourceTree = "<group>"; };
-		DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesServiceManager.swift; sourceTree = "<group>"; };
-		DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesViewModel.swift; sourceTree = "<group>"; };
-		DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivitiesScreen.swift; sourceTree = "<group>"; };
-		DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivityDetailViewModel.swift; sourceTree = "<group>"; };
-		DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalesmanActivityDetailScreen.swift; sourceTree = "<group>"; };
-		DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesModels.swift; sourceTree = "<group>"; };
-		DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesServiceManager.swift; sourceTree = "<group>"; };
-		DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesViewModel.swift; sourceTree = "<group>"; };
-		DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesScreen.swift; sourceTree = "<group>"; };
-		DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesCommonViews.swift; sourceTree = "<group>"; };
-		DDB659E830342A19005C1E91 /* TopSellingProductsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsModels.swift; sourceTree = "<group>"; };
-		DDB659EA30342A19005C1E91 /* TopSellingProductsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsServiceManager.swift; sourceTree = "<group>"; };
-		DDB659EC30342A19005C1E91 /* TopSellingProductsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsViewModel.swift; sourceTree = "<group>"; };
-		DDB659EE30342A19005C1E91 /* TopSellingProductsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsScreen.swift; sourceTree = "<group>"; };
-		DDB659F030342A19005C1E91 /* TopSellingProductsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSellingProductsFilterSheet.swift; sourceTree = "<group>"; };
-		DDB659F730342A1A005C1E91 /* PaymentInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsModels.swift; sourceTree = "<group>"; };
-		DDB659F930342A1A005C1E91 /* PaymentInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsServiceManager.swift; sourceTree = "<group>"; };
-		DDB659FB30342A1A005C1E91 /* PaymentInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsViewModel.swift; sourceTree = "<group>"; };
-		DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsFilterSheet.swift; sourceTree = "<group>"; };
-		DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsScreen.swift; sourceTree = "<group>"; };
-		DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRemarkRecorder.swift; sourceTree = "<group>"; };
+		DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViewModel.swift; sourceTree = "<group>"; };
+		DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseListScreen.swift; sourceTree = "<group>"; };
+		DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseViewModel.swift; sourceTree = "<group>"; };
+		DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseScreen.swift; sourceTree = "<group>"; };
+		DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportViewModel.swift; sourceTree = "<group>"; };
+		DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportScreen.swift; sourceTree = "<group>"; };
+		DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportModels.swift; sourceTree = "<group>"; };
+		DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffProfileViewModel.swift; sourceTree = "<group>"; };
+		DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffProfileScreen.swift; sourceTree = "<group>"; };
+		DDB65C6030342A2D005C1E91 /* RiderInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiderInsightsModels.swift; sourceTree = "<group>"; };
+		DDB65C6130342A2D005C1E91 /* RiderInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiderInsightsServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C6230342A2D005C1E91 /* RiderInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiderInsightsViewModel.swift; sourceTree = "<group>"; };
+		DDB65C6330342A2D005C1E91 /* RiderInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiderInsightsScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -799,6 +807,62 @@
 			path = OrderApproval;
 			sourceTree = "<group>";
 		};
+		DDB6597830342A08005C1E91 /* OrderDetail */ = {
+			isa = PBXGroup;
+			children = (
+				DDB6597130342A08005C1E91 /* OrderDetailModels.swift */,
+				DDB6597330342A08005C1E91 /* OrderDetailServiceManager.swift */,
+				DDB6597530342A08005C1E91 /* OrderDetailViewModel.swift */,
+				DDB6597730342A08005C1E91 /* OrderDetailScreen.swift */,
+				DDB6598530342A1A005C1E91 /* ChangeSellerSheet.swift */,
+				DDB6598730342A1A005C1E91 /* ChangeSellerViewModel.swift */,
+				DDB6598A30342A1B005C1E91 /* EditOrderModels.swift */,
+				DDB6598C30342A1B005C1E91 /* EditOrderViewModel.swift */,
+				DDB6598E30342A1B005C1E91 /* EditOrderSheet.swift */,
+				DDB6599130342A1C005C1E91 /* EditOrderChooseBrandScreen.swift */,
+				DDB6599230342A1D005C1E91 /* EditOrderSubmitScreen.swift */,
+			);
+			path = OrderDetail;
+			sourceTree = "<group>";
+		};
+		DDB659B330342A0F005C1E91 /* SellerProfile */ = {
+			isa = PBXGroup;
+			children = (
+				DDB659A730342A0F005C1E91 /* SellerProfileModels.swift */,
+				DDB659A830342A0F005C1E91 /* SellerProfileServiceManager.swift */,
+				DDB659A930342A0F005C1E91 /* SellerProfileViewModel.swift */,
+				DDB659AA30342A0F005C1E91 /* SellerProfileScreen.swift */,
+				DDB659B430342A10005C1E91 /* SellerContactActions.swift */,
+				DDB659B630342A11005C1E91 /* SellerProfileTabsContent.swift */,
+				DDB659B830342A12005C1E91 /* SellerPaymentModels.swift */,
+				DDB659B930342A12005C1E91 /* SellerPaymentServiceManager.swift */,
+				DDB659BA30342A12005C1E91 /* AddPaymentViewModel.swift */,
+				DDB659BB30342A12005C1E91 /* AddPaymentScreen.swift */,
+				DDB659BC30342A12005C1E91 /* BillSettlementViewModel.swift */,
+				DDB659BD30342A12005C1E91 /* BillSettlementScreen.swift */,
+			);
+			path = SellerProfile;
+			sourceTree = "<group>";
+		};
+		DDB659CC30342A13005C1E91 /* CreateOrder */ = {
+			isa = PBXGroup;
+			children = (
+				DDB659C530342A13005C1E91 /* CreateOrderModels.swift */,
+				DDB659C730342A13005C1E91 /* CreateOrderServiceManager.swift */,
+				DDB659C930342A13005C1E91 /* ChooseBrandViewModel.swift */,
+				DDB659CB30342A13005C1E91 /* ChooseBrandScreen.swift */,
+				DDB659CE30342A14005C1E91 /* BrandProductListViewModel.swift */,
+				DDB659D030342A14005C1E91 /* BrandProductListScreen.swift */,
+				DDB659D230342A15005C1E91 /* ProductDetailViewModel.swift */,
+				DDB659E230342A17005C1E91 /* CreateOrderQuantityFields.swift */,
+				DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */,
+				DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */,
+				DDB659D430342A15005C1E91 /* ProductDetailScreen.swift */,
+				DDB659D630342A16005C1E91 /* EditSpecialPricesSheet.swift */,
+			);
+			path = CreateOrder;
+			sourceTree = "<group>";
+		};
 		DDB65A1430342A1C005C1E91 /* LoginRequests */ = {
 			isa = PBXGroup;
 			children = (
@@ -858,54 +922,6 @@
 			path = Products;
 			sourceTree = "<group>";
 		};
-		DDB65A9A30342A20005C1E91 /* ProductCatalogue */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */,
-				DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */,
-				DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */,
-				DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */,
-			);
-			path = ProductCatalogue;
-			sourceTree = "<group>";
-		};
-		DDB65B2030342A22005C1E91 /* SalesmanActivities */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */,
-				DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */,
-				DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */,
-				DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */,
-				DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */,
-				DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */,
-			);
-			path = SalesmanActivities;
-			sourceTree = "<group>";
-		};
-		DDB65B3030342A23005C1E91 /* StaffActivities */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */,
-				DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */,
-				DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */,
-				DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */,
-				DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */,
-			);
-			path = StaffActivities;
-			sourceTree = "<group>";
-		};
-		DDB65B1030342A21005C1E91 /* FailedOrders */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */,
-				DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */,
-				DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */,
-				DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */,
-				DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */,
-			);
-			path = FailedOrders;
-			sourceTree = "<group>";
-		};
 		DDB65A5730342A1E005C1E91 /* QuickShare */ = {
 			isa = PBXGroup;
 			children = (
@@ -928,58 +944,6 @@
 				DDB65A8930342A1F005C1E91 /* ActivityOperationsCard.swift */,
 			);
 			path = Operations;
-			sourceTree = "<group>";
-		};
-		DDB65AA030342A20005C1E91 /* Controls */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65AA130342A20005C1E91 /* ControlsScreen.swift */,
-				DDB65AA230342A20005C1E91 /* ControlsViewModel.swift */,
-        DDB65AA330342A20005C1E91 /* ControlsCommonViews.swift */,
-				DDB65AB030342A21005C1E91 /* StaffModels.swift */,
-				DDB65AB130342A21005C1E91 /* StaffServiceManager.swift */,
-				DDB65AB230342A21005C1E91 /* RegisteredStaffListViewModel.swift */,
-				DDB65AB330342A21005C1E91 /* AddStaffViewModel.swift */,
-				DDB65AB430342A21005C1E91 /* StaffCommonViews.swift */,
-				DDB65AB530342A21005C1E91 /* RegisteredStaffListScreen.swift */,
-				DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */,
-				DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */,
-				DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */,
-				DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */,
-				DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */,
-				DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */,
-				DDB65AB630342A21005C1E91 /* AddStaffScreen.swift */,
-				DDB65BC030342A24005C1E91 /* VehicleModels.swift */,
-				DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */,
-				DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */,
-				DDB65BC330342A24005C1E91 /* VehicleHistoryViewModel.swift */,
-				DDB65BC430342A24005C1E91 /* VehicleCommonViews.swift */,
-				DDB65BC530342A24005C1E91 /* ViewVehiclesScreen.swift */,
-				DDB65BC630342A24005C1E91 /* VehicleHistoryScreen.swift */,
-				DDB65BE030342A25005C1E91 /* BeatModels.swift */,
-				DDB65BE130342A25005C1E91 /* BeatServiceManager.swift */,
-				DDB65BE230342A25005C1E91 /* ViewBeatsViewModel.swift */,
-				DDB65BE330342A25005C1E91 /* BeatCommonViews.swift */,
-				DDB65BE430342A25005C1E91 /* ViewBeatsScreen.swift */,
-				DDB65BF030342A26005C1E91 /* TargetModels.swift */,
-				DDB65BF130342A26005C1E91 /* TargetServiceManager.swift */,
-				DDB65BF230342A26005C1E91 /* ViewTargetsViewModel.swift */,
-				DDB65BF330342A26005C1E91 /* TargetHistoryViewModel.swift */,
-				DDB65BF430342A26005C1E91 /* TargetCommonViews.swift */,
-				DDB65BF530342A26005C1E91 /* ViewTargetsScreen.swift */,
-				DDB65BF630342A26005C1E91 /* TargetHistoryScreen.swift */,
-				DDB65C0A30342A27005C1E91 /* BeatOrderSummaryModels.swift */,
-				DDB65C0B30342A27005C1E91 /* BeatOrderSummaryServiceManager.swift */,
-				DDB65C0C30342A27005C1E91 /* BeatOrderSummaryViewModel.swift */,
-				DDB65C0D30342A27005C1E91 /* BeatOrderSummaryCommonViews.swift */,
-				DDB65C0E30342A27005C1E91 /* BeatOrderSummaryScreen.swift */,
-				DDB65C1530342A28005C1E91 /* AssignBeatModels.swift */,
-				DDB65C1630342A28005C1E91 /* AssignBeatServiceManager.swift */,
-				DDB65C1730342A28005C1E91 /* AssignBeatViewModel.swift */,
-				DDB65C1830342A28005C1E91 /* AssignBeatCommonViews.swift */,
-				DDB65C1930342A28005C1E91 /* AssignBeatScreen.swift */,
-			);
-			path = Controls;
 			sourceTree = "<group>";
 		};
 		DDB65A5F30342A1E005C1E91 /* Attendance */ = {
@@ -1014,60 +978,108 @@
 			path = Attendance;
 			sourceTree = "<group>";
 		};
-		DDB6597830342A08005C1E91 /* OrderDetail */ = {
+		DDB65A9A30342A20005C1E91 /* ProductCatalogue */ = {
 			isa = PBXGroup;
 			children = (
-				DDB6597130342A08005C1E91 /* OrderDetailModels.swift */,
-				DDB6597330342A08005C1E91 /* OrderDetailServiceManager.swift */,
-				DDB6597530342A08005C1E91 /* OrderDetailViewModel.swift */,
-				DDB6597730342A08005C1E91 /* OrderDetailScreen.swift */,
-				DDB6598530342A1A005C1E91 /* ChangeSellerSheet.swift */,
-				DDB6598730342A1A005C1E91 /* ChangeSellerViewModel.swift */,
-				DDB6598A30342A1B005C1E91 /* EditOrderModels.swift */,
-				DDB6598C30342A1B005C1E91 /* EditOrderViewModel.swift */,
-				DDB6598E30342A1B005C1E91 /* EditOrderSheet.swift */,
-				DDB6599130342A1C005C1E91 /* EditOrderChooseBrandScreen.swift */,
-				DDB6599230342A1D005C1E91 /* EditOrderSubmitScreen.swift */,
+				DDB65A9330342A20005C1E91 /* ProductCatalogueServiceManager.swift */,
+				DDB65A9530342A20005C1E91 /* ProductCatalogueViewModel.swift */,
+				DDB65A9730342A20005C1E91 /* ProductCatalogueScreen.swift */,
+				DDB65A9930342A20005C1E91 /* ProductCalculatorScreen.swift */,
 			);
-			path = OrderDetail;
+			path = ProductCatalogue;
 			sourceTree = "<group>";
 		};
-		DDB659B330342A0F005C1E91 /* SellerProfile */ = {
+		DDB65AA030342A20005C1E91 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
-				DDB659A730342A0F005C1E91 /* SellerProfileModels.swift */,
-				DDB659A830342A0F005C1E91 /* SellerProfileServiceManager.swift */,
-				DDB659A930342A0F005C1E91 /* SellerProfileViewModel.swift */,
-				DDB659AA30342A0F005C1E91 /* SellerProfileScreen.swift */,
-				DDB659B430342A10005C1E91 /* SellerContactActions.swift */,
-				DDB659B630342A11005C1E91 /* SellerProfileTabsContent.swift */,
-				DDB659B830342A12005C1E91 /* SellerPaymentModels.swift */,
-				DDB659B930342A12005C1E91 /* SellerPaymentServiceManager.swift */,
-				DDB659BA30342A12005C1E91 /* AddPaymentViewModel.swift */,
-				DDB659BB30342A12005C1E91 /* AddPaymentScreen.swift */,
-				DDB659BC30342A12005C1E91 /* BillSettlementViewModel.swift */,
-				DDB659BD30342A12005C1E91 /* BillSettlementScreen.swift */,
+				DDB65AA130342A20005C1E91 /* ControlsScreen.swift */,
+				DDB65AA230342A20005C1E91 /* ControlsViewModel.swift */,
+				DDB65AA330342A20005C1E91 /* ControlsCommonViews.swift */,
+				DDB65AB030342A21005C1E91 /* StaffModels.swift */,
+				DDB65AB130342A21005C1E91 /* StaffServiceManager.swift */,
+				DDB65AB230342A21005C1E91 /* RegisteredStaffListViewModel.swift */,
+				DDB65AB330342A21005C1E91 /* AddStaffViewModel.swift */,
+				DDB65AB430342A21005C1E91 /* StaffCommonViews.swift */,
+				DDB65AB530342A21005C1E91 /* RegisteredStaffListScreen.swift */,
+				DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */,
+				DDB65C4730342A2B005C1E91 /* StaffReportScreen.swift */,
+				DDB65C4A30342A2C005C1E91 /* StaffReportModels.swift */,
+				DDB65C4B30342A2C005C1E91 /* StaffReportServiceManager.swift */,
+				DDB65C4C30342A2C005C1E91 /* StaffProfileViewModel.swift */,
+				DDB65C4D30342A2C005C1E91 /* StaffProfileScreen.swift */,
+				DDB65C6030342A2D005C1E91 /* RiderInsightsModels.swift */,
+				DDB65C6130342A2D005C1E91 /* RiderInsightsServiceManager.swift */,
+				DDB65C6230342A2D005C1E91 /* RiderInsightsViewModel.swift */,
+				DDB65C6330342A2D005C1E91 /* RiderInsightsScreen.swift */,
+				DDB65AB630342A21005C1E91 /* AddStaffScreen.swift */,
+				DDB65BC030342A24005C1E91 /* VehicleModels.swift */,
+				DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */,
+				DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */,
+				DDB65BC330342A24005C1E91 /* VehicleHistoryViewModel.swift */,
+				DDB65BC430342A24005C1E91 /* VehicleCommonViews.swift */,
+				DDB65BC530342A24005C1E91 /* ViewVehiclesScreen.swift */,
+				DDB65BC630342A24005C1E91 /* VehicleHistoryScreen.swift */,
+				DDB65BE030342A25005C1E91 /* BeatModels.swift */,
+				DDB65BE130342A25005C1E91 /* BeatServiceManager.swift */,
+				DDB65BE230342A25005C1E91 /* ViewBeatsViewModel.swift */,
+				DDB65BE330342A25005C1E91 /* BeatCommonViews.swift */,
+				DDB65BE430342A25005C1E91 /* ViewBeatsScreen.swift */,
+				DDB65BF030342A26005C1E91 /* TargetModels.swift */,
+				DDB65BF130342A26005C1E91 /* TargetServiceManager.swift */,
+				DDB65BF230342A26005C1E91 /* ViewTargetsViewModel.swift */,
+				DDB65BF330342A26005C1E91 /* TargetHistoryViewModel.swift */,
+				DDB65BF430342A26005C1E91 /* TargetCommonViews.swift */,
+				DDB65BF530342A26005C1E91 /* ViewTargetsScreen.swift */,
+				DDB65BF630342A26005C1E91 /* TargetHistoryScreen.swift */,
+				DDB65C0A30342A27005C1E91 /* BeatOrderSummaryModels.swift */,
+				DDB65C0B30342A27005C1E91 /* BeatOrderSummaryServiceManager.swift */,
+				DDB65C0C30342A27005C1E91 /* BeatOrderSummaryViewModel.swift */,
+				DDB65C0D30342A27005C1E91 /* BeatOrderSummaryCommonViews.swift */,
+				DDB65C0E30342A27005C1E91 /* BeatOrderSummaryScreen.swift */,
+				DDB65C1530342A28005C1E91 /* AssignBeatModels.swift */,
+				DDB65C1630342A28005C1E91 /* AssignBeatServiceManager.swift */,
+				DDB65C1730342A28005C1E91 /* AssignBeatViewModel.swift */,
+				DDB65C1830342A28005C1E91 /* AssignBeatCommonViews.swift */,
+				DDB65C1930342A28005C1E91 /* AssignBeatScreen.swift */,
 			);
-			path = SellerProfile;
+			path = Controls;
 			sourceTree = "<group>";
 		};
-		DDB659CC30342A13005C1E91 /* CreateOrder */ = {
+		DDB65B1030342A21005C1E91 /* FailedOrders */ = {
 			isa = PBXGroup;
 			children = (
-				DDB659C530342A13005C1E91 /* CreateOrderModels.swift */,
-				DDB659C730342A13005C1E91 /* CreateOrderServiceManager.swift */,
-				DDB659C930342A13005C1E91 /* ChooseBrandViewModel.swift */,
-				DDB659CB30342A13005C1E91 /* ChooseBrandScreen.swift */,
-				DDB659CE30342A14005C1E91 /* BrandProductListViewModel.swift */,
-				DDB659D030342A14005C1E91 /* BrandProductListScreen.swift */,
-				DDB659D230342A15005C1E91 /* ProductDetailViewModel.swift */,
-				DDB659E230342A17005C1E91 /* CreateOrderQuantityFields.swift */,
-				DDB65A3130342A20005C1E91 /* CreateOrderCartViewModel.swift */,
-				DDB65A3330342A20005C1E91 /* CreateOrderCartSheet.swift */,
-				DDB659D430342A15005C1E91 /* ProductDetailScreen.swift */,
-				DDB659D630342A16005C1E91 /* EditSpecialPricesSheet.swift */,
+				DDB65B1130342A21005C1E91 /* FailedOrdersModels.swift */,
+				DDB65B1230342A21005C1E91 /* FailedOrdersServiceManager.swift */,
+				DDB65B1330342A21005C1E91 /* FailedOrdersViewModel.swift */,
+				DDB65B1430342A21005C1E91 /* FailedOrdersScreen.swift */,
+				DDB65B1530342A21005C1E91 /* FailedOrdersFilterSheet.swift */,
 			);
-			path = CreateOrder;
+			path = FailedOrders;
+			sourceTree = "<group>";
+		};
+		DDB65B2030342A22005C1E91 /* SalesmanActivities */ = {
+			isa = PBXGroup;
+			children = (
+				DDB65B2130342A22005C1E91 /* SalesmanActivitiesModels.swift */,
+				DDB65B2230342A22005C1E91 /* SalesmanActivitiesServiceManager.swift */,
+				DDB65B2330342A22005C1E91 /* SalesmanActivitiesViewModel.swift */,
+				DDB65B2430342A22005C1E91 /* SalesmanActivitiesScreen.swift */,
+				DDB65B2930342A22005C1E91 /* SalesmanActivityDetailViewModel.swift */,
+				DDB65B2A30342A22005C1E91 /* SalesmanActivityDetailScreen.swift */,
+			);
+			path = SalesmanActivities;
+			sourceTree = "<group>";
+		};
+		DDB65B3030342A23005C1E91 /* StaffActivities */ = {
+			isa = PBXGroup;
+			children = (
+				DDB65B3130342A23005C1E91 /* StaffActivitiesModels.swift */,
+				DDB65B3230342A23005C1E91 /* StaffActivitiesServiceManager.swift */,
+				DDB65B3330342A23005C1E91 /* StaffActivitiesViewModel.swift */,
+				DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */,
+				DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */,
+			);
+			path = StaffActivities;
 			sourceTree = "<group>";
 		};
 		E3515B339A3AFD3575AADF3C /* Pods */ = {
@@ -1177,9 +1189,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1298,6 +1314,10 @@
 				DDB65C4F30342A2C005C1E91 /* StaffReportServiceManager.swift in Sources */,
 				DDB65C5030342A2C005C1E91 /* StaffProfileViewModel.swift in Sources */,
 				DDB65C5130342A2C005C1E91 /* StaffProfileScreen.swift in Sources */,
+				DDB65C6430342A2D005C1E91 /* RiderInsightsModels.swift in Sources */,
+				DDB65C6530342A2D005C1E91 /* RiderInsightsServiceManager.swift in Sources */,
+				DDB65C6630342A2D005C1E91 /* RiderInsightsViewModel.swift in Sources */,
+				DDB65C6730342A2D005C1E91 /* RiderInsightsScreen.swift in Sources */,
 				DDB65ABD30342A21005C1E91 /* AddStaffScreen.swift in Sources */,
 				DDB65BD030342A24005C1E91 /* VehicleModels.swift in Sources */,
 				DDB65BD130342A24005C1E91 /* VehicleServiceManager.swift in Sources */,
@@ -1584,6 +1604,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -1636,6 +1657,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;

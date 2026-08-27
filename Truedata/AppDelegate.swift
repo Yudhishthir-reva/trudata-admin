@@ -25,10 +25,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func registerForPushNotifications() {
         UNUserNotificationCenter.current().delegate = self
 
-        let authOptions: UNAuthorizationOptions = [.alert, .sound]
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(
             options: authOptions,
-            completionHandler: { _, _ in }
+            completionHandler: { _, _ in
+                DispatchQueue.main.async {
+                    PermissionManager.shared.refreshStatus()
+                }
+            }
         )
 
         UIApplication.shared.registerForRemoteNotifications()

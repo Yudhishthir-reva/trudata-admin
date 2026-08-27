@@ -150,7 +150,7 @@ struct ControlsScreen: View {
         case "expense_approval":
             onNavigate("expense_approval")
         case "rider_report":
-            pendingRouteMessage = "\(route.replacingOccurrences(of: "_", with: " ").capitalized) will be available in the next update."
+            onNavigate("rider_report")
         default:
             onNavigate(route)
         }

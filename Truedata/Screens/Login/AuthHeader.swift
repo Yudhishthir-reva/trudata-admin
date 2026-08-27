@@ -5,13 +5,44 @@
 
 import SwiftUI
 
+private struct StarInfo {
+    var initialX: Double
+    var initialY: Double
+    var alpha: Double
+    var speed: Double
+}
+
 struct AuthHeader: View {
     var title: String = "Let's Get\nYou Started"
     var subtitle: String = "Sign up to your account and manage sales on the go"
 
+    @State private var animatedAlpha: CGFloat = 0.0
+
+    // Deterministic 50 stars matching Android Random(0) distribution
+    private let stars: [StarInfo] = {
+        var result: [StarInfo] = []
+        var seed: UInt64 = 123456789
+        func nextRandom() -> Double {
+            seed = (1103515245 * seed + 12345) & 0x7FFFFFFF
+            return Double(seed) / Double(0x7FFFFFFF)
+        }
+
+        for _ in 0..<50 {
+            let x = nextRandom()
+            let y = nextRandom()
+            let rawAlpha = nextRandom()
+            let alpha = max(0.1, min(0.7, rawAlpha))
+            let speed = nextRandom() * 0.0002 + 0.0001
+            result.append(StarInfo(initialX: x, initialY: y, alpha: alpha, speed: speed))
+        }
+        return result
+    }()
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             starfield
+                .opacity(animatedAlpha)
+
             VStack(alignment: .leading, spacing: 16) {
                 Text(title)
                     .font(.system(size: 38, weight: .bold))
@@ -28,64 +59,75 @@ struct AuthHeader: View {
         .frame(maxWidth: .infinity)
         .aspectRatio(1.5, contentMode: .fit)
         .clipped()
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.0)) {
+                animatedAlpha = 1.0
+            }
+        }
     }
 
     private var starfield: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             Canvas { context, size in
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(AppTheme.authHeader))
+                // 1. Space background
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: "0F2C42")))
 
-                let grid = AppTheme.authGrid
+                // 2. 8x8 Grid lines
+                let gridColor = Color(hex: "1A4668")
                 let lines = 8
                 let stepX = size.width / CGFloat(lines)
                 let stepY = size.height / CGFloat(lines)
+
                 for i in 1..<lines {
                     var vertical = Path()
                     vertical.move(to: CGPoint(x: CGFloat(i) * stepX, y: 0))
                     vertical.addLine(to: CGPoint(x: CGFloat(i) * stepX, y: size.height))
-                    context.stroke(vertical, with: .color(grid), lineWidth: 1)
+                    context.stroke(vertical, with: .color(gridColor), lineWidth: 1)
 
                     var horizontal = Path()
                     horizontal.move(to: CGPoint(x: 0, y: CGFloat(i) * stepY))
                     horizontal.addLine(to: CGPoint(x: size.width, y: CGFloat(i) * stepY))
-                    context.stroke(horizontal, with: .color(grid), lineWidth: 1)
+                    context.stroke(horizontal, with: .color(gridColor), lineWidth: 1)
                 }
 
+                // 3. Diagonal Halo Glow Effect (Top-right quadrant)
+                let haloCenter = CGPoint(x: size.width * 0.75, y: size.height * 0.25)
+                let haloRadius = size.width * 0.6
                 let haloRect = CGRect(
-                    x: size.width * 0.75 - size.width * 0.6,
-                    y: size.height * 0.25 - size.width * 0.6,
-                    width: size.width * 1.2,
-                    height: size.width * 1.2
+                    x: haloCenter.x - haloRadius,
+                    y: haloCenter.y - haloRadius,
+                    width: haloRadius * 2,
+                    height: haloRadius * 2
                 )
                 context.fill(
                     Path(ellipseIn: haloRect),
                     with: .radialGradient(
                         Gradient(colors: [Color.white.opacity(0.2), .clear]),
-                        center: CGPoint(x: size.width * 0.75, y: size.height * 0.25),
+                        center: haloCenter,
                         startRadius: 0,
-                        endRadius: size.width * 0.6
+                        endRadius: haloRadius
                     )
                 )
 
-                for index in 0..<50 {
-                    let seed = Double(index)
-                    let speed = 0.0001 + (seed.truncatingRemainder(dividingBy: 7) * 0.00003)
-                    var x = (seed * 0.37).truncatingRemainder(dividingBy: 1) + time * speed / 2
-                    var y = (seed * 0.61).truncatingRemainder(dividingBy: 1) + time * speed
-                    x = x.truncatingRemainder(dividingBy: 1)
-                    y = y.truncatingRemainder(dividingBy: 1)
-                    if x < 0 { x += 1 }
-                    if y < 0 { y += 1 }
-                    let alpha = 0.15 + (seed.truncatingRemainder(dividingBy: 5) * 0.1)
+                // 4. Floating Stars animation
+                let elapsedFrames = time * 60.0
+                for star in stars {
+                    var curY = (star.initialY + star.speed * elapsedFrames).truncatingRemainder(dividingBy: 1.0)
+                    var curX = (star.initialX + (star.speed / 2.0) * elapsedFrames).truncatingRemainder(dividingBy: 1.0)
+
+                    if curY < 0 { curY += 1.0 }
+                    if curX < 0 { curX += 1.0 }
+
+                    let starRect = CGRect(
+                        x: curX * size.width - 1.0,
+                        y: curY * size.height - 1.0,
+                        width: 2.2,
+                        height: 2.2
+                    )
                     context.fill(
-                        Path(ellipseIn: CGRect(
-                            x: x * size.width,
-                            y: y * size.height,
-                            width: 2,
-                            height: 2
-                        )),
-                        with: .color(.white.opacity(alpha))
+                        Path(ellipseIn: starRect),
+                        with: .color(Color.white.opacity(star.alpha))
                     )
                 }
             }

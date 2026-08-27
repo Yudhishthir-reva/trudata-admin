@@ -58,6 +58,7 @@ enum HomeDestination: Hashable {
     case assignBeats
     case sellerReport
     case expenseApprovals
+    case riderInsights
 }
 
 struct HomeScreen: View {
@@ -221,6 +222,8 @@ struct HomeScreen: View {
                         SellerReportScreen()
                     case .expenseApprovals:
                         ExpenseListScreen()
+                    case .riderInsights:
+                        RiderInsightsScreen()
                     }
                 }
         }
@@ -346,7 +349,7 @@ struct HomeScreen: View {
         case "expense_approval", "apply_reimbursements":
             navigationPath.append(HomeDestination.expenseApprovals)
         case "rider_report":
-            pendingRouteMessage = "\(route.replacingOccurrences(of: "_", with: " ").capitalized) will be available in the next update."
+            navigationPath.append(HomeDestination.riderInsights)
         case "seller_report":
             navigationPath.append(HomeDestination.sellerReport)
         case "assign_order":
