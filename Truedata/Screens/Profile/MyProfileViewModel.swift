@@ -59,6 +59,6 @@ final class MyProfileViewModel: ObservableObject {
         isLoggingOut = false
         HomePrefetchManager.shared.reset()
         UserDefaultManager.shared.resetUserData()
-        AppRootManager.shared.setRootView(view: AuthScreen())
+        AppRootManager.shared.switchToAuth()
     }
 }

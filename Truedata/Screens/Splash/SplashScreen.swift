@@ -7,7 +7,7 @@ import SwiftUI
 
 struct SplashScreen: View {
 
-    @State private var logoScale: CGFloat = 0
+    @State private var logoScale: CGFloat = 0.85
     @State private var logoRotation: Double = 0
 
     var body: some View {
@@ -17,13 +17,13 @@ struct SplashScreen: View {
                 .scaleEffect(logoScale)
                 .rotationEffect(.degrees(logoRotation))
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .onAppear(perform: runEntrance)
     }
 
     private func runEntrance() {
         withAnimation(.interpolatingSpring(stiffness: 180, damping: 10)) {
-            logoScale = 0.85
+            logoScale = 1.0
         }
         withAnimation(.easeInOut(duration: 0.8)) {
             logoRotation = 360
@@ -31,9 +31,9 @@ struct SplashScreen: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) {
             if UserDefaultManager.shared.isUserLoggedIn {
-                AppRootManager.shared.setRootView(view: HomeScreen())
+                AppRootManager.shared.switchToHome()
             } else {
-                AppRootManager.shared.setRootView(view: AuthScreen())
+                AppRootManager.shared.switchToAuth()
             }
         }
     }

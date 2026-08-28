@@ -19,7 +19,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         registerForPushNotifications()
         NetworkMonitor.shared.start()
+
+        DispatchQueue.main.async {
+            for window in UIApplication.shared.connectedWindows {
+                window.overrideUserInterfaceStyle = .light
+                window.enableTapToDismissKeyboard()
+            }
+        }
         return true
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        for window in UIApplication.shared.connectedWindows {
+            window.overrideUserInterfaceStyle = .light
+            window.enableTapToDismissKeyboard()
+        }
     }
 
     func registerForPushNotifications() {

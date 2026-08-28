@@ -9,11 +9,45 @@ import SwiftUI
 struct TruedataApp: App {
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var rootManager = AppRootManager.shared
 
     var body: some Scene {
         WindowGroup {
-            SplashScreen()
+            RootContainerView()
                 .handleNoInternet()
+                .preferredColorScheme(.light)
+        }
+    }
+}
+
+struct RootContainerView: View {
+
+    @ObservedObject private var rootManager = AppRootManager.shared
+
+    var body: some View {
+        ZStack {
+            switch rootManager.currentRoot {
+            case .splash:
+                SplashScreen()
+                    .transition(.opacity)
+            case .auth:
+                AuthScreen()
+                    .transition(.opacity)
+            case .home:
+                HomeScreen()
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.35), value: rootManager.currentRoot)
+        .onAppear {
+            configureAppWindows()
+        }
+    }
+
+    private func configureAppWindows() {
+        for window in UIApplication.shared.connectedWindows {
+            window.overrideUserInterfaceStyle = .light
+            window.enableTapToDismissKeyboard()
         }
     }
 }

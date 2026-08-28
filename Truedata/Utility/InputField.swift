@@ -17,6 +17,8 @@ struct InputField: View {
     var textContentType: UITextContentType? = nil
     var submitLabel: SubmitLabel = .next
     var onSubmit: (() -> Void)? = nil
+    var characterLimit: Int? = nil
+    var isDigitsOnly: Bool = false
 
     @FocusState private var isFocused: Bool
 
@@ -61,6 +63,19 @@ struct InputField: View {
             .overlay {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(colors.border, lineWidth: 2)
+            }
+            .onChange(of: text) { newValue in
+                var filtered = newValue
+                if isDigitsOnly || keyboardType == .phonePad {
+                    filtered = filtered.filter { $0.isNumber }
+                }
+                let effectiveLimit = characterLimit ?? (keyboardType == .phonePad ? 10 : nil)
+                if let effectiveLimit = effectiveLimit, filtered.count > effectiveLimit {
+                    filtered = String(filtered.prefix(effectiveLimit))
+                }
+                if filtered != text {
+                    text = filtered
+                }
             }
 
             if isError, let errorText, !errorText.isEmpty {

@@ -43,6 +43,18 @@ extension String {
         return false
     }
 
+    func isValidEmail() -> Bool {
+        let trimmed = trim
+        guard !trimmed.isEmpty else { return false }
+        let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
+        return trimmed.range(of: pattern, options: .regularExpression) != nil
+    }
+
+    func digitsOnly(maxDigits: Int = 10) -> String {
+        let digits = filter { $0.isNumber }
+        return String(digits.prefix(maxDigits))
+    }
+
     var hexToColor: Color {
         Color(hex: self)
     }

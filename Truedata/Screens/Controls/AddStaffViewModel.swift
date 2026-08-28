@@ -246,9 +246,11 @@ final class AddStaffViewModel: ObservableObject {
     }
 
     private func validate() -> Bool {
+        let emailValid = email.isEmptyString || email.isValidEmail()
         validationErrors = StaffFormErrors(
             name: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Name cannot be empty" : nil,
-            phone: mobile.count < 10 ? "Invalid phone number" : nil,
+            phone: mobile.count == 10 ? nil : "Enter a valid 10-digit mobile number",
+            email: emailValid ? nil : "Enter a valid email address",
             state: stateId == nil ? "State must be selected" : nil,
             city: cityId == nil ? "City must be selected" : nil,
             role: roleId == nil ? "Role must be selected" : nil,

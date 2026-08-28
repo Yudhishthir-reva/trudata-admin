@@ -248,7 +248,7 @@ final class AddSellerViewModel: ObservableObject {
 
     private func validate() -> Bool {
         let gstRegex = try? NSRegularExpression(pattern: "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$")
-        let emailValid = email.isEmptyString || email.contains("@")
+        let emailValid = email.isEmptyString || email.isValidEmail()
         let gstValid: Bool = {
             guard !gstNo.isEmptyString, let gstRegex else { return true }
             let range = NSRange(gstNo.startIndex..<gstNo.endIndex, in: gstNo)
@@ -258,8 +258,8 @@ final class AddSellerViewModel: ObservableObject {
         validationErrors = AddSellerFormErrors(
             sellerName: sellerName.isEmptyString ? "Seller name cannot be empty" : nil,
             shopName: shopName.isEmptyString ? "Shop name cannot be empty" : nil,
-            mobile: (10...11).contains(mobile.count) ? nil : "Enter a valid 10 or 11-digit number",
-            email: emailValid ? nil : "Invalid email format",
+            mobile: mobile.count == 10 ? nil : "Enter a valid 10-digit mobile number",
+            email: emailValid ? nil : "Enter a valid email address",
             gstNo: gstValid ? nil : "Invalid GST number format",
             state: stateId == nil ? "State must be selected" : nil,
             city: cityId == nil ? "City must be selected" : nil,

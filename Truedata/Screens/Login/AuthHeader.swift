@@ -18,6 +18,11 @@ struct AuthHeader: View {
 
     @State private var animatedAlpha: CGFloat = 0.0
 
+    private let headerHeight: CGFloat = 280
+    private var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
+    }
+
     // Deterministic 50 stars matching Android Random(0) distribution
     private let stars: [StarInfo] = {
         var result: [StarInfo] = []
@@ -40,6 +45,8 @@ struct AuthHeader: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
+            Color(hex: "0F2C42")
+
             starfield
                 .opacity(animatedAlpha)
 
@@ -56,8 +63,7 @@ struct AuthHeader: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1.5, contentMode: .fit)
+        .frame(width: screenWidth, height: headerHeight)
         .clipped()
         .onAppear {
             withAnimation(.easeInOut(duration: 1.0)) {
@@ -67,33 +73,36 @@ struct AuthHeader: View {
     }
 
     private var starfield: some View {
-        TimelineView(.animation) { timeline in
+        let width = screenWidth
+        let height = headerHeight
+
+        return TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
-            Canvas { context, size in
+            Canvas { context, _ in
                 // 1. Space background
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: "0F2C42")))
+                context.fill(Path(CGRect(x: 0, y: 0, width: width, height: height)), with: .color(Color(hex: "0F2C42")))
 
                 // 2. 8x8 Grid lines
                 let gridColor = Color(hex: "1A4668")
                 let lines = 8
-                let stepX = size.width / CGFloat(lines)
-                let stepY = size.height / CGFloat(lines)
+                let stepX = width / CGFloat(lines)
+                let stepY = height / CGFloat(lines)
 
                 for i in 1..<lines {
                     var vertical = Path()
                     vertical.move(to: CGPoint(x: CGFloat(i) * stepX, y: 0))
-                    vertical.addLine(to: CGPoint(x: CGFloat(i) * stepX, y: size.height))
+                    vertical.addLine(to: CGPoint(x: CGFloat(i) * stepX, y: height))
                     context.stroke(vertical, with: .color(gridColor), lineWidth: 1)
 
                     var horizontal = Path()
                     horizontal.move(to: CGPoint(x: 0, y: CGFloat(i) * stepY))
-                    horizontal.addLine(to: CGPoint(x: size.width, y: CGFloat(i) * stepY))
+                    horizontal.addLine(to: CGPoint(x: width, y: CGFloat(i) * stepY))
                     context.stroke(horizontal, with: .color(gridColor), lineWidth: 1)
                 }
 
                 // 3. Diagonal Halo Glow Effect (Top-right quadrant)
-                let haloCenter = CGPoint(x: size.width * 0.75, y: size.height * 0.25)
-                let haloRadius = size.width * 0.6
+                let haloCenter = CGPoint(x: width * 0.75, y: height * 0.25)
+                let haloRadius = width * 0.6
                 let haloRect = CGRect(
                     x: haloCenter.x - haloRadius,
                     y: haloCenter.y - haloRadius,
@@ -120,8 +129,8 @@ struct AuthHeader: View {
                     if curX < 0 { curX += 1.0 }
 
                     let starRect = CGRect(
-                        x: curX * size.width - 1.0,
-                        y: curY * size.height - 1.0,
+                        x: curX * width - 1.0,
+                        y: curY * height - 1.0,
                         width: 2.2,
                         height: 2.2
                     )
@@ -131,7 +140,9 @@ struct AuthHeader: View {
                     )
                 }
             }
+            .frame(width: width, height: height)
         }
+        .frame(width: width, height: height)
     }
 }
 

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A48B902EB1B8F54BFC6D287B /* Pods_Truedata.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7785127F00603FCCFB69AFE3 /* Pods_Truedata.framework */; };
 		DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDB6590C303429F8005C1E91 /* Assets.xcassets */; };
+		DDB6599C30342B00005C1E91 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */; };
 		DDB65910303429F8005C1E91 /* LenientDecoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E8303429F8005C1E91 /* LenientDecoding.swift */; };
 		DDB65911303429F8005C1E91 /* NetworkServiceManagable.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */; };
 		DDB65912303429F8005C1E91 /* NetworkServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658EA303429F8005C1E91 /* NetworkServiceManager.swift */; };
@@ -22,6 +23,7 @@
 		DDB6591A303429F8005C1E91 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F5303429F8005C1E91 /* Color+Extension.swift */; };
 		DDB6591B303429F8005C1E91 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F6303429F8005C1E91 /* String+Extension.swift */; };
 		DDB6591C303429F8005C1E91 /* View+NoInternet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F7303429F8005C1E91 /* View+NoInternet.swift */; };
+		DDB6599B30342A99005C1E91 /* View+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599A30342A99005C1E91 /* View+Keyboard.swift */; };
 		DDB6591D303429F8005C1E91 /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F9303429F8005C1E91 /* HomeScreen.swift */; };
 		DDB6591E303429F8005C1E91 /* AuthHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658FB303429F8005C1E91 /* AuthHeader.swift */; };
 		DDB6591F303429F8005C1E91 /* AuthScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658FC303429F8005C1E91 /* AuthScreen.swift */; };
@@ -296,6 +298,7 @@
 		DDB658F5303429F8005C1E91 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		DDB658F6303429F8005C1E91 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
 		DDB658F7303429F8005C1E91 /* View+NoInternet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+NoInternet.swift"; sourceTree = "<group>"; };
+		DDB6599A30342A99005C1E91 /* View+Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Keyboard.swift"; sourceTree = "<group>"; };
 		DDB658F9303429F8005C1E91 /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
 		DDB658FB303429F8005C1E91 /* AuthHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthHeader.swift; sourceTree = "<group>"; };
 		DDB658FC303429F8005C1E91 /* AuthScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreen.swift; sourceTree = "<group>"; };
@@ -312,6 +315,7 @@
 		DDB6590B303429F8005C1E91 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDB6590C303429F8005C1E91 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DDB6590D303429F8005C1E91 /* TruedataApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruedataApp.swift; sourceTree = "<group>"; };
+		DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDB6593030342A01005C1E91 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		DDB6593130342A01005C1E91 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		DDB6593230342A01005C1E91 /* DashboardCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCards.swift; sourceTree = "<group>"; };
@@ -632,6 +636,7 @@
 				DDB658F5303429F8005C1E91 /* Color+Extension.swift */,
 				DDB658F6303429F8005C1E91 /* String+Extension.swift */,
 				DDB658F7303429F8005C1E91 /* View+NoInternet.swift */,
+				DDB6599A30342A99005C1E91 /* View+Keyboard.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -766,6 +771,7 @@
 				DDB6590B303429F8005C1E91 /* AppDelegate.swift */,
 				DDB6590C303429F8005C1E91 /* Assets.xcassets */,
 				DDB6590D303429F8005C1E91 /* TruedataApp.swift */,
+				DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */,
 			);
 			path = Truedata;
 			sourceTree = "<group>";
@@ -1153,6 +1159,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */,
+				DDB6599C30342B00005C1E91 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1222,6 +1229,7 @@
 				DDB6591A303429F8005C1E91 /* Color+Extension.swift in Sources */,
 				DDB6591B303429F8005C1E91 /* String+Extension.swift in Sources */,
 				DDB6591C303429F8005C1E91 /* View+NoInternet.swift in Sources */,
+				DDB6599B30342A99005C1E91 /* View+Keyboard.swift in Sources */,
 				DDB6591D303429F8005C1E91 /* HomeScreen.swift in Sources */,
 				DDB6591E303429F8005C1E91 /* AuthHeader.swift in Sources */,
 				DDB6591F303429F8005C1E91 /* AuthScreen.swift in Sources */,
@@ -1617,11 +1625,15 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphoneos*]" = LaunchScreen;
+				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphonesimulator*]" = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphoneos*]" = Light;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphonesimulator*]" = Light;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -1670,11 +1682,15 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphoneos*]" = LaunchScreen;
+				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphonesimulator*]" = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphoneos*]" = Light;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphonesimulator*]" = Light;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;

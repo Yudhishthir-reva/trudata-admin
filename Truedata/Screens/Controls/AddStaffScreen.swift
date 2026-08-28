@@ -149,6 +149,8 @@ struct AddStaffScreen: View {
                     label: "Email",
                     text: $viewModel.email,
                     placeholder: "Enter email address",
+                    isError: viewModel.validationErrors.email != nil,
+                    errorText: viewModel.validationErrors.email,
                     keyboardType: .emailAddress,
                     textContentType: .emailAddress
                 )

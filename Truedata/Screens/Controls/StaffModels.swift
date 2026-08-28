@@ -140,13 +140,14 @@ struct StaffRoleResponse: Decodable {
 struct StaffFormErrors {
     var name: String?
     var phone: String?
+    var email: String?
     var state: String?
     var city: String?
     var role: String?
     var joiningDate: String?
 
     var hasErrors: Bool {
-        [name, phone, state, city, role, joiningDate].contains { $0 != nil }
+        [name, phone, email, state, city, role, joiningDate].contains { $0 != nil }
     }
 }
 
