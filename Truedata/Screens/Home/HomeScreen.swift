@@ -59,6 +59,8 @@ enum HomeDestination: Hashable {
     case sellerReport
     case expenseApprovals
     case riderInsights
+    case b2cOrders
+    case retailerAppPayments
 }
 
 struct HomeScreen: View {
@@ -224,6 +226,10 @@ struct HomeScreen: View {
                         ExpenseListScreen()
                     case .riderInsights:
                         RiderInsightsScreen()
+                    case .b2cOrders:
+                        B2COrdersScreen()
+                    case .retailerAppPayments:
+                        RetailerAppPaymentScreen()
                     }
                 }
         }
@@ -276,6 +282,11 @@ struct HomeScreen: View {
             applyMaintenanceModeIfNeeded()
             redirectToAttendanceIfNeeded()
         }
+        .onChange(of: navigationPath.count) { _, count in
+            if count == 0 {
+                loadDashboardIfReady()
+            }
+        }
         .onChange(of: permissionManager.canShowDashboard) { _, canShow in
             if canShow {
                 loadDashboardIfReady()
@@ -289,7 +300,7 @@ struct HomeScreen: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             permissionManager.refreshStatus()
-            if permissionManager.canShowDashboard, viewModel.response != nil {
+            if permissionManager.canShowDashboard {
                 viewModel.loadHomeForResume()
             }
         }
@@ -358,6 +369,10 @@ struct HomeScreen: View {
             navigationPath.append(HomeDestination.approveBills)
         case "order_approval", "approve_orders", "approve_sellers_to_make_order":
             navigationPath.append(HomeDestination.orderApproval)
+        case "b2c_orders":
+            navigationPath.append(HomeDestination.b2cOrders)
+        case "retailer_app_payment", "app_payment", "retailer_app_payments":
+            navigationPath.append(HomeDestination.retailerAppPayments)
         case "order_insights":
             navigationPath.append(
                 HomeDestination.orderInsights(
@@ -459,8 +474,8 @@ struct HomeScreen: View {
     }
 
     private func loadDashboardIfReady() {
-        guard permissionManager.canShowDashboard, viewModel.response == nil else { return }
-        viewModel.loadHome()
+        guard permissionManager.canShowDashboard else { return }
+        viewModel.loadHome(isRefresh: viewModel.response != nil)
     }
 
     private var pendingRouteBinding: Binding<Bool> {
@@ -541,8 +556,10 @@ struct HomeScreen: View {
                 LazyVStack(spacing: 16) {
                     ForEach(viewModel.sections) { section in
                         VStack(alignment: .leading, spacing: 10) {
-                            if !section.title.isEmptyString {
-                                Text(section.title)
+                            let trimmedTitle = section.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let lower = trimmedTitle.lowercased().replacingOccurrences(of: " ", with: "_")
+                            if !trimmedTitle.isEmpty && lower != "orders" && !lower.contains("my_area") {
+                                Text(trimmedTitle)
                                     .font(.system(size: 18, weight: .bold))
                                     .foregroundStyle(AppTheme.textPrimary)
                                     .padding(.horizontal, 4)

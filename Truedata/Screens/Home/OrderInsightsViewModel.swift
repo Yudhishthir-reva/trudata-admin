@@ -32,6 +32,7 @@ final class OrderInsightsViewModel: ObservableObject {
     @Published var staffId = ""
     @Published var sellerId = ""
     @Published var beatId = ""
+    @Published var orderSource = ""
     @Published var outOfRangeIsShow = ""
     @Published var hasRemark = "0"
 
@@ -101,15 +102,125 @@ final class OrderInsightsViewModel: ObservableObject {
             || !staffId.isEmptyString
             || !sellerId.isEmptyString
             || !beatId.isEmptyString
+            || !orderSource.isEmptyString
             || selectedDatePreset != .today
             || !outOfRangeIsShow.isEmptyString
             || hasRemark == "1"
     }
 
+    // MARK: - Filter Persistence Keys
+    private let kOrderInsightsLastUsedDatePreset = "OrderInsightsLastUsedDatePreset"
+    private let kOrderInsightsLastUsedStatus = "OrderInsightsLastUsedStatus"
+    private let kOrderInsightsLastUsedStaffId = "OrderInsightsLastUsedStaffId"
+    private let kOrderInsightsLastUsedSellerId = "OrderInsightsLastUsedSellerId"
+    private let kOrderInsightsLastUsedBeatId = "OrderInsightsLastUsedBeatId"
+    private let kOrderInsightsLastUsedOrderSource = "OrderInsightsLastUsedOrderSource"
+    private let kOrderInsightsLastUsedStartDate = "OrderInsightsLastUsedStartDate"
+    private let kOrderInsightsLastUsedEndDate = "OrderInsightsLastUsedEndDate"
+    private let kOrderInsightsLastUsedOutOfRange = "OrderInsightsLastUsedOutOfRange"
+    private let kOrderInsightsLastUsedHasRemark = "OrderInsightsLastUsedHasRemark"
+    private let kOrderInsightsLastUsedLabel = "OrderInsightsLastUsedLabel"
+
     var lastUsedFilterLabel: String {
-        if orderStatus == "0" { return "Pending" }
-        if orderStatus.isEmptyString { return "All Status" }
-        return summary.first(where: { $0.status == orderStatus })?.statusLabel ?? "Custom"
+        if let saved = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedLabel), !saved.isEmpty {
+            return saved
+        }
+        let statusName: String
+        if orderStatus == "0" { statusName = "Pending" }
+        else if orderStatus.isEmptyString { statusName = "All Orders" }
+        else { statusName = summary.first(where: { $0.status == orderStatus })?.statusLabel ?? "Status (\(orderStatus))" }
+
+        let dateName = selectedDatePreset == .custom ? "\(startDate) to \(endDate)" : selectedDatePreset.rawValue
+        return "\(statusName) · \(dateName)"
+    }
+
+    func saveLastUsedFilter(filters: OrderInsightsAppliedFilters) {
+        let statusName: String
+        if filters.orderStatus == "0" { statusName = "Pending" }
+        else if filters.orderStatus.isEmptyString { statusName = "All Orders" }
+        else { statusName = summary.first(where: { $0.status == filters.orderStatus })?.statusLabel ?? "Status (\(filters.orderStatus))" }
+
+        let dateName = filters.datePreset == .custom ? "\(filters.startDate) to \(filters.endDate)" : filters.datePreset.rawValue
+        let label = "\(statusName) · \(dateName)"
+
+        UserDefaults.standard.set(label, forKey: kOrderInsightsLastUsedLabel)
+        UserDefaults.standard.set(filters.datePreset.rawValue, forKey: kOrderInsightsLastUsedDatePreset)
+        UserDefaults.standard.set(filters.orderStatus, forKey: kOrderInsightsLastUsedStatus)
+        UserDefaults.standard.set(filters.staffId, forKey: kOrderInsightsLastUsedStaffId)
+        UserDefaults.standard.set(filters.sellerId, forKey: kOrderInsightsLastUsedSellerId)
+        UserDefaults.standard.set(filters.beatId, forKey: kOrderInsightsLastUsedBeatId)
+        UserDefaults.standard.set(filters.orderSource, forKey: kOrderInsightsLastUsedOrderSource)
+        UserDefaults.standard.set(filters.startDate, forKey: kOrderInsightsLastUsedStartDate)
+        UserDefaults.standard.set(filters.endDate, forKey: kOrderInsightsLastUsedEndDate)
+        UserDefaults.standard.set(filters.outOfRangeIsShow, forKey: kOrderInsightsLastUsedOutOfRange)
+        UserDefaults.standard.set(filters.hasRemark, forKey: kOrderInsightsLastUsedHasRemark)
+    }
+
+    func applyFilters(_ filters: OrderInsightsAppliedFilters) {
+        saveLastUsedFilter(filters: filters)
+        startDate = filters.startDate
+        endDate = filters.endDate
+        selectedDatePreset = filters.datePreset
+        orderStatus = filters.orderStatus
+        staffId = filters.staffId
+        sellerId = filters.sellerId
+        beatId = filters.beatId
+        orderSource = filters.orderSource
+        outOfRangeIsShow = filters.outOfRangeIsShow
+        hasRemark = filters.hasRemark
+        currentPage = 1
+        loadOrders(isRefresh: true)
+    }
+
+    func resetToDefaultFilters() {
+        let today = OrderInsightsDateFormat.todayString
+        startDate = today
+        endDate = today
+        selectedDatePreset = .today
+        orderStatus = "0"
+        staffId = ""
+        sellerId = ""
+        beatId = ""
+        orderSource = ""
+        outOfRangeIsShow = ""
+        hasRemark = "0"
+        currentPage = 1
+        loadOrders(isRefresh: true)
+    }
+
+    func applyLastUsedFilter() {
+        let presetRaw = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedDatePreset) ?? OrderInsightsDatePreset.today.rawValue
+        let preset = OrderInsightsDatePreset(rawValue: presetRaw) ?? .today
+        let savedStatus = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedStatus) ?? "0"
+        let savedStaff = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedStaffId) ?? ""
+        let savedSeller = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedSellerId) ?? ""
+        let savedBeat = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedBeatId) ?? ""
+        let savedOrderSource = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedOrderSource) ?? ""
+        let savedOutOfRange = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedOutOfRange) ?? ""
+        let savedRemark = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedHasRemark) ?? "0"
+
+        var start = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedStartDate) ?? OrderInsightsDateFormat.todayString
+        var end = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedEndDate) ?? OrderInsightsDateFormat.todayString
+
+        if preset != .custom, let range = OrderInsightsDatePreset.dateRange(for: preset) {
+            start = range.start
+            end = range.end
+        }
+
+        applyFilters(
+            OrderInsightsAppliedFilters(
+                startDate: start,
+                endDate: end,
+                datePreset: preset,
+                orderStatus: savedStatus,
+                staffId: savedStaff,
+                sellerId: savedSeller,
+                beatId: savedBeat,
+                orderSource: savedOrderSource,
+                outOfRangeIsShow: savedOutOfRange,
+                hasRemark: savedRemark
+            )
+        )
     }
 
     var allSummary: OrderInsightsSummaryItem? {
@@ -152,6 +263,7 @@ final class OrderInsightsViewModel: ObservableObject {
             beatId: beatId,
             outOfRangeIsShow: outOfRangeIsShow,
             hasRemark: hasRemark,
+            orderSource: orderSource,
             isCreatedOrderHistory: isCreatedOrderHistory
         )
         .receive(on: RunLoop.main)
@@ -232,51 +344,6 @@ final class OrderInsightsViewModel: ObservableObject {
         }
         currentPage = 1
         loadOrders(isRefresh: true)
-    }
-
-    func applyFilters(_ filters: OrderInsightsAppliedFilters) {
-        startDate = filters.startDate
-        endDate = filters.endDate
-        selectedDatePreset = filters.datePreset
-        orderStatus = filters.orderStatus
-        staffId = filters.staffId
-        sellerId = filters.sellerId
-        beatId = filters.beatId
-        outOfRangeIsShow = filters.outOfRangeIsShow
-        hasRemark = filters.hasRemark
-        currentPage = 1
-        loadOrders(isRefresh: true)
-    }
-
-    func resetToDefaultFilters() {
-        let today = OrderInsightsDateFormat.todayString
-        startDate = today
-        endDate = today
-        selectedDatePreset = .today
-        orderStatus = "0"
-        staffId = ""
-        sellerId = ""
-        beatId = ""
-        outOfRangeIsShow = ""
-        hasRemark = "0"
-        currentPage = 1
-        loadOrders(isRefresh: true)
-    }
-
-    func applyLastUsedFilter() {
-        applyFilters(
-            OrderInsightsAppliedFilters(
-                startDate: startDate,
-                endDate: endDate,
-                datePreset: selectedDatePreset,
-                orderStatus: "0",
-                staffId: staffId,
-                sellerId: sellerId,
-                beatId: beatId,
-                outOfRangeIsShow: outOfRangeIsShow,
-                hasRemark: hasRemark
-            )
-        )
     }
 
     func currentAppliedFilters() -> OrderInsightsAppliedFilters {

@@ -127,6 +127,8 @@ struct ControlsScreen: View {
         switch route {
         case "manage_logins", "new_device_login_requests", "login_requests":
             onNavigate("new_device_login_requests")
+        case "retailer_app_payment", "app_payment", "retailer_app_payments":
+            onNavigate("retailer_app_payment")
         case "seller_report":
             onNavigate("seller_report")
         case "register_staff_member", "add_new_staff_member":

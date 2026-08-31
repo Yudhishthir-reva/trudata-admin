@@ -121,6 +121,11 @@ enum APIRouter: RouterManagable {
     case teamWiseLocationList
     case cancelOrder
     case riderHistory
+    case b2cOrderList
+    case b2cOrderDetail
+    case b2cOrderStatusUpdate
+    case retailerPaymentRequestList
+    case updateRetailerPaymentRequest
 
     var endPointUrl: String {
         switch self {
@@ -356,6 +361,16 @@ enum APIRouter: RouterManagable {
             return "cancel-order"
         case .riderHistory:
             return "admin-rider-history"
+        case .b2cOrderList:
+            return "V2/order-list-customer"
+        case .b2cOrderDetail:
+            return "V2/order-detail-customer"
+        case .b2cOrderStatusUpdate:
+            return "V2/order-status-update-customer"
+        case .retailerPaymentRequestList:
+            return "retailer-payment-request-list"
+        case .updateRetailerPaymentRequest:
+            return "update-retailer-payment-request-status"
         }
     }
 
@@ -363,7 +378,7 @@ enum APIRouter: RouterManagable {
         switch self {
         case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit, .addCart, .createOrder:
             return .json
-        case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense:
+        case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense, .retailerPaymentRequestList, .updateRetailerPaymentRequest:
             return .multipartForm
         default:
             return .urlEncoded

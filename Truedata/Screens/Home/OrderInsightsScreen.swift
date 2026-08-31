@@ -11,6 +11,8 @@ struct OrderInsightsScreen: View {
     @StateObject private var viewModel: OrderInsightsViewModel
     @State private var showFilterSheet = false
     @State private var navigatedOrderNo: String? = nil
+    @State private var selectedSellerProfileId: Int? = nil
+    @State private var showLastUsedFilterPrompt = true
 
     init(
         startDate: String? = nil,
@@ -53,6 +55,15 @@ struct OrderInsightsScreen: View {
             if viewModel.isLoading && viewModel.orders.isEmpty && viewModel.viewMode == .list {
                 ProgressView()
                     .tint(DashboardTheme.primaryBlue)
+            }
+
+            if showLastUsedFilterPrompt && viewModel.orders.isEmpty && !viewModel.isLoading {
+                VStack {
+                    Spacer()
+                    lastUsedFilterPopup
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: showLastUsedFilterPrompt)
             }
 
             if viewModel.isInSelectionMode && !viewModel.selectedOrderIds.isEmpty {
@@ -122,6 +133,16 @@ struct OrderInsightsScreen: View {
         )) {
             if let orderNo = navigatedOrderNo {
                 OrderDetailScreen(orderId: orderNo)
+            }
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { selectedSellerProfileId != nil },
+            set: { isPresented in
+                if !isPresented { selectedSellerProfileId = nil }
+            }
+        )) {
+            if let sellerId = selectedSellerProfileId {
+                SellerProfileScreen(sellerId: sellerId)
             }
         }
     }
@@ -194,11 +215,11 @@ struct OrderInsightsScreen: View {
                         .font(.system(size: 13, weight: .bold))
                 }
                 .foregroundStyle(viewModel.isCreatedOrderHistory ? Color(hex: "673AB7") : DashboardTheme.primaryBlue)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
                 .background(
                     (viewModel.isCreatedOrderHistory ? Color(hex: "673AB7") : DashboardTheme.primaryBlue)
-                        .opacity(0.1)
+                        .opacity(0.12)
                 )
                 .clipShape(Capsule())
             }
@@ -271,7 +292,13 @@ struct OrderInsightsScreen: View {
                         OrderInsightsOrderCard(
                             order: order,
                             isInSelectionMode: viewModel.isInSelectionMode,
-                            isSelected: viewModel.isOrderSelected(orderId: order.id)
+                            isSelected: viewModel.isOrderSelected(orderId: order.id),
+                            onViewDetails: { orderNo in
+                                navigatedOrderNo = orderNo
+                            },
+                            onSellerProfile: { sellerId in
+                                selectedSellerProfileId = sellerId
+                            }
                         )
                         .onTapGesture {
                             if viewModel.isInSelectionMode {
@@ -347,18 +374,114 @@ struct OrderInsightsScreen: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             Spacer()
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 36))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+
+            SadMagnifyingGlassView()
+                .padding(.bottom, 8)
+
             Text("No orders found")
-                .font(.system(size: 16, weight: .semibold))
-            Text("Try changing filters or date range.")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color(hex: "111827"))
+
+            Text("Nothing matches the filters you have selected.")
                 .font(.system(size: 13))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+                .foregroundStyle(Color(hex: "6B7280"))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            Spacer()
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var lastUsedFilterPopup: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(hex: "EFF6FF"))
+                        .frame(width: 38, height: 38)
+
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color(hex: "2563EB"))
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Apply Last Used Filter?")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color(hex: "111827"))
+
+                    Text("Use your previous filter settings")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: "6B7280"))
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation { showLastUsedFilterPrompt = false }
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color(hex: "6B7280"))
+                        .frame(width: 26, height: 26)
+                        .background(Color(hex: "F3F4F6"))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text(viewModel.lastUsedFilterLabel)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color(hex: "1E293B"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(Color(hex: "F1F5F9"))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            HStack(spacing: 12) {
+                Button {
+                    withAnimation { showLastUsedFilterPrompt = false }
+                    viewModel.resetToDefaultFilters()
+                } label: {
+                    Text("Use Default")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color(hex: "374151"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    withAnimation { showLastUsedFilterPrompt = false }
+                    viewModel.applyLastUsedFilter()
+                } label: {
+                    Text("Apply Filter")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(Color(hex: "2563EB"))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: -4)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
     }
 }
 
@@ -432,15 +555,16 @@ private struct OrderInsightsOrderCard: View {
     let order: OrderInsightsOrder
     var isInSelectionMode: Bool = false
     var isSelected: Bool = false
+    var onViewDetails: (String) -> Void
+    var onSellerProfile: (Int) -> Void
 
     private var statusStyle: OrderInsightsStatusStyle {
         OrderInsightsStatusStyle.from(status: order.status)
     }
 
     private var borderColor: Color {
-        if order.showRedBox { return DashboardTheme.dangerRed }
         if isInSelectionMode && isSelected { return DashboardTheme.primaryBlue }
-        return DashboardTheme.successGreen.opacity(0.55)
+        return Color(hex: "EF4444")
     }
 
     var body: some View {
@@ -452,104 +576,171 @@ private struct OrderInsightsOrderCard: View {
                     .padding(.leading, 12)
             }
 
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(order.displayOrderNo)
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(DashboardTheme.neutralDark)
+            VStack(alignment: .leading, spacing: 10) {
+                // Header Row: Order Number & Price
+                HStack(alignment: .firstTextBaseline) {
+                    Text(order.displayOrderNo)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color(hex: "111827"))
 
-                            Text(order.orderDate)
-                                .font(.system(size: 11))
-                                .foregroundStyle(DashboardTheme.neutralMedium)
+                    Spacer(minLength: 8)
 
-                            if order.orderNotDelivered {
-                                Text("Rescheduled")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundStyle(DashboardTheme.warningYellow)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(DashboardTheme.warningYellow.opacity(0.12))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    Text(order.totalAmount.priceLabel)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                }
+
+                // Date Row
+                if !order.displayOrderDate.isEmptyString {
+                    Text(order.displayOrderDate)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: "6B7280"))
+                }
+
+                // Badges Row
+                HStack(spacing: 8) {
+                    // Status Badge
+                    Text(statusStyle.displayName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(statusStyle.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(statusStyle.color.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                    // Source Badge
+                    HStack(spacing: 4) {
+                        Image(systemName: order.orderSourceIcon)
+                            .font(.system(size: 10))
+                        Text(order.orderSourceDisplay)
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(hex: "059669"))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: "E6F8F3"))
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                    // Special Note Badge
+                    if order.containsSpecialNote {
+                        Text("Contains Special Note")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color(hex: "DC2626"))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "FEF2F2"))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(Color(hex: "DC2626"), lineWidth: 1)
                             }
-                        }
-
-                        Spacer(minLength: 8)
-
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text(order.totalAmount.priceLabel)
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(DashboardTheme.primaryBlue)
-
-                            Text(statusStyle.displayName)
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(statusStyle.color)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(statusStyle.color.opacity(0.12))
-                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                                
-                            if order.containsSpecialNote {
-                                BlinkingSpecialNoteView()
-                            }
-                        }
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
 
-                    VStack(spacing: 4) {
-                        detailRow(icon: "info.circle", label: "Seller", value: order.sellerName)
-                        detailRow(icon: "phone", label: "Mobile", value: order.sellerPhone)
-                        detailRow(icon: "mappin.and.ellipse", label: "Beat", value: order.beatName)
-                        detailRow(icon: "arrow.triangle.2.circlepath", label: "Delivered At", value: order.deliveryDateTime)
-                        HStack(spacing: 12) {
-                            detailRow(icon: "person", label: "Staff", value: order.staffName)
-                            detailRow(icon: "person", label: "Rider", value: order.displayRiderName)
-                        }
+                    // Rescheduled Badge
+                    if order.orderNotDelivered {
+                        Text("Rescheduled")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.warningYellow)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(DashboardTheme.warningYellow.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
 
-                    if !isInSelectionMode {
-                        HStack {
-                            Spacer()
+                    Spacer(minLength: 0)
+                }
+
+                // 2-Column Info Grid
+                HStack(alignment: .top, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        gridItem(icon: "info.circle", label: "Seller", value: order.sellerName)
+                        gridItem(icon: "mappin.and.ellipse", label: "Beat", value: order.beatName.isEmptyString ? "-" : order.beatName)
+                        gridItem(icon: "person", label: "Rider", value: order.displayRiderName)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        gridItem(icon: "phone", label: "Mobile", value: order.sellerPhone.isEmptyString ? "-" : order.sellerPhone)
+                        gridItem(icon: "person.crop.circle", label: "Staff", value: order.staffName.isEmptyString ? "-" : order.staffName)
+                        gridItem(icon: "arrow.triangle.2.circlepath", label: "Delivered", value: order.deliveryDateTime.isEmptyString ? "Not Delivered Yet" : order.deliveryDateTime)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.top, 2)
+
+                // Action Buttons
+                if !isInSelectionMode {
+                    HStack(spacing: 8) {
+                        Spacer()
+
+                        if order.sellerId > 0 {
+                            Button {
+                                onSellerProfile(order.sellerId)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "storefront.fill")
+                                        .font(.system(size: 11))
+                                    Text("Seller Profile")
+                                        .font(.system(size: 12, weight: .semibold))
+                                }
+                                .foregroundStyle(Color(hex: "1F2937"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white)
+                                .overlay {
+                                    Capsule()
+                                        .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
+                                }
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Button {
+                            onViewDetails(order.orderNo)
+                        } label: {
                             Text("View Details")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(DashboardTheme.primaryBlue)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 6)
+                                .background(Color.white)
                                 .overlay {
                                     Capsule()
-                                        .stroke(DashboardTheme.primaryBlue.opacity(0.5), lineWidth: 1)
+                                        .stroke(DashboardTheme.primaryBlue.opacity(0.6), lineWidth: 1)
                                 }
+                                .clipShape(Capsule())
                         }
-                        .padding(.top, 4)
+                        .buttonStyle(.plain)
                     }
+                    .padding(.top, 4)
                 }
-                .padding(12)
             }
+            .padding(14)
         }
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(borderColor, lineWidth: order.showRedBox ? 2 : 1.5)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(borderColor, lineWidth: 1.5)
         }
     }
 
-    private func detailRow(icon: String, label: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundStyle(DashboardTheme.neutralMedium)
-                .frame(width: 14)
-            Text("\(label):")
-                .font(.system(size: 11))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+    private func gridItem(icon: String, label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color(hex: "6B7280"))
+                Text(label)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color(hex: "6B7280"))
+            }
             Text(value.isEmptyString ? "-" : value)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(DashboardTheme.neutralDark)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color(hex: "1F2937"))
                 .lineLimit(2)
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -651,29 +842,6 @@ private struct OrderInsightsStatCard: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(color.opacity(0.2), lineWidth: 1)
         }
-    }
-}
-
-private struct BlinkingSpecialNoteView: View {
-    @State private var isOpacityLow = false
-
-    var body: some View {
-        Text("Contain special note")
-            .font(.system(size: 8, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(AppTheme.errorRed)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .opacity(isOpacityLow ? 0.35 : 1.0)
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 0.7)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    isOpacityLow = true
-                }
-            }
     }
 }
 

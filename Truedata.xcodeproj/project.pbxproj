@@ -42,6 +42,17 @@
 		DDB6593630342A01005C1E91 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593030342A01005C1E91 /* JSONValue.swift */; };
 		DDB6593730342A01005C1E91 /* DashboardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593130342A01005C1E91 /* DashboardModels.swift */; };
 		DDB6593830342A01005C1E91 /* DashboardCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593230342A01005C1E91 /* DashboardCards.swift */; };
+		DDB65B9130342A30005C1E91 /* B2COrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */; };
+		DDB65B9330342A30005C1E91 /* B2COrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */; };
+		DDB65B9530342A30005C1E91 /* B2COrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */; };
+		DDB65B9730342A30005C1E91 /* B2COrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */; };
+		DDB65B9930342A30005C1E91 /* B2COrderDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */; };
+		DDB65B9B30342A30005C1E91 /* B2COrderDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */; };
+		DDB65BA130342A31005C1E91 /* RetailerAppPaymentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */; };
+		DDB65BA330342A31005C1E91 /* RetailerAppPaymentServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */; };
+		DDB65BA530342A31005C1E91 /* RetailerAppPaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */; };
+		DDB65BA730342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */; };
+		DDB65BA930342A31005C1E91 /* RetailerAppPaymentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */; };
 		DDB6593930342A01005C1E91 /* DashboardServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */; };
 		DDB6593A30342A01005C1E91 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593430342A01005C1E91 /* DashboardViewModel.swift */; };
 		DDB6593B30342A01005C1E91 /* HomeAppBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593530342A01005C1E91 /* HomeAppBar.swift */; };
@@ -319,6 +330,17 @@
 		DDB6593030342A01005C1E91 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		DDB6593130342A01005C1E91 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		DDB6593230342A01005C1E91 /* DashboardCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCards.swift; sourceTree = "<group>"; };
+		DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersScreen.swift; sourceTree = "<group>"; };
+		DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersModels.swift; sourceTree = "<group>"; };
+		DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersServiceManager.swift; sourceTree = "<group>"; };
+		DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersViewModel.swift; sourceTree = "<group>"; };
+		DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailScreen.swift; sourceTree = "<group>"; };
+		DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailViewModel.swift; sourceTree = "<group>"; };
+		DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentModels.swift; sourceTree = "<group>"; };
+		DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentServiceManager.swift; sourceTree = "<group>"; };
+		DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentViewModel.swift; sourceTree = "<group>"; };
+		DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentFilterSheet.swift; sourceTree = "<group>"; };
+		DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentScreen.swift; sourceTree = "<group>"; };
 		DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardServiceManager.swift; sourceTree = "<group>"; };
 		DDB6593430342A01005C1E91 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		DDB6593530342A01005C1E91 /* HomeAppBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppBar.swift; sourceTree = "<group>"; };
@@ -648,6 +670,12 @@
 				DDB6593530342A01005C1E91 /* HomeAppBar.swift */,
 				DDB6593130342A01005C1E91 /* DashboardModels.swift */,
 				DDB6593230342A01005C1E91 /* DashboardCards.swift */,
+				DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */,
+				DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */,
+				DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */,
+				DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */,
+				DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */,
+				DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */,
 				DDB6594130342A03005C1E91 /* DashboardCardStyles.swift */,
 				DDB6594330342A03005C1E91 /* DashboardDonutChart.swift */,
 				DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */,
@@ -719,6 +747,7 @@
 			children = (
 				DDB658FA303429F8005C1E91 /* Home */,
 				DDB6594C30342A04005C1E91 /* AssignOrder */,
+				DDB65BAA30342A31005C1E91 /* RetailerAppPayment */,
 				DDB6595530342A05005C1E91 /* ApproveBills */,
 				DDB6595530342A06005C1E91 /* OrderApproval */,
 				DDB65A1430342A1C005C1E91 /* LoginRequests */,
@@ -995,6 +1024,18 @@
 			path = ProductCatalogue;
 			sourceTree = "<group>";
 		};
+		DDB65BAA30342A31005C1E91 /* RetailerAppPayment */ = {
+			isa = PBXGroup;
+			children = (
+				DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */,
+				DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */,
+				DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */,
+				DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */,
+				DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */,
+			);
+			path = RetailerAppPayment;
+			sourceTree = "<group>";
+		};
 		DDB65AA030342A20005C1E91 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
@@ -1248,6 +1289,17 @@
 				DDB6593630342A01005C1E91 /* JSONValue.swift in Sources */,
 				DDB6593730342A01005C1E91 /* DashboardModels.swift in Sources */,
 				DDB6593830342A01005C1E91 /* DashboardCards.swift in Sources */,
+				DDB65B9130342A30005C1E91 /* B2COrdersScreen.swift in Sources */,
+				DDB65B9330342A30005C1E91 /* B2COrdersModels.swift in Sources */,
+				DDB65B9530342A30005C1E91 /* B2COrdersServiceManager.swift in Sources */,
+				DDB65B9730342A30005C1E91 /* B2COrdersViewModel.swift in Sources */,
+				DDB65B9930342A30005C1E91 /* B2COrderDetailScreen.swift in Sources */,
+				DDB65B9B30342A30005C1E91 /* B2COrderDetailViewModel.swift in Sources */,
+				DDB65BA130342A31005C1E91 /* RetailerAppPaymentModels.swift in Sources */,
+				DDB65BA330342A31005C1E91 /* RetailerAppPaymentServiceManager.swift in Sources */,
+				DDB65BA530342A31005C1E91 /* RetailerAppPaymentViewModel.swift in Sources */,
+				DDB65BA730342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift in Sources */,
+				DDB65BA930342A31005C1E91 /* RetailerAppPaymentScreen.swift in Sources */,
 				DDB6593930342A01005C1E91 /* DashboardServiceManager.swift in Sources */,
 				DDB6593A30342A01005C1E91 /* DashboardViewModel.swift in Sources */,
 				DDB65B3B30342A24005C1E91 /* DashboardRole.swift in Sources */,

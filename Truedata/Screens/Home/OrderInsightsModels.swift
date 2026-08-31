@@ -162,6 +162,7 @@ struct OrderInsightsTopPerformer: Decodable {
 
 struct OrderInsightsOrder: Identifiable, Decodable {
     var id: Int
+    var sellerId: Int
     var orderNo: String
     var sellerPhone: String
     var staffName: String
@@ -171,6 +172,8 @@ struct OrderInsightsOrder: Identifiable, Decodable {
     var totalAmount: String
     var status: String
     var orderDate: String
+    var orderSource: String
+    var isSelf: Bool
     var containsSpecialNote: Bool
     var showRedBox: Bool
     var orderNotDelivered: Bool
@@ -178,6 +181,7 @@ struct OrderInsightsOrder: Identifiable, Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "order_id"
+        case sellerId = "seller_id"
         case orderNo = "order_no"
         case sellerPhone = "seller_mobile"
         case staffName = "staff_name"
@@ -188,6 +192,11 @@ struct OrderInsightsOrder: Identifiable, Decodable {
         case totalAmount = "total_price"
         case status
         case orderDate = "order_date"
+        case orderSource = "order_source"
+        case isSelf = "is_self"
+        case source
+        case orderBy = "order_by"
+        case createdBy = "created_by"
         case containsSpecialNote = "contains_special_note"
         case showRedBox = "shop_visited_location_incorrect"
         case orderNotDelivered = "order_not_delivered"
@@ -198,6 +207,7 @@ struct OrderInsightsOrder: Identifiable, Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decodeIntLeniently(forKey: .id) ?? 0
+        sellerId = container.decodeIntLeniently(forKey: .sellerId) ?? 0
         orderNo = container.decodeStringLeniently(forKey: .orderNo) ?? ""
         sellerPhone = container.decodeStringLeniently(forKey: .sellerPhone) ?? ""
         staffName = container.decodeStringLeniently(forKey: .staffName) ?? ""
@@ -209,6 +219,12 @@ struct OrderInsightsOrder: Identifiable, Decodable {
         totalAmount = container.decodeStringLeniently(forKey: .totalAmount) ?? "0"
         status = container.decodeStringLeniently(forKey: .status) ?? ""
         orderDate = container.decodeStringLeniently(forKey: .orderDate) ?? ""
+        orderSource = container.decodeStringLeniently(forKey: .orderSource)
+            ?? container.decodeStringLeniently(forKey: .source)
+            ?? container.decodeStringLeniently(forKey: .orderBy)
+            ?? container.decodeStringLeniently(forKey: .createdBy)
+            ?? ""
+        isSelf = container.decodeBoolLeniently(forKey: .isSelf) ?? false
         containsSpecialNote = container.decodeBoolLeniently(forKey: .containsSpecialNote) ?? false
         showRedBox = container.decodeBoolLeniently(forKey: .showRedBox) ?? false
         orderNotDelivered = container.decodeBoolLeniently(forKey: .orderNotDelivered) ?? false
@@ -235,16 +251,16 @@ enum OrderInsightsStatusStyle {
     case pending, toDeliver, pickup, delivered, cancelled, returned, assigned, deliveryFailed, partialReturn, unknown
 
     static func from(status: String) -> OrderInsightsStatusStyle {
-        switch status.lowercased() {
+        switch status.lowercased().trim {
         case "0", "pending": return .pending
-        case "1", "to deliver": return .toDeliver
+        case "1", "to deliver", "to_deliver": return .toDeliver
         case "2", "pickup": return .pickup
         case "3", "delivered": return .delivered
         case "4", "cancel", "cancelled": return .cancelled
         case "5", "return", "returned": return .returned
         case "6", "assign", "assigned": return .assigned
-        case "7", "delivery failed": return .deliveryFailed
-        case "8", "partial return", "partially returned": return .partialReturn
+        case "7", "delivery failed", "delivery_failed": return .deliveryFailed
+        case "8", "partial return", "partially returned", "partial_return": return .partialReturn
         default: return .unknown
         }
     }
@@ -291,7 +307,24 @@ enum OrderInsightsFilterCategory: String, CaseIterable {
     case staff = "Staff"
     case seller = "Seller"
     case beat = "Beat"
+    case orderSource = "Order Source"
     case moreOptions = "More Options"
+}
+
+enum OrderInsightsOrderSource: String, CaseIterable, Identifiable {
+    case all = ""
+    case byRetailer = "retailer"
+    case bySalesperson = "sales_person"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all: return "All Sources"
+        case .byRetailer: return "By Retailer"
+        case .bySalesperson: return "By Salesperson"
+        }
+    }
 }
 
 enum OrderInsightsDatePreset: String, CaseIterable {
@@ -594,6 +627,7 @@ struct OrderInsightsAppliedFilters {
     var staffId: String
     var sellerId: String
     var beatId: String
+    var orderSource: String = ""
     var outOfRangeIsShow: String
     var hasRemark: String
 }
@@ -605,5 +639,58 @@ extension OrderInsightsOrder {
 
     var displayRiderName: String {
         riderName.isEmptyString ? "not assigned" : riderName
+    }
+
+    var displayOrderDate: String {
+        guard !orderDate.isEmptyString else { return "" }
+        let formatStrings = [
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ",
+            "yyyy-MM-dd'T'HH:mm:ssZ",
+            "yyyy-MM-dd HH:mm",
+            "yyyy-MM-dd",
+            "dd-MMM-yyyy hh:mm a",
+            "dd-MM-yyyy hh:mm a",
+            "dd-MMM-yyyy",
+            "dd-MM-yyyy"
+        ]
+
+        for format in formatStrings {
+            let df = DateFormatter()
+            df.dateFormat = format
+            df.locale = Locale(identifier: "en_US_POSIX")
+            if let date = df.date(from: orderDate.trim) {
+                let outDf = DateFormatter()
+                outDf.dateFormat = "dd-MMM-yyyy hh:mm a"
+                outDf.locale = Locale(identifier: "en_US_POSIX")
+                return outDf.string(from: date).lowercased()
+            }
+        }
+        return orderDate
+    }
+
+    var orderSourceDisplay: String {
+        let lower = orderSource.lowercased().replacingOccurrences(of: "_", with: " ").trim
+        if lower == "retailer" || lower == "by retailer" || lower == "1" || lower == "self" || isSelf {
+            return "By Retailer"
+        }
+        if lower == "sales person" || lower == "salesperson" || lower == "by salesperson" || lower == "by sales person" || lower == "2" || lower == "staff" || lower == "salesman" {
+            return "By Salesperson"
+        }
+        if !orderSource.isEmptyString {
+            return orderSource.hasPrefix("By ") ? orderSource : "By \(orderSource)"
+        }
+        if !staffName.isEmptyString {
+            return "By Salesperson"
+        }
+        return "By Salesperson"
+    }
+
+    var orderSourceIcon: String {
+        if orderSourceDisplay == "By Retailer" {
+            return "cart.fill"
+        } else {
+            return "person.fill"
+        }
     }
 }

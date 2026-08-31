@@ -173,7 +173,7 @@ struct OrderDetailScreen: View {
             VStack(alignment: .leading, spacing: 0) {
                 orderHeader(order)
 
-                if order.hasRemark || order.hasAudioRemark {
+                if order.hasAnyRemark {
                     Divider().overlay(DashboardTheme.surfaceVariant)
                     remarksSection(order)
                 }
@@ -236,6 +236,23 @@ struct OrderDetailScreen: View {
             HStack(spacing: 8) {
                 statusChip(OrderDetailStatusMapper.deliveryStatus(order.status))
                 statusChip(OrderDetailStatusMapper.paymentStatus(order.transactionStatus))
+
+                if !order.orderSourceDisplay.isEmptyString {
+                    HStack(spacing: 4) {
+                        Image(systemName: order.orderSourceIcon)
+                            .font(.system(size: 10))
+                        Text(order.orderSourceDisplay)
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        (order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
+                            .opacity(0.12)
+                    )
+                    .clipShape(Capsule())
+                }
             }
         }
         .padding(.horizontal, 10)
@@ -244,7 +261,7 @@ struct OrderDetailScreen: View {
 
     @ViewBuilder
     private func remarksSection(_ order: OrderDetailData) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Remarks")
                     .font(.system(size: 15, weight: .bold))
@@ -252,19 +269,51 @@ struct OrderDetailScreen: View {
 
                 Spacer()
 
-                if order.hasAudioRemark {
+                if order.hasAudioRemark || order.hasRetailerAudioRemark {
                     Text("History")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(DashboardTheme.dangerRed)
                 }
             }
 
+            // Salesperson Remark
             if order.hasAudioRemark {
-                OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Salesperson Voice Note")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                    OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
+                }
             }
 
             if order.hasRemark {
-                OrderDetailTextRemarkView(remark: order.remark)
+                VStack(alignment: .leading, spacing: 4) {
+                    if order.hasRetailerRemark || order.hasRetailerAudioRemark {
+                        Text("Salesperson Remark")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+                    OrderDetailTextRemarkView(remark: order.remark)
+                }
+            }
+
+            // Retailer Remark
+            if order.hasRetailerAudioRemark {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Retailer Voice Note")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    OrderDetailAudioPlayerView(audioURLString: order.retailerAudioRemark)
+                }
+            }
+
+            if order.hasRetailerRemark {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Retailer Remark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    OrderDetailTextRemarkView(remark: order.retailerRemark)
+                }
             }
         }
         .padding(.horizontal, 10)
@@ -352,6 +401,9 @@ struct OrderDetailScreen: View {
             VStack(alignment: .leading, spacing: 8) {
                 sectionTitle("Seller & Staff Information")
 
+                if !order.orderSourceDisplay.isEmptyString {
+                    sellerInfoRow(icon: order.orderSourceIcon, label: "Order Source", value: order.orderSourceDisplay)
+                }
                 sellerInfoRow(icon: "storefront.fill", label: "Shop", value: order.shopDisplay)
                 sellerInfoRow(icon: "person.fill", label: "Seller", value: order.sellerName)
                 sellerInfoRow(icon: "person.badge.key.fill", label: "Sale Person", value: order.staffName)

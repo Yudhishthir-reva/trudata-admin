@@ -65,13 +65,43 @@ struct DashboardData: Decodable {
     }
 
     var sections: [DashboardSection] {
-        components
+        let excludedRoutes: Set<String> = [
+            "attendance",
+            "mark_attendance",
+            "regularization_requests",
+            "regularize_approval",
+            "regularize",
+            "view_leaves",
+            "leave_approval",
+            "leave",
+            "staff_report",
+            "staff_reports",
+            "today_achievements",
+            "today_achievement",
+            "achievement",
+            "rider_report",
+            "rider_reports"
+        ]
+
+        return components
             .sorted { $0.orderInt < $1.orderInt }
             .map { group in
-                DashboardSection(
+                let isMyAreaGroup = group.title.lowercased().replacingOccurrences(of: " ", with: "_").contains("my_area")
+                let filteredItems = group.subMenu
+                    .flatMap(\.componentData.items)
+                    .filter { item in
+                        let route = item.route.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                        if excludedRoutes.contains(route) { return false }
+                        if isMyAreaGroup && (excludedRoutes.contains(route) || route.contains("attendance") || route.contains("leave") || route.contains("regulariz") || route.contains("achievement") || route.contains("rider")) {
+                            return false
+                        }
+                        return true
+                    }
+
+                return DashboardSection(
                     title: group.title,
                     order: group.orderInt,
-                    items: group.subMenu.flatMap(\.componentData.items)
+                    items: filteredItems
                 )
             }
             .filter { !$0.items.isEmpty }

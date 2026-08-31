@@ -30,6 +30,7 @@ class OrderInsightsServiceManager {
         beatId: String = "",
         outOfRangeIsShow: String = "",
         hasRemark: String = "0",
+        orderSource: String = "",
         isCreatedOrderHistory: Bool = false
     ) -> AnyPublisher<OrderInsightsResponse, Error> {
         var params: [String: Any] = [
@@ -58,6 +59,11 @@ class OrderInsightsServiceManager {
         }
         if !outOfRangeIsShow.isEmptyString {
             params["outOfRangeIsShow"] = outOfRangeIsShow
+        }
+        if !orderSource.isEmptyString {
+            params["order_source"] = orderSource
+            params["source"] = orderSource
+            params["order_by"] = orderSource
         }
 
         let router: APIRouter = isCreatedOrderHistory ? .orderListV3 : .orderListV2

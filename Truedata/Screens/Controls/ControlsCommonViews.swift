@@ -54,6 +54,9 @@ struct ControlsMenuCard: View {
                     ControlsChip(title: "Logins", icon: "desktopcomputer", color: DashboardTheme.dangerRed) {
                         onNavigate("new_device_login_requests")
                     }
+                    ControlsChip(title: "App Payment", icon: "indianrupeesign.circle", color: DashboardTheme.successGreen) {
+                        onNavigate("retailer_app_payment")
+                    }
                 }
             }
         }

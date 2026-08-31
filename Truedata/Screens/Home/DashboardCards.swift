@@ -27,6 +27,8 @@ struct DashboardItemCard: View {
             orderApprovalCard
         case "approve_sellers_to_make_order":
             approveSellersCard
+        case "b2c_orders":
+            b2cOrdersCard
         case "new_device_login_requests":
             loginRequestsCard
         case "scheduled_revisits":
@@ -55,6 +57,22 @@ struct DashboardItemCard: View {
             productsCard
         case "your_targets":
             targetsCard
+        case "attendance", "mark_attendance":
+            attendanceCard
+        case "staff_report":
+            staffReportCard
+        case "view_leaves", "leave_approval":
+            leavesCard
+        case "regularization_requests", "regularize_approval":
+            regularizationCard
+        case "today_achievements":
+            todayAchievementsCard
+        case "rider_report":
+            riderReportCard
+        case "manage_employees":
+            manageEmployeesCard
+        case "controls":
+            controlsCard
         default:
             genericCard
         }
@@ -187,20 +205,62 @@ struct DashboardItemCard: View {
     // MARK: - Today's orders
 
     private var manageOrdersCard: some View {
-        let today = payload?["todayOrders"] ?? payload
-        let payModes = today?["paymentCollectionByPayMode"]
+        let today = payload?["todayOrders"] ?? payload?["today_orders"] ?? payload?["todayOrder"] ?? payload
+        let payModes = today?["paymentCollectionByPayMode"] ?? payload?["paymentCollectionByPayMode"]
         let cash = payModes?.double(for: "cashAmount", "CashAmount") ?? 0
         let upi = payModes?.double(for: "upiAmount", "UPIAmount") ?? 0
         let cheque = payModes?.double(for: "chequeAmount", "ChequeAmount") ?? 0
         let totalCollection = cash + upi + cheque
-        let totalAmount = today?.double(for: "todayTotalAmount", "today_total_amount") ?? 0
-        let deliveredAmount = today?.double(for: "todayDeliveredAmount", "today_delivered_amount") ?? 0
-        let pendingAmount = today?.double(for: "todayPendingAmount", "today_pending_amount") ?? 0
-        let approvedCollection = today?.double(for: "todayApprovedCollectionAmount") ?? 0
-        let pendingOrders = today?.int(for: "pending") ?? 0
-        let cancelledOrders = today?.int(for: "cancelled") ?? 0
-        let validOrders = today?.int(for: "totalWithoutCancelled") ?? (pendingOrders - cancelledOrders)
-        let totalOrdersCount = pendingOrders
+        let totalAmount = today?.double(for: "todayTotalAmount", "today_total_amount")
+            ?? payload?.double(for: "todayTotalAmount", "today_total_amount")
+            ?? 0
+        let deliveredAmount = today?.double(for: "todayDeliveredAmount", "today_delivered_amount")
+            ?? payload?.double(for: "todayDeliveredAmount", "today_delivered_amount")
+            ?? 0
+        let pendingAmount = today?.double(for: "todayPendingAmount", "today_pending_amount")
+            ?? payload?.double(for: "todayPendingAmount", "today_pending_amount")
+            ?? 0
+        let approvedCollection = today?.double(for: "todayApprovedCollectionAmount", "today_approved_collection_amount")
+            ?? payload?.double(for: "todayApprovedCollectionAmount", "today_approved_collection_amount")
+            ?? 0
+
+        let pendingOrders = today?.int(for: "pending", "pendingOrders", "pending_orders")
+            ?? payload?.int(for: "pending", "pendingOrders", "pending_orders")
+            ?? 0
+        let deliveredOrders = today?.int(for: "delivered", "deliveredOrders", "delivered_orders")
+            ?? payload?.int(for: "delivered", "deliveredOrders", "delivered_orders")
+            ?? 0
+        let assignedOrders = today?.int(for: "assigned", "assignedOrders", "assigned_orders")
+            ?? payload?.int(for: "assigned", "assignedOrders", "assigned_orders")
+            ?? 0
+        let pickupOrders = today?.int(for: "pickup", "pickupOrders", "pickup_orders")
+            ?? payload?.int(for: "pickup", "pickupOrders", "pickup_orders")
+            ?? 0
+        let toDeliverOrders = today?.int(for: "to_deliver", "toDeliver")
+            ?? payload?.int(for: "to_deliver", "toDeliver")
+            ?? 0
+        let returnedOrders = today?.int(for: "returned", "returnedOrders", "returned_orders")
+            ?? payload?.int(for: "returned", "returnedOrders", "returned_orders")
+            ?? 0
+        let cancelledOrders = today?.int(for: "cancelled", "cancelledOrders", "cancelled_orders")
+            ?? payload?.int(for: "cancelled", "cancelledOrders", "cancelled_orders")
+            ?? 0
+
+        let sumOfAllOrders = pendingOrders + deliveredOrders + assignedOrders + pickupOrders + toDeliverOrders + returnedOrders + cancelledOrders
+        let totalOrdersCount = today?.int(for: "total", "totalOrders", "total_orders", "totalCount", "total_count")
+            ?? payload?.int(for: "total", "totalOrders", "total_orders", "totalCount", "total_count")
+            ?? (sumOfAllOrders > 0 ? sumOfAllOrders : pendingOrders)
+
+        let explicitValid = today?.int(for: "totalWithoutCancelled", "total_without_cancelled", "totalValidOrders", "total_valid_orders", "validOrders", "valid_orders")
+            ?? payload?.int(for: "totalWithoutCancelled", "total_without_cancelled", "totalValidOrders", "total_valid_orders", "validOrders", "valid_orders")
+
+        let validOrders: Int = {
+            if let explicit = explicitValid, explicit > 0 {
+                return explicit
+            }
+            return max(pendingOrders - cancelledOrders, 0)
+        }()
+
         let hasCollection = totalCollection > 0
         let products = topSellingProducts(
             from: today,
@@ -743,6 +803,579 @@ struct DashboardItemCard: View {
                 DashboardStatRow(label: "Achieved", value: (current?.string(for: "achieved_amount") ?? "0").priceLabel)
             }
         }
+    }
+
+    // MARK: - B2C Orders
+
+    private var b2cOrdersCard: some View {
+        let todayOrders = payload?.int(for: "today_orders", "todayOrders") ?? 0
+        let orderAmount = payload?.double(for: "order_amount", "orderAmount") ?? 0
+        let running = payload?.int(for: "running", "running_orders") ?? 0
+
+        return VStack(alignment: .leading, spacing: 16) {
+            // Header Row
+            HStack(alignment: .center, spacing: 12) {
+                // Orange bag icon box
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(hex: "FFEDD5"))
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: "bag.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(Color(hex: "EA580C"))
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(displayTitle("B2C Orders"))
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color(hex: "111827"))
+
+                    Text("\(running) waiting on you")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color(hex: "EA580C"))
+                }
+
+                Spacer()
+
+                Button {
+                    onNavigate("b2c_orders")
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Manage")
+                            .font(.system(size: 14, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color(hex: "EA580C"))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Stat Boxes
+            HStack(spacing: 10) {
+                // Today Orders (Blue)
+                Button {
+                    onNavigate("b2c_orders")
+                } label: {
+                    VStack(spacing: 6) {
+                        Text("\(todayOrders)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(Color(hex: "1D4ED8"))
+
+                        Text("Today\nOrders")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color(hex: "64748B"))
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 96)
+                    .background(Color(hex: "F0F7FF"))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color(hex: "DBEAFE"), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+
+                // Order Amount (Dark/Slate)
+                Button {
+                    onNavigate("b2c_orders")
+                } label: {
+                    VStack(spacing: 6) {
+                        Text(String(format: "₹%.2f", orderAmount))
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(Color(hex: "0F172A"))
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(1)
+
+                        Text("Order\nAmount")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color(hex: "64748B"))
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 96)
+                    .background(Color(hex: "F8FAFC"))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color(hex: "E2E8F0"), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+
+                // Running (Orange)
+                Button {
+                    onNavigate("b2c_orders")
+                } label: {
+                    VStack(spacing: 6) {
+                        Text("\(running)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(Color(hex: "EA580C"))
+
+                        Text("Running")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color(hex: "64748B"))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 96)
+                    .background(Color(hex: "FFF7ED"))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color(hex: "FFEDD5"), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(Color(hex: "FED7AA").opacity(0.8), lineWidth: 1.5)
+        )
+        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+    }
+
+    // MARK: - Attendance
+
+    private var attendanceCard: some View {
+        let inTime = payload?.string(for: "in_time") ?? ""
+        let outTime = payload?.string(for: "out_time") ?? ""
+        let inStatus = payload?["in_time_status"]?.boolValue ?? (!inTime.isEmptyString && inTime != "No data available")
+        let outStatus = payload?["out_time_status"]?.boolValue ?? (!outTime.isEmptyString && outTime != "No data available")
+
+        let statusText: String
+        let statusColor: Color
+        let statusIcon: String
+        if inStatus && outStatus {
+            statusText = "Shift Complete"
+            statusColor = DashboardTheme.successGreen
+            statusIcon = "checkmark.circle.fill"
+        } else if inStatus {
+            statusText = "Working"
+            statusColor = DashboardTheme.warningYellow
+            statusIcon = "clock.fill"
+        } else {
+            statusText = "Check In Pending"
+            statusColor = DashboardTheme.neutralMedium
+            statusIcon = "arrow.right.to.line.compact"
+        }
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Mark Attendance"),
+                        colors: [DashboardTheme.primaryBlue, DashboardTheme.accentTeal],
+                        systemImage: "clock.badge.checkmark.fill"
+                    )
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Image(systemName: statusIcon)
+                            .font(.system(size: 11))
+                        Text(statusText)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(statusColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusColor.opacity(0.12))
+                    .clipShape(Capsule())
+                }
+
+                HStack(spacing: 10) {
+                    attendanceTimePill(
+                        label: "Punch In",
+                        time: inTime.isEmptyString ? "--:--" : inTime,
+                        icon: "arrow.right.circle.fill",
+                        color: inStatus ? DashboardTheme.successGreen : DashboardTheme.neutralMedium
+                    )
+                    attendanceTimePill(
+                        label: "Punch Out",
+                        time: outTime.isEmptyString || outTime == "No data available" ? "--:--" : outTime,
+                        icon: "arrow.left.circle.fill",
+                        color: outStatus ? DashboardTheme.successGreen : DashboardTheme.neutralMedium
+                    )
+                }
+
+                DashboardOutlinedButton(
+                    title: inStatus && !outStatus ? "Punch Out / View Attendance" : "Mark Attendance",
+                    systemImage: "hand.tap.fill",
+                    action: { onNavigate("attendance") }
+                )
+            }
+        }
+    }
+
+    private func attendanceTimePill(label: String, time: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(color)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+                Text(time)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(DashboardTheme.surfaceVariant)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Staff Report
+
+    private var staffReportCard: some View {
+        let total = payload?.int(for: "totalStaff", "total_staff") ?? 0
+        let present = payload?.int(for: "presentStaff", "present_staff") ?? 0
+        let absent = payload?.int(for: "absentStaff", "absent_staff") ?? max(total - present, 0)
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Staff Report"),
+                        colors: [DashboardTheme.primaryBlue, DashboardTheme.infoBlue],
+                        systemImage: "person.3.sequence.fill"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "View Report →",
+                        color: DashboardTheme.primaryBlue,
+                        action: { onNavigate("staff_report") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Total Staff",
+                        value: "\(total)",
+                        valueColor: DashboardTheme.primaryBlue,
+                        action: { onNavigate("staff_report") }
+                    )
+                    DashboardStatPill(
+                        title: "Present",
+                        value: "\(present)",
+                        valueColor: DashboardTheme.successGreen,
+                        action: { onNavigate("staff_report") }
+                    )
+                    DashboardStatPill(
+                        title: "Absent",
+                        value: "\(absent)",
+                        valueColor: DashboardTheme.dangerRed,
+                        action: { onNavigate("staff_report") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Leaves
+
+    private var leavesCard: some View {
+        let pending = payload?.int(for: "pendingLeaveCount", "pending_leave_count") ?? 0
+        let total = payload?.int(for: "totalLeaveCount", "total_leave_count") ?? 0
+        let today = payload?.int(for: "todayLeaveCount", "today_leave_count") ?? 0
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Leaves"),
+                        colors: [DashboardTheme.dangerRed, DashboardTheme.warningYellow],
+                        systemImage: "calendar.badge.minus"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "View Leaves →",
+                        color: DashboardTheme.dangerRed,
+                        action: { onNavigate("view_leaves") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Pending",
+                        value: "\(pending)",
+                        valueColor: pending > 0 ? DashboardTheme.dangerRed : DashboardTheme.neutralMedium,
+                        action: { onNavigate("view_leaves") }
+                    )
+                    DashboardStatPill(
+                        title: "Today",
+                        value: "\(today)",
+                        valueColor: DashboardTheme.warningYellow,
+                        action: { onNavigate("view_leaves") }
+                    )
+                    DashboardStatPill(
+                        title: "Total",
+                        value: "\(total)",
+                        valueColor: DashboardTheme.infoBlue,
+                        action: { onNavigate("view_leaves") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Regularization
+
+    private var regularizationCard: some View {
+        let pending = payload?.int(for: "pendingRegularizeCount", "pending_regularize_count") ?? 0
+        let total = payload?.int(for: "allRegularizeCount", "totalRegularizeCount", "total_regularize_count") ?? 0
+        let today = payload?.int(for: "todayRegulizeCount", "todayRegularizeCount", "today_regularize_count") ?? 0
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Regularize"),
+                        colors: [DashboardTheme.warningYellow, DashboardTheme.pickupOrange],
+                        systemImage: "calendar.badge.clock"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "View Requests →",
+                        color: DashboardTheme.warningYellow,
+                        action: { onNavigate("regularization_requests") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Pending",
+                        value: "\(pending)",
+                        valueColor: pending > 0 ? DashboardTheme.warningYellow : DashboardTheme.neutralMedium,
+                        action: { onNavigate("regularization_requests") }
+                    )
+                    DashboardStatPill(
+                        title: "Today",
+                        value: "\(today)",
+                        valueColor: DashboardTheme.pickupOrange,
+                        action: { onNavigate("regularization_requests") }
+                    )
+                    DashboardStatPill(
+                        title: "Total",
+                        value: "\(total)",
+                        valueColor: DashboardTheme.infoBlue,
+                        action: { onNavigate("regularization_requests") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Today Achievements
+
+    private var todayAchievementsCard: some View {
+        let sellerCount = payload?.int(for: "todaySellerCount", "today_seller_count") ?? 0
+        let collectionAmount = payload?.double(for: "todayCollectionAmount", "today_collection_amount") ?? 0
+        let approvedCollection = payload?.double(for: "todayApprovedCollectionAmount") ?? 0
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Today Achievements"),
+                        colors: [DashboardTheme.rankGold, DashboardTheme.pickupOrange],
+                        systemImage: "trophy.fill"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "View History →",
+                        color: DashboardTheme.rankGold,
+                        action: { onNavigate("today_achievements") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Sellers Visited",
+                        value: "\(sellerCount)",
+                        valueColor: DashboardTheme.infoBlue,
+                        action: { onNavigate("today_achievements") }
+                    )
+                    DashboardStatPill(
+                        title: "Collection",
+                        value: collectionAmount.currencyLabel,
+                        valueColor: DashboardTheme.successGreen,
+                        action: { onNavigate("today_achievements") }
+                    )
+                    DashboardStatPill(
+                        title: "Settled",
+                        value: approvedCollection.currencyLabel,
+                        valueColor: DashboardTheme.secondaryPurple,
+                        action: { onNavigate("today_achievements") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Rider Report
+
+    private var riderReportCard: some View {
+        let total = payload?.int(for: "totalRider", "total_rider") ?? 0
+        let present = payload?.int(for: "presentRider", "present_rider") ?? 0
+        let absent = payload?.int(for: "absentRider", "absent_rider") ?? max(total - present, 0)
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Rider Report"),
+                        colors: [DashboardTheme.accentTeal, DashboardTheme.primaryBlue],
+                        systemImage: "bicycle"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "View Report →",
+                        color: DashboardTheme.accentTeal,
+                        action: { onNavigate("rider_report") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Total Riders",
+                        value: "\(total)",
+                        valueColor: DashboardTheme.accentTeal,
+                        action: { onNavigate("rider_report") }
+                    )
+                    DashboardStatPill(
+                        title: "Present",
+                        value: "\(present)",
+                        valueColor: DashboardTheme.successGreen,
+                        action: { onNavigate("rider_report") }
+                    )
+                    DashboardStatPill(
+                        title: "Absent",
+                        value: "\(absent)",
+                        valueColor: DashboardTheme.dangerRed,
+                        action: { onNavigate("rider_report") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Manage Employees
+
+    private var manageEmployeesCard: some View {
+        let pendingLeave = payload?.int(for: "pendingLeaveCount", "pending_leave_count") ?? 0
+        let pendingRegularize = payload?.int(for: "pendingRegularizeCount", "pending_regularize_count") ?? 0
+        let pendingExpense = payload?.int(for: "pendingExpenseCount", "pending_expense_count") ?? 0
+
+        return DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Manage Employees"),
+                        colors: [DashboardTheme.secondaryPurple, DashboardTheme.primaryBlue],
+                        systemImage: "person.text.rectangle.fill"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "Controls →",
+                        color: DashboardTheme.secondaryPurple,
+                        action: { onNavigate("controls") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    DashboardStatPill(
+                        title: "Leaves",
+                        value: "\(pendingLeave) P",
+                        valueColor: pendingLeave > 0 ? DashboardTheme.dangerRed : DashboardTheme.neutralMedium,
+                        action: { onNavigate("view_leaves") }
+                    )
+                    DashboardStatPill(
+                        title: "Regularize",
+                        value: "\(pendingRegularize) P",
+                        valueColor: pendingRegularize > 0 ? DashboardTheme.warningYellow : DashboardTheme.neutralMedium,
+                        action: { onNavigate("regularization_requests") }
+                    )
+                    DashboardStatPill(
+                        title: "Expenses",
+                        value: "\(pendingExpense) P",
+                        valueColor: pendingExpense > 0 ? DashboardTheme.successGreen : DashboardTheme.neutralMedium,
+                        action: { onNavigate("expense_approval") }
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Controls
+
+    private var controlsCard: some View {
+        DashboardCardChrome(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Controls"),
+                        colors: [DashboardTheme.primaryBlue, DashboardTheme.secondaryPurple],
+                        systemImage: "slider.horizontal.3"
+                    )
+                    Spacer()
+                    DashboardCompactButton(
+                        title: "Open Controls →",
+                        color: DashboardTheme.primaryBlue,
+                        action: { onNavigate("controls") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    quickShortcutPill(title: "Staff", icon: "person.2.fill", color: DashboardTheme.primaryBlue) {
+                        onNavigate("register_staff_member")
+                    }
+                    quickShortcutPill(title: "Vehicles", icon: "car.fill", color: DashboardTheme.successGreen) {
+                        onNavigate("view_vehicles")
+                    }
+                    quickShortcutPill(title: "Beats", icon: "mappin.and.ellipse", color: DashboardTheme.pickupOrange) {
+                        onNavigate("view_beats")
+                    }
+                    quickShortcutPill(title: "Targets", icon: "chart.pie.fill", color: DashboardTheme.secondaryPurple) {
+                        onNavigate("view_targets")
+                    }
+                }
+            }
+        }
+    }
+
+    private func quickShortcutPill(title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(color.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private var genericCard: some View {

@@ -18,6 +18,7 @@ struct OrderInsightsFilterSheet: View {
     @State private var draftStaffId: String
     @State private var draftSellerId: String
     @State private var draftBeatId: String
+    @State private var draftOrderSource: String
     @State private var draftOutOfRange: Bool
     @State private var draftHasRemark: Bool
     @State private var staffSearch = ""
@@ -38,6 +39,7 @@ struct OrderInsightsFilterSheet: View {
         _draftStaffId = State(initialValue: filters.staffId)
         _draftSellerId = State(initialValue: filters.sellerId)
         _draftBeatId = State(initialValue: filters.beatId)
+        _draftOrderSource = State(initialValue: filters.orderSource)
         _draftOutOfRange = State(initialValue: filters.outOfRangeIsShow == "2")
         _draftHasRemark = State(initialValue: filters.hasRemark == "1")
     }
@@ -64,9 +66,12 @@ struct OrderInsightsFilterSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color(hex: "4B5563"))
+                            .frame(width: 28, height: 28)
+                            .background(Color(hex: "E5E7EB"))
+                            .clipShape(Circle())
                     }
                 }
             }
@@ -91,37 +96,29 @@ struct OrderInsightsFilterSheet: View {
             }
             Spacer()
             Button {
-                applyDraftFilters()
+                viewModel.applyLastUsedFilter()
                 dismiss()
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark")
                     Text("Apply")
                 }
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(.white)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(DashboardTheme.primaryBlue)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .buttonStyle(.plain)
         }
         .padding(12)
-        .background(
-            LinearGradient(
-                colors: [
-                    DashboardTheme.primaryBlue.opacity(0.08),
-                    DashboardTheme.secondaryPurple.opacity(0.06)
-                ],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        )
+        .background(Color(hex: "EFF6FF"))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(DashboardTheme.primaryBlue.opacity(0.15), lineWidth: 1)
+                .stroke(Color(hex: "DBEAFE"), lineWidth: 1)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 12)
         .padding(.top, 8)
     }
@@ -151,7 +148,7 @@ struct OrderInsightsFilterSheet: View {
             }
             .padding(8)
         }
-        .frame(width: 118)
+        .frame(width: 122)
         .background(DashboardTheme.surfaceVariant.opacity(0.5))
     }
 
@@ -175,6 +172,8 @@ struct OrderInsightsFilterSheet: View {
                     sellerContent
                 case .beat:
                     beatContent
+                case .orderSource:
+                    orderSourceContent
                 case .moreOptions:
                     moreOptionsContent
                 }
@@ -183,6 +182,20 @@ struct OrderInsightsFilterSheet: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color.white)
+    }
+
+    private var orderSourceContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            filterRadio(title: "All Sources", isSelected: draftOrderSource.isEmptyString) {
+                draftOrderSource = ""
+            }
+            filterRadio(title: "By Retailer", isSelected: draftOrderSource == "retailer") {
+                draftOrderSource = "retailer"
+            }
+            filterRadio(title: "By Salesperson", isSelected: draftOrderSource == "sales_person" || draftOrderSource == "salesperson") {
+                draftOrderSource = "sales_person"
+            }
+        }
     }
 
     private var dateRangeContent: some View {
@@ -352,6 +365,7 @@ struct OrderInsightsFilterSheet: View {
                 draftStaffId = ""
                 draftSellerId = ""
                 draftBeatId = ""
+                draftOrderSource = ""
                 draftOutOfRange = false
                 draftHasRemark = false
                 viewModel.resetToDefaultFilters()
@@ -436,6 +450,7 @@ struct OrderInsightsFilterSheet: View {
                 staffId: draftStaffId,
                 sellerId: draftSellerId,
                 beatId: draftBeatId,
+                orderSource: draftOrderSource,
                 outOfRangeIsShow: draftOutOfRange ? "2" : "",
                 hasRemark: draftHasRemark ? "1" : "0"
             )

@@ -10,7 +10,7 @@ struct SellerProfileActionsTab: View {
     let screenTitle: String
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             SellerProfileOperationCard(
                 title: "Add Payment",
                 description: "Add amount paid in cheque here to settle...",
@@ -25,6 +25,14 @@ struct SellerProfileActionsTab: View {
                 buttonTitle: "Go to Bill Settlement",
                 destination: {
                     BillSettlementScreen(sellerId: sellerId)
+                }
+            )
+            SellerProfileOperationCard(
+                title: "Payment approvals via Retailer App",
+                description: "Review payments this retailer submitted from their app...",
+                buttonTitle: "Go to Retailer App Payments",
+                destination: {
+                    RetailerAppPaymentScreen()
                 }
             )
         }
@@ -201,33 +209,47 @@ private struct SellerProfileOperationCard<Destination: View>: View {
     @ViewBuilder var destination: () -> Destination
 
     var body: some View {
-        DashboardCardChrome(cornerRadius: 18) {
-            VStack(alignment: .leading, spacing: 10) {
-                DashboardBulletTitle(title: title, colors: [DashboardTheme.accentTeal, DashboardTheme.infoBlue])
-
-                Text(description)
-                    .font(.system(size: 13))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                NavigationLink {
-                    destination()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.seal.fill")
-                        Text(buttonTitle)
-                            .font(.system(size: 14, weight: .semibold))
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(DashboardTheme.primaryBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                }
-                .buttonStyle(.plain)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(Color(hex: "2563EB"))
+                    .frame(width: 7, height: 7)
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color(hex: "111827"))
             }
+
+            Text(description)
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: "6B7280"))
+                .fixedSize(horizontal: false, vertical: true)
+
+            NavigationLink {
+                destination()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.square")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text(buttonTitle)
+                        .font(.system(size: 15, weight: .semibold))
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(DashboardTheme.primaryBlue)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
         }
     }
 }

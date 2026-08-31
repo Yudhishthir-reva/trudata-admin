@@ -38,10 +38,12 @@ struct OrderDetailData: Decodable {
     var sellerShopName: String
     var sellerMobile: String
     var sellerAddress: String
+    var sellerProfilePic: String
     var manualAddress: String
     var staffName: String
     var riderName: String
     var beatName: String
+    var beatId: Int
     var status: String
     var totalPrice: String
     var discount: String
@@ -54,9 +56,13 @@ struct OrderDetailData: Decodable {
     var canEditSeller: Bool?
     var canEditOrder: Bool?
     var canCancelOrder: Bool?
+    var showRemarkEditButton: Bool?
+    var orderSource: String
     var orderDetails: [OrderDetailProduct]
     var remark: String
     var audioRemark: String
+    var retailerRemark: String
+    var retailerAudioRemark: String
 
     enum CodingKeys: String, CodingKey {
         case status, discount, name, mobile, seller, remark, remarks
@@ -71,10 +77,12 @@ struct OrderDetailData: Decodable {
         case shopName = "shop_name"
         case sellerMobile = "seller_mobile"
         case sellerAddress = "seller_address"
+        case sellerProfilePic = "seller_profile_pic"
         case manualAddress = "manual_address"
         case staffName = "staff_name"
         case riderName = "rider_name"
         case beatName = "beat_name"
+        case beatId = "beat_id"
         case totalPrice = "total_price"
         case transactionStatus = "transaction_status"
         case invoiceLink = "invoice_link"
@@ -84,8 +92,13 @@ struct OrderDetailData: Decodable {
         case paymentReceiptLink = "payment_receipt_link"
         case orderNotDelivered = "order_not_delivered"
         case canEditSeller = "can_edit_seller"
+        case canEditSellerCamel = "canEditSeller"
         case canEditOrder = "can_edit_order"
+        case canModify = "can_modify"
         case canCancelOrder = "can_cancel_order"
+        case canCancel = "can_cancel"
+        case showRemarkEditButton = "show_remark_edit_button"
+        case orderSource = "order_source"
         case orderDetails = "order_details"
         case textRemark = "text_remark"
         case orderRemark = "order_remark"
@@ -93,6 +106,8 @@ struct OrderDetailData: Decodable {
         case audio = "audio"
         case audioUrl = "audio_url"
         case voiceRemark = "voice_remark"
+        case retailerRemark = "retailer_remark"
+        case retailerAudioRemark = "retailer_audio_remark"
     }
 
     private enum NestedSellerKeys: String, CodingKey {
@@ -102,6 +117,7 @@ struct OrderDetailData: Decodable {
         case shopName = "shop_name"
         case sellerShopName = "seller_shop_name"
         case sellerMobile = "seller_mobile"
+        case sellerProfilePic = "seller_profile_pic"
     }
 
     init(from decoder: Decoder) throws {
@@ -125,6 +141,7 @@ struct OrderDetailData: Decodable {
             container.decodeStringLeniently(forKey: .mobile)
         )
         sellerAddress = container.decodeStringLeniently(forKey: .sellerAddress) ?? ""
+        sellerProfilePic = container.decodeStringLeniently(forKey: .sellerProfilePic) ?? ""
 
         if let nested = try? container.nestedContainer(keyedBy: NestedSellerKeys.self, forKey: .seller) {
             sellerShopName = Self.firstNonEmpty(
@@ -145,6 +162,9 @@ struct OrderDetailData: Decodable {
             if sellerAddress.isEmptyString {
                 sellerAddress = nested.decodeStringLeniently(forKey: .address) ?? ""
             }
+            if sellerProfilePic.isEmptyString {
+                sellerProfilePic = nested.decodeStringLeniently(forKey: .sellerProfilePic) ?? ""
+            }
             if sellerId == 0 {
                 sellerId = nested.decodeIntLeniently(forKey: .sellerId)
                     ?? nested.decodeIntLeniently(forKey: .id)
@@ -155,6 +175,7 @@ struct OrderDetailData: Decodable {
         staffName = container.decodeStringLeniently(forKey: .staffName) ?? ""
         riderName = container.decodeStringLeniently(forKey: .riderName) ?? ""
         beatName = container.decodeStringLeniently(forKey: .beatName) ?? ""
+        beatId = container.decodeIntLeniently(forKey: .beatId) ?? 0
         status = container.decodeStringLeniently(forKey: .status) ?? ""
         totalPrice = container.decodeStringLeniently(forKey: .totalPrice) ?? "0"
         discount = container.decodeStringLeniently(forKey: .discount) ?? "0"
@@ -167,8 +188,13 @@ struct OrderDetailData: Decodable {
         paymentReceiptLink = container.decodeStringLeniently(forKey: .paymentReceiptLink) ?? ""
         orderNotDelivered = container.decodeBoolLeniently(forKey: .orderNotDelivered) ?? false
         canEditSeller = container.decodeBoolLeniently(forKey: .canEditSeller)
+            ?? container.decodeBoolLeniently(forKey: .canEditSellerCamel)
         canEditOrder = container.decodeBoolLeniently(forKey: .canEditOrder)
+            ?? container.decodeBoolLeniently(forKey: .canModify)
         canCancelOrder = container.decodeBoolLeniently(forKey: .canCancelOrder)
+            ?? container.decodeBoolLeniently(forKey: .canCancel)
+        showRemarkEditButton = container.decodeBoolLeniently(forKey: .showRemarkEditButton)
+        orderSource = container.decodeStringLeniently(forKey: .orderSource) ?? ""
         orderDetails = (try? container.decode([OrderDetailProduct].self, forKey: .orderDetails)) ?? []
         remark = Self.firstNonEmpty(
             container.decodeStringLeniently(forKey: .remark),
@@ -182,6 +208,8 @@ struct OrderDetailData: Decodable {
             container.decodeStringLeniently(forKey: .audioUrl),
             container.decodeStringLeniently(forKey: .voiceRemark)
         )
+        retailerRemark = container.decodeStringLeniently(forKey: .retailerRemark) ?? ""
+        retailerAudioRemark = container.decodeStringLeniently(forKey: .retailerAudioRemark) ?? ""
     }
 
     init() {
@@ -195,10 +223,12 @@ struct OrderDetailData: Decodable {
         sellerShopName = ""
         sellerMobile = ""
         sellerAddress = ""
+        sellerProfilePic = ""
         manualAddress = ""
         staffName = ""
         riderName = ""
         beatName = ""
+        beatId = 0
         status = ""
         totalPrice = "0"
         discount = "0"
@@ -211,9 +241,13 @@ struct OrderDetailData: Decodable {
         canEditSeller = nil
         canEditOrder = nil
         canCancelOrder = nil
+        showRemarkEditButton = nil
+        orderSource = ""
         orderDetails = []
         remark = ""
         audioRemark = ""
+        retailerRemark = ""
+        retailerAudioRemark = ""
     }
 
     var hasRemark: Bool {
@@ -222,6 +256,40 @@ struct OrderDetailData: Decodable {
 
     var hasAudioRemark: Bool {
         !audioRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasRetailerRemark: Bool {
+        !retailerRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasRetailerAudioRemark: Bool {
+        !retailerAudioRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasAnyRemark: Bool {
+        hasRemark || hasAudioRemark || hasRetailerRemark || hasRetailerAudioRemark
+    }
+
+    var orderSourceDisplay: String {
+        let lower = orderSource.lowercased().replacingOccurrences(of: "_", with: " ").trim
+        if lower == "retailer" || lower == "by retailer" || lower == "1" || lower == "self" {
+            return "By Retailer"
+        }
+        if lower == "sales person" || lower == "salesperson" || lower == "by salesperson" || lower == "by sales person" || lower == "2" || lower == "staff" || lower == "salesman" {
+            return "By Salesperson"
+        }
+        if !orderSource.isEmptyString {
+            return orderSource.hasPrefix("By ") ? orderSource : "By \(orderSource)"
+        }
+        return ""
+    }
+
+    var orderSourceIcon: String {
+        if orderSourceDisplay == "By Retailer" {
+            return "cart.fill"
+        } else {
+            return "person.fill"
+        }
     }
 
     var displayOrderNo: String {
