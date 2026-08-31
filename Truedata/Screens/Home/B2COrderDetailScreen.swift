@@ -185,7 +185,7 @@ struct B2COrderDetailScreen: View {
                     .foregroundStyle(Color(hex: "6B7280"))
             }
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
                 // Delivery Status pill
                 HStack(spacing: 6) {
                     Circle()

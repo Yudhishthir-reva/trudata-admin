@@ -207,7 +207,7 @@ struct OrderDetailScreen: View {
     }
 
     private func orderHeader(_ order: OrderDetailData) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(order.displayOrderNo)
@@ -233,30 +233,35 @@ struct OrderDetailScreen: View {
                     .multilineTextAlignment(.trailing)
             }
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
                 statusChip(OrderDetailStatusMapper.deliveryStatus(order.status))
                 statusChip(OrderDetailStatusMapper.paymentStatus(order.transactionStatus))
 
                 if !order.orderSourceDisplay.isEmptyString {
-                    HStack(spacing: 4) {
-                        Image(systemName: order.orderSourceIcon)
-                            .font(.system(size: 10))
-                        Text(order.orderSourceDisplay)
-                            .font(.system(size: 11, weight: .semibold))
-                    }
-                    .foregroundStyle(order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        (order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
-                            .opacity(0.12)
-                    )
-                    .clipShape(Capsule())
+                    orderSourceChip(order)
                 }
             }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
+    }
+
+    private func orderSourceChip(_ order: OrderDetailData) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: order.orderSourceIcon)
+                .font(.system(size: 10))
+            Text(order.orderSourceDisplay)
+                .font(.system(size: 11, weight: .semibold))
+                .lineLimit(1)
+        }
+        .foregroundStyle(order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(
+            (order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
+                .opacity(0.12)
+        )
+        .clipShape(Capsule())
     }
 
     @ViewBuilder
