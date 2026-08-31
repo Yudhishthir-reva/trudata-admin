@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A48B902EB1B8F54BFC6D287B /* Pods_Truedata.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7785127F00603FCCFB69AFE3 /* Pods_Truedata.framework */; };
+		C59C009630457A6700A44298 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C59C009530457A6700A44298 /* GoogleService-Info.plist */; };
 		DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDB6590C303429F8005C1E91 /* Assets.xcassets */; };
-		DDB6599C30342B00005C1E91 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */; };
 		DDB65910303429F8005C1E91 /* LenientDecoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E8303429F8005C1E91 /* LenientDecoding.swift */; };
 		DDB65911303429F8005C1E91 /* NetworkServiceManagable.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */; };
 		DDB65912303429F8005C1E91 /* NetworkServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658EA303429F8005C1E91 /* NetworkServiceManager.swift */; };
@@ -23,7 +23,6 @@
 		DDB6591A303429F8005C1E91 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F5303429F8005C1E91 /* Color+Extension.swift */; };
 		DDB6591B303429F8005C1E91 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F6303429F8005C1E91 /* String+Extension.swift */; };
 		DDB6591C303429F8005C1E91 /* View+NoInternet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F7303429F8005C1E91 /* View+NoInternet.swift */; };
-		DDB6599B30342A99005C1E91 /* View+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599A30342A99005C1E91 /* View+Keyboard.swift */; };
 		DDB6591D303429F8005C1E91 /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658F9303429F8005C1E91 /* HomeScreen.swift */; };
 		DDB6591E303429F8005C1E91 /* AuthHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658FB303429F8005C1E91 /* AuthHeader.swift */; };
 		DDB6591F303429F8005C1E91 /* AuthScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658FC303429F8005C1E91 /* AuthScreen.swift */; };
@@ -42,17 +41,6 @@
 		DDB6593630342A01005C1E91 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593030342A01005C1E91 /* JSONValue.swift */; };
 		DDB6593730342A01005C1E91 /* DashboardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593130342A01005C1E91 /* DashboardModels.swift */; };
 		DDB6593830342A01005C1E91 /* DashboardCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593230342A01005C1E91 /* DashboardCards.swift */; };
-		DDB65B9130342A30005C1E91 /* B2COrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */; };
-		DDB65B9330342A30005C1E91 /* B2COrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */; };
-		DDB65B9530342A30005C1E91 /* B2COrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */; };
-		DDB65B9730342A30005C1E91 /* B2COrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */; };
-		DDB65B9930342A30005C1E91 /* B2COrderDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */; };
-		DDB65B9B30342A30005C1E91 /* B2COrderDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */; };
-		DDB65BA130342A31005C1E91 /* RetailerAppPaymentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */; };
-		DDB65BA330342A31005C1E91 /* RetailerAppPaymentServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */; };
-		DDB65BA530342A31005C1E91 /* RetailerAppPaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */; };
-		DDB65BA730342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */; };
-		DDB65BA930342A31005C1E91 /* RetailerAppPaymentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */; };
 		DDB6593930342A01005C1E91 /* DashboardServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */; };
 		DDB6593A30342A01005C1E91 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593430342A01005C1E91 /* DashboardViewModel.swift */; };
 		DDB6593B30342A01005C1E91 /* HomeAppBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6593530342A01005C1E91 /* HomeAppBar.swift */; };
@@ -93,6 +81,8 @@
 		DDB6599230342A0A005C1E91 /* OrderInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6598E30342A0A005C1E91 /* OrderInsightsScreen.swift */; };
 		DDB6599430342A0B005C1E91 /* OrderInsightsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599330342A0B005C1E91 /* OrderInsightsFilterSheet.swift */; };
 		DDB6599430342A1D005C1E91 /* EditOrderSubmitScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599230342A1D005C1E91 /* EditOrderSubmitScreen.swift */; };
+		DDB6599B30342A99005C1E91 /* View+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599A30342A99005C1E91 /* View+Keyboard.swift */; };
+		DDB6599C30342B00005C1E91 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */; };
 		DDB6599D30342A0C005C1E91 /* StartNewOrderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599530342A0C005C1E91 /* StartNewOrderModels.swift */; };
 		DDB6599E30342A0C005C1E91 /* StartNewOrderServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599630342A0C005C1E91 /* StartNewOrderServiceManager.swift */; };
 		DDB6599F30342A0C005C1E91 /* StartNewOrderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6599730342A0C005C1E91 /* StartNewOrderViewModel.swift */; };
@@ -238,6 +228,17 @@
 		DDB65B3930342A23005C1E91 /* StaffActivitiesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */; };
 		DDB65B3A30342A23005C1E91 /* StaffActivitiesCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */; };
 		DDB65B3B30342A24005C1E91 /* DashboardRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B3C30342A24005C1E91 /* DashboardRole.swift */; };
+		DDB65B9130342A30005C1E91 /* B2COrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */; };
+		DDB65B9330342A30005C1E91 /* B2COrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */; };
+		DDB65B9530342A30005C1E91 /* B2COrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */; };
+		DDB65B9730342A30005C1E91 /* B2COrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */; };
+		DDB65B9930342A30005C1E91 /* B2COrderDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */; };
+		DDB65B9B30342A30005C1E91 /* B2COrderDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */; };
+		DDB65BA130342A31005C1E91 /* RetailerAppPaymentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */; };
+		DDB65BA330342A31005C1E91 /* RetailerAppPaymentServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */; };
+		DDB65BA530342A31005C1E91 /* RetailerAppPaymentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */; };
+		DDB65BA730342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */; };
+		DDB65BA930342A31005C1E91 /* RetailerAppPaymentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */; };
 		DDB65BD030342A24005C1E91 /* VehicleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC030342A24005C1E91 /* VehicleModels.swift */; };
 		DDB65BD130342A24005C1E91 /* VehicleServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */; };
 		DDB65BD230342A24005C1E91 /* ViewVehiclesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */; };
@@ -294,6 +295,7 @@
 /* Begin PBXFileReference section */
 		7785127F00603FCCFB69AFE3 /* Pods_Truedata.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Truedata.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B99F423D9875306D8F875182 /* Pods-Truedata.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Truedata.release.xcconfig"; path = "Target Support Files/Pods-Truedata/Pods-Truedata.release.xcconfig"; sourceTree = "<group>"; };
+		C59C009530457A6700A44298 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C803F2A05C60CEC7F097FFA8 /* Pods-Truedata.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Truedata.debug.xcconfig"; path = "Target Support Files/Pods-Truedata/Pods-Truedata.debug.xcconfig"; sourceTree = "<group>"; };
 		DDB65836303424E4005C1E91 /* Truedata.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Truedata.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDB658E8303429F8005C1E91 /* LenientDecoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LenientDecoding.swift; sourceTree = "<group>"; };
@@ -309,7 +311,6 @@
 		DDB658F5303429F8005C1E91 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		DDB658F6303429F8005C1E91 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
 		DDB658F7303429F8005C1E91 /* View+NoInternet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+NoInternet.swift"; sourceTree = "<group>"; };
-		DDB6599A30342A99005C1E91 /* View+Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Keyboard.swift"; sourceTree = "<group>"; };
 		DDB658F9303429F8005C1E91 /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
 		DDB658FB303429F8005C1E91 /* AuthHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthHeader.swift; sourceTree = "<group>"; };
 		DDB658FC303429F8005C1E91 /* AuthScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreen.swift; sourceTree = "<group>"; };
@@ -326,21 +327,9 @@
 		DDB6590B303429F8005C1E91 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDB6590C303429F8005C1E91 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DDB6590D303429F8005C1E91 /* TruedataApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruedataApp.swift; sourceTree = "<group>"; };
-		DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDB6593030342A01005C1E91 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		DDB6593130342A01005C1E91 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
 		DDB6593230342A01005C1E91 /* DashboardCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCards.swift; sourceTree = "<group>"; };
-		DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersScreen.swift; sourceTree = "<group>"; };
-		DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersModels.swift; sourceTree = "<group>"; };
-		DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersServiceManager.swift; sourceTree = "<group>"; };
-		DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersViewModel.swift; sourceTree = "<group>"; };
-		DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailScreen.swift; sourceTree = "<group>"; };
-		DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailViewModel.swift; sourceTree = "<group>"; };
-		DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentModels.swift; sourceTree = "<group>"; };
-		DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentServiceManager.swift; sourceTree = "<group>"; };
-		DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentViewModel.swift; sourceTree = "<group>"; };
-		DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentFilterSheet.swift; sourceTree = "<group>"; };
-		DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentScreen.swift; sourceTree = "<group>"; };
 		DDB6593330342A01005C1E91 /* DashboardServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardServiceManager.swift; sourceTree = "<group>"; };
 		DDB6593430342A01005C1E91 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		DDB6593530342A01005C1E91 /* HomeAppBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppBar.swift; sourceTree = "<group>"; };
@@ -385,6 +374,8 @@
 		DDB6599630342A0C005C1E91 /* StartNewOrderServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderServiceManager.swift; sourceTree = "<group>"; };
 		DDB6599730342A0C005C1E91 /* StartNewOrderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderViewModel.swift; sourceTree = "<group>"; };
 		DDB6599830342A0C005C1E91 /* StartNewOrderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderScreen.swift; sourceTree = "<group>"; };
+		DDB6599A30342A99005C1E91 /* View+Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Keyboard.swift"; sourceTree = "<group>"; };
+		DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDB659A130342A0D005C1E91 /* RearrangeSellersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RearrangeSellersViewModel.swift; sourceTree = "<group>"; };
 		DDB659A230342A0D005C1E91 /* RearrangeSellersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RearrangeSellersScreen.swift; sourceTree = "<group>"; };
 		DDB659A430342A0E005C1E91 /* StartNewOrderSellerOverviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderSellerOverviewSheet.swift; sourceTree = "<group>"; };
@@ -526,6 +517,17 @@
 		DDB65B3430342A23005C1E91 /* StaffActivitiesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesScreen.swift; sourceTree = "<group>"; };
 		DDB65B3530342A23005C1E91 /* StaffActivitiesCommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffActivitiesCommonViews.swift; sourceTree = "<group>"; };
 		DDB65B3C30342A24005C1E91 /* DashboardRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardRole.swift; sourceTree = "<group>"; };
+		DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersScreen.swift; sourceTree = "<group>"; };
+		DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersModels.swift; sourceTree = "<group>"; };
+		DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersServiceManager.swift; sourceTree = "<group>"; };
+		DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrdersViewModel.swift; sourceTree = "<group>"; };
+		DDB65B9830342A30005C1E91 /* B2COrderDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailScreen.swift; sourceTree = "<group>"; };
+		DDB65B9A30342A30005C1E91 /* B2COrderDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2COrderDetailViewModel.swift; sourceTree = "<group>"; };
+		DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentModels.swift; sourceTree = "<group>"; };
+		DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentServiceManager.swift; sourceTree = "<group>"; };
+		DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentViewModel.swift; sourceTree = "<group>"; };
+		DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentFilterSheet.swift; sourceTree = "<group>"; };
+		DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetailerAppPaymentScreen.swift; sourceTree = "<group>"; };
 		DDB65BC030342A24005C1E91 /* VehicleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels.swift; sourceTree = "<group>"; };
 		DDB65BC130342A24005C1E91 /* VehicleServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleServiceManager.swift; sourceTree = "<group>"; };
 		DDB65BC230342A24005C1E91 /* ViewVehiclesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewVehiclesViewModel.swift; sourceTree = "<group>"; };
@@ -801,6 +803,7 @@
 				DDB6590C303429F8005C1E91 /* Assets.xcassets */,
 				DDB6590D303429F8005C1E91 /* TruedataApp.swift */,
 				DDB6599D30342B00005C1E91 /* LaunchScreen.storyboard */,
+				C59C009530457A6700A44298 /* GoogleService-Info.plist */,
 			);
 			path = Truedata;
 			sourceTree = "<group>";
@@ -1024,18 +1027,6 @@
 			path = ProductCatalogue;
 			sourceTree = "<group>";
 		};
-		DDB65BAA30342A31005C1E91 /* RetailerAppPayment */ = {
-			isa = PBXGroup;
-			children = (
-				DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */,
-				DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */,
-				DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */,
-				DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */,
-				DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */,
-			);
-			path = RetailerAppPayment;
-			sourceTree = "<group>";
-		};
 		DDB65AA030342A20005C1E91 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
@@ -1129,6 +1120,18 @@
 			path = StaffActivities;
 			sourceTree = "<group>";
 		};
+		DDB65BAA30342A31005C1E91 /* RetailerAppPayment */ = {
+			isa = PBXGroup;
+			children = (
+				DDB65BA030342A31005C1E91 /* RetailerAppPaymentModels.swift */,
+				DDB65BA230342A31005C1E91 /* RetailerAppPaymentServiceManager.swift */,
+				DDB65BA430342A31005C1E91 /* RetailerAppPaymentViewModel.swift */,
+				DDB65BA630342A31005C1E91 /* RetailerAppPaymentFilterSheet.swift */,
+				DDB65BA830342A31005C1E91 /* RetailerAppPaymentScreen.swift */,
+			);
+			path = RetailerAppPayment;
+			sourceTree = "<group>";
+		};
 		E3515B339A3AFD3575AADF3C /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -1201,6 +1204,7 @@
 			files = (
 				DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */,
 				DDB6599C30342B00005C1E91 /* LaunchScreen.storyboard in Resources */,
+				C59C009630457A6700A44298 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1669,6 +1673,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TruDataa;
 				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
@@ -1683,11 +1688,11 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphoneos*]" = Light;
 				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphonesimulator*]" = Light;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1696,7 +1701,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.Truedata;
+				PRODUCT_BUNDLE_IDENTIFIER = com.reva.trudataa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1726,6 +1731,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TruDataa;
 				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
@@ -1740,11 +1746,11 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleLightContent;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphoneos*]" = Light;
 				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=iphonesimulator*]" = Light;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1753,7 +1759,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.Truedata;
+				PRODUCT_BUNDLE_IDENTIFIER = com.reva.trudataa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
