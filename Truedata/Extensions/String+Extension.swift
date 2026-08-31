@@ -43,6 +43,13 @@ extension String {
         return false
     }
 
+    func isValidMobileNumber() -> Bool {
+        let trimmed = self.trim
+        let pattern = "^\\d{10}$"
+        let predicate = NSPredicate(format: "SELF MATCHES %@", pattern)
+        return predicate.evaluate(with: trimmed)
+    }
+
     func isValidEmail() -> Bool {
         let trimmed = trim
         guard !trimmed.isEmpty else { return false }

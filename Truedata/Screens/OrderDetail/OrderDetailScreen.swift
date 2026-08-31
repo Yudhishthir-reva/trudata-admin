@@ -464,12 +464,10 @@ struct OrderDetailScreen: View {
                     orderActionButton(
                         title: "Download Invoice",
                         icon: "arrow.down.circle.fill",
-                        color: DashboardTheme.primaryBlue,
-                        isDisabled: order.invoiceLink.isEmptyString
+                        color: DashboardTheme.primaryBlue
                     )
                 }
                 .buttonStyle(.plain)
-                .disabled(order.invoiceLink.isEmptyString)
             }
 
             if order.showsDownloadSettlementReceipt {
@@ -479,12 +477,10 @@ struct OrderDetailScreen: View {
                     orderActionButton(
                         title: "Download Settlement Receipt",
                         icon: "arrow.down.circle.fill",
-                        color: AppTheme.darkMidnightBlue,
-                        isDisabled: order.paymentReceiptLink.isEmptyString
+                        color: AppTheme.darkMidnightBlue
                     )
                 }
                 .buttonStyle(.plain)
-                .disabled(order.paymentReceiptLink.isEmptyString)
             }
 
             if order.showsCancelOrder {

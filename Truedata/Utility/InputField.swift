@@ -66,10 +66,10 @@ struct InputField: View {
             }
             .onChange(of: text) { newValue in
                 var filtered = newValue
-                if isDigitsOnly || keyboardType == .phonePad {
+                if isDigitsOnly || keyboardType == .phonePad || keyboardType == .numberPad {
                     filtered = filtered.filter { $0.isNumber }
                 }
-                let effectiveLimit = characterLimit ?? (keyboardType == .phonePad ? 10 : nil)
+                let effectiveLimit = characterLimit ?? (keyboardType == .phonePad || keyboardType == .numberPad ? 10 : nil)
                 if let effectiveLimit = effectiveLimit, filtered.count > effectiveLimit {
                     filtered = String(filtered.prefix(effectiveLimit))
                 }

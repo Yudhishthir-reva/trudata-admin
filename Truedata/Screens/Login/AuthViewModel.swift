@@ -83,12 +83,21 @@ class AuthViewModel: ObservableObject {
     }
 
     private func validate() -> Bool {
-        if mobile.isEmpty || mobile.count != 10 {
-            mobileError = "Enter a valid 10-digit mobile number"
+        let trimmedMobile = mobile.trim
+        if trimmedMobile.isEmpty {
+            mobileError = "Mobile number cannot be empty"
             return false
         }
-        if password.isEmpty || password.count < 6 {
-            passwordError = "Password is invalid"
+        if trimmedMobile.count != 10 || !trimmedMobile.isValidMobileNumber() {
+            mobileError = "Please enter a valid 10-digit mobile number"
+            return false
+        }
+        if password.isEmpty {
+            passwordError = "Password cannot be empty"
+            return false
+        }
+        if password.count < 6 {
+            passwordError = "Password must be at least 6 characters"
             return false
         }
         return true

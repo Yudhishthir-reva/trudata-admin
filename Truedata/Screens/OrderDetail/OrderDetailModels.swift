@@ -313,11 +313,11 @@ struct OrderDetailData: Decodable {
     }
 
     var showsDownloadInvoice: Bool {
-        canDownloadInvoice
+        canDownloadInvoice && !invoiceLink.isEmptyString
     }
 
     var showsDownloadSettlementReceipt: Bool {
-        canDownloadPaymentReceipt
+        canDownloadPaymentReceipt && !paymentReceiptLink.isEmptyString
     }
 
     var subtotal: Double {

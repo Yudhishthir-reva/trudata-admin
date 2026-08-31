@@ -24,6 +24,7 @@ class UserDefaultManager {
         case assignOrderRiderId
         case assignOrderVehicleId
         case assignOrderBeatIds
+        case fcmToken
     }
 
     func setUserDefaultsString(value: String, key: PersistenceKeys) {
@@ -135,5 +136,10 @@ class UserDefaultManager {
 
     var isLocationTrackingNeeded: Bool {
         getUserDefaultsBool(key: .locationServiceEnabled) && getUserDefaultsBool(key: .isUserWorking)
+    }
+
+    var fcmToken: String {
+        get { getUserDefaultsString(key: .fcmToken) }
+        set { setUserDefaultsString(value: newValue, key: .fcmToken) }
     }
 }
