@@ -17,7 +17,7 @@ enum OperationsScreenType: String, Hashable, CaseIterable {
     var allowedRoutes: Set<String> {
         switch self {
         case .actions:
-            return ["attendance", "regularization_requests", "apply_reimbursements", "view_leaves"]
+            return ["attendance", "mark_attendance", "regularization_requests", "apply_reimbursements", "view_leaves", "leave"]
         case .seller:
             return ["registered_sellers", "view_products"]
         case .activity:
@@ -38,7 +38,7 @@ enum OperationsScreenType: String, Hashable, CaseIterable {
     var routeOrder: [String] {
         switch self {
         case .actions:
-            return ["attendance", "view_leaves", "regularization_requests", "apply_reimbursements"]
+            return ["attendance", "mark_attendance", "view_leaves", "leave", "regularization_requests", "apply_reimbursements"]
         case .seller:
             return ["registered_sellers", "view_products"]
         case .activity:
@@ -67,9 +67,9 @@ struct OperationsCardContent {
 
     static func make(from tile: OperationsTile) -> OperationsCardContent {
         switch tile.route {
-        case "attendance":
+        case "attendance", "mark_attendance":
             return attendanceContent(tile)
-        case "view_leaves":
+        case "view_leaves", "leave":
             return leavesContent(tile)
         case "regularization_requests":
             return regularizeContent(tile)

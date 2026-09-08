@@ -56,6 +56,7 @@ struct OrderDetailData: Decodable {
     var canEditSeller: Bool?
     var canEditOrder: Bool?
     var canCancelOrder: Bool?
+    var canReturn: Bool?
     var showRemarkEditButton: Bool?
     var orderSource: String
     var orderDetails: [OrderDetailProduct]
@@ -97,6 +98,7 @@ struct OrderDetailData: Decodable {
         case canModify = "can_modify"
         case canCancelOrder = "can_cancel_order"
         case canCancel = "can_cancel"
+        case canReturn = "can_return"
         case showRemarkEditButton = "show_remark_edit_button"
         case orderSource = "order_source"
         case orderDetails = "order_details"
@@ -193,6 +195,7 @@ struct OrderDetailData: Decodable {
             ?? container.decodeBoolLeniently(forKey: .canModify)
         canCancelOrder = container.decodeBoolLeniently(forKey: .canCancelOrder)
             ?? container.decodeBoolLeniently(forKey: .canCancel)
+        canReturn = container.decodeBoolLeniently(forKey: .canReturn)
         showRemarkEditButton = container.decodeBoolLeniently(forKey: .showRemarkEditButton)
         orderSource = container.decodeStringLeniently(forKey: .orderSource) ?? ""
         orderDetails = (try? container.decode([OrderDetailProduct].self, forKey: .orderDetails)) ?? []
@@ -241,6 +244,7 @@ struct OrderDetailData: Decodable {
         canEditSeller = nil
         canEditOrder = nil
         canCancelOrder = nil
+        canReturn = nil
         showRemarkEditButton = nil
         orderSource = ""
         orderDetails = []
@@ -312,12 +316,16 @@ struct OrderDetailData: Decodable {
         )
     }
 
+    var showsReturnOrder: Bool {
+        canReturn ?? false
+    }
+
     var showsDownloadInvoice: Bool {
         canDownloadInvoice && !invoiceLink.isEmptyString
     }
 
     var showsDownloadSettlementReceipt: Bool {
-        canDownloadPaymentReceipt && !paymentReceiptLink.isEmptyString
+        (canDownloadPaymentReceipt ?? false) && (!orderNo.isEmptyString || orderId > 0)
     }
 
     var subtotal: Double {

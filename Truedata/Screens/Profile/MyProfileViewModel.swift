@@ -10,6 +10,7 @@ final class MyProfileViewModel: ObservableObject {
 
     @Published var isLoading = false
     @Published var isLoggingOut = false
+    @Published var isDeletingAccount = false
     @Published var errorMessage: String?
     @Published var profile: MyProfileData?
 
@@ -47,6 +48,7 @@ final class MyProfileViewModel: ObservableObject {
 
     func logout() {
         isLoggingOut = true
+        LocationManager.shared.stopShiftTracking()
         service.logout()
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
@@ -57,6 +59,26 @@ final class MyProfileViewModel: ObservableObject {
 
     private func finishLogout() {
         isLoggingOut = false
+        LocationManager.shared.stopShiftTracking()
+        HomePrefetchManager.shared.reset()
+        UserDefaultManager.shared.resetUserData()
+        AppRootManager.shared.switchToAuth()
+    }
+
+    func deleteAccount() {
+        isDeletingAccount = true
+        LocationManager.shared.stopShiftTracking()
+        service.logout()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.finishAccountDeletion()
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+
+    private func finishAccountDeletion() {
+        isDeletingAccount = false
+        LocationManager.shared.stopShiftTracking()
         HomePrefetchManager.shared.reset()
         UserDefaultManager.shared.resetUserData()
         AppRootManager.shared.switchToAuth()

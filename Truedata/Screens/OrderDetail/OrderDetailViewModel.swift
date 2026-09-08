@@ -55,6 +55,8 @@ final class OrderDetailViewModel: ObservableObject {
     }
 
     @Published var isCancelling = false
+    @Published var isDownloadingSettlement = false
+    @Published var settlementShareURL: URL?
 
     func cancelOrder(onComplete: @escaping (Bool, String) -> Void) {
         guard !orderId.isEmptyString else {
@@ -81,6 +83,39 @@ final class OrderDetailViewModel: ObservableObject {
                     onComplete(true, response.message.isEmptyString ? "Order cancelled successfully." : response.message)
                 } else {
                     onComplete(false, response.message.isEmptyString ? "Failed to cancel order." : response.message)
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func downloadSettlementReceipt(for order: OrderDetailData, onComplete: @escaping (String) -> Void) {
+        let resolvedOrderId = order.orderNo.isEmptyString ? String(order.orderId) : order.orderNo
+        guard !resolvedOrderId.isEmptyString else {
+            onComplete("Settlement receipt is not available.")
+            return
+        }
+
+        isDownloadingSettlement = true
+        settlementShareURL = nil
+
+        service.downloadSettlementReceipt(orderId: resolvedOrderId)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.isDownloadingSettlement = false
+                if case .failure(let error) = completion {
+                    onComplete((error as? RequestError)?.errorString ?? error.localizedDescription)
+                }
+            } receiveValue: { [weak self] data in
+                guard let self else { return }
+                self.isDownloadingSettlement = false
+                let fileName = "Settlement_\(resolvedOrderId)_\(Int(Date().timeIntervalSince1970)).pdf"
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+                do {
+                    try data.write(to: url, options: .atomic)
+                    self.settlementShareURL = url
+                } catch {
+                    onComplete("Unable to prepare settlement receipt for sharing.")
                 }
             }
             .store(in: &cancellables)

@@ -14,6 +14,7 @@ struct TruedataApp: App {
     var body: some Scene {
         WindowGroup {
             RootContainerView()
+                .dynamicTypeSize(.large)
                 .handleNoInternet()
                 .preferredColorScheme(.light)
         }

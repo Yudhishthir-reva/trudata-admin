@@ -16,7 +16,7 @@ struct ControlsScreen: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(hex: "DEE6F8"), Color(hex: "E7EBEF")],
+                colors: [AppTheme.brandBackgroundTop, AppTheme.brandBackgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )

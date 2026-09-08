@@ -73,6 +73,8 @@ class DashboardViewModel: ObservableObject {
         var operations = ["Actions", "Seller", "Activity"]
         if DashboardRole.canShowControlsOperation(role: role) {
             operations.append("Controls")
+            // Settling cheques is a back-office job — same roles as Controls (Android).
+            operations.append("Pending Cheques")
         }
         return operations
     }
@@ -94,7 +96,6 @@ class DashboardViewModel: ObservableObject {
 
         let today = DashboardDateFormat.todayString
         service.loadHome(
-            deviceId: DeviceInfo.current().deviceId,
             startDate: startDate.isEmptyString ? today : startDate,
             endDate: endDate.isEmptyString ? today : endDate
         )
@@ -146,6 +147,8 @@ class DashboardViewModel: ObservableObject {
 
     private func finishLogout() {
         isLoggingOut = false
+        LocationManager.shared.stopShiftTracking()
+        ConnectivityAlertManager.shared.stop()
         HomePrefetchManager.shared.reset()
         UserDefaultManager.shared.resetUserData()
         AppRootManager.shared.switchToAuth()

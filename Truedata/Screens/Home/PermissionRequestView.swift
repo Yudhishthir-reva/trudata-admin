@@ -25,41 +25,42 @@ struct PermissionRequestView: View {
 
                     Text("Permissions Required")
                         .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(Color(hex: "225EC2"))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
                         .multilineTextAlignment(.center)
 
                     Text(isLocationPermanentlyDenied
-                         ? "Please enable permissions from device settings."
-                         : "Grant permissions for attendance tracking.")
-                        .font(.system(size: 15))
+                         ? "Please enable permissions from device settings to use TruDataa."
+                         : "TruDataa needs location and notification permissions to track your daily attendance and verify client shop visits.")
+                        .font(.system(size: 14))
                         .foregroundStyle(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, 8)
+                        .padding(.horizontal, 4)
 
                     VStack(spacing: 12) {
                         PermissionRow(
                             systemImage: "location.fill",
                             title: "Location Access",
-                            subtitle: "Required for attendance tracking",
+                            subtitle: "Select 'Always Allow' to track field shift routes and calculate travel allowance.",
                             isRequired: true,
-                            tint: isLocationPermanentlyDenied ? AppTheme.errorRed : Color(hex: "EAB308")
+                            tint: isLocationPermanentlyDenied ? AppTheme.errorRed : DashboardTheme.primaryBlue
                         )
 
                         if showNotificationPermission {
                             PermissionRow(
                                 systemImage: "bell.fill",
-                                title: "Notifications",
-                                subtitle: "For attendance alerts",
+                                title: "Push Notifications",
+                                subtitle: "Receive instant updates for order approvals and shift alerts.",
                                 isRequired: false,
-                                tint: AppTheme.textMuted
+                                tint: Color(hex: "7C3AED")
                             )
                         }
 
                         if showLocationServicesDisabled {
                             PermissionRow(
                                 systemImage: "location.slash.fill",
-                                title: "GPS",
-                                subtitle: "For location tracking",
+                                title: "GPS Service Disabled",
+                                subtitle: "Turn on Device Location Services in Settings.",
                                 isRequired: true,
                                 tint: Color(hex: "EAB308")
                             )
@@ -104,7 +105,7 @@ struct PermissionRequestView: View {
             PermissionActionButton(title: "Enable GPS", color: Color(hex: "EAB308"), action: onEnableLocationServices)
         } else {
             let title = showNotificationPermission ? "Grant Permissions" : "Grant Permission"
-            PermissionActionButton(title: title, color: Color(hex: "225EC2"), action: onGrantPermission)
+            PermissionActionButton(title: title, color: DashboardTheme.primaryBlue, action: onGrantPermission)
         }
     }
 
@@ -118,12 +119,12 @@ struct PermissionRequestView: View {
             }
 
             Circle()
-                .fill(Color(hex: "225EC2").opacity(0.1))
+                .fill(DashboardTheme.primaryBlue.opacity(0.1))
                 .frame(width: 50, height: 50)
                 .overlay {
                     Image(systemName: "location.fill")
                         .font(.system(size: 22))
-                        .foregroundStyle(Color(hex: "225EC2"))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
                 }
 
             if showLocationServicesDisabled {

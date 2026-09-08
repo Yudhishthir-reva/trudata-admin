@@ -22,6 +22,11 @@ enum DashboardRole {
         ["admin", "sales manager", "accountant"].contains(normalized(role))
     }
 
+    /// Pending Cheques queue — same roles as Controls (Android `PENDING_CHEQUES_OPERATION`).
+    static func canShowPendingChequesOperation(role: String) -> Bool {
+        canShowControlsOperation(role: role)
+    }
+
     /// Admin + Sales Manager can edit state/city while selecting beat.
     static func canEditStateAndCity(role: String) -> Bool {
         let value = normalized(role)

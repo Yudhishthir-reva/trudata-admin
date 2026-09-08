@@ -24,6 +24,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         IQKeyboardToolbarManager.shared.isEnabled = true
 
         registerForPushNotifications()
+        fetchFCMToken()
+        ConnectivityAlertManager.shared.registerBackgroundTasks()
+        ConnectivityAlertManager.shared.start()
         NetworkMonitor.shared.start()
 
         DispatchQueue.main.async {
@@ -39,6 +42,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         for window in UIApplication.shared.connectedWindows {
             window.overrideUserInterfaceStyle = .light
             window.enableTapToDismissKeyboard()
+        }
+        ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
+        if UserDefaultManager.shared.isUserLoggedIn {
+            LocationManager.shared.syncTrackingState()
+        }
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        ConnectivityAlertManager.shared.scheduleBackgroundChecks()
+        if UserDefaultManager.shared.isUserLoggedIn {
+            LocationManager.shared.syncTrackingState()
         }
     }
 
@@ -73,6 +87,30 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #if DEBUG
         print("Failed to register for remote notifications: \(error.localizedDescription)")
         #endif
+    }
+
+    private func fetchFCMToken() {
+        Messaging.messaging().token { token, error in
+            #if DEBUG
+            if let error {
+                print("Failed to fetch FCM token: \(error.localizedDescription)")
+            }
+            #endif
+            guard let token, !token.isEmpty else { return }
+            DispatchQueue.main.async {
+                self.storeFCMTokenIfNeeded(token)
+            }
+        }
+    }
+
+    private func storeFCMTokenIfNeeded(_ token: String) {
+        guard UserDefaultManager.shared.fcmToken != token else { return }
+        UserDefaultManager.shared.fcmToken = token
+        NotificationCenter.default.post(
+            name: .fcmTokenUpdated,
+            object: nil,
+            userInfo: ["token": token]
+        )
     }
 }
 
@@ -117,14 +155,12 @@ extension AppDelegate: MessagingDelegate {
         print("Firebase registration token (FCM): \(fcmToken)")
         #endif
 
-        // Store FCM Token locally
-        UserDefaultManager.shared.fcmToken = fcmToken
-
-        let dataDict: [String: String] = ["token": fcmToken]
-        NotificationCenter.default.post(
-            name: Notification.Name("FCMToken"),
-            object: nil,
-            userInfo: dataDict
-        )
+        DispatchQueue.main.async {
+            self.storeFCMTokenIfNeeded(fcmToken)
+        }
     }
+}
+
+extension Notification.Name {
+    static let fcmTokenUpdated = Notification.Name("FCMToken")
 }

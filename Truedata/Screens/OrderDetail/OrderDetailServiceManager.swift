@@ -192,6 +192,181 @@ class OrderDetailServiceManager {
         let params: [String: Any] = ["order_id": orderId]
         return networkService.request(APIRouter.cancelOrder, params: params, headers: authHeaders)
     }
+
+    func downloadSettlementReceipt(orderId: String) -> AnyPublisher<Data, Error> {
+        downloadPDF(
+            router: .paymentReceipt,
+            params: ["order_id": orderId]
+        )
+    }
+
+    private func downloadPDF(
+        router: APIRouter,
+        params: [String: Any]
+    ) -> AnyPublisher<Data, Error> {
+        Future { promise in
+            guard NetworkMonitor.shared.isConnected else {
+                promise(.failure(RequestError.noInternet))
+                return
+            }
+
+            guard let url = URL(string: router.urlString) else {
+                promise(.failure(RequestError.invalidURL))
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = router.requestType.rawValue
+            request.httpBody = Self.urlEncodedBody(from: params)
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/pdf", forHTTPHeaderField: "Accept")
+            self.authHeaders.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                if let error {
+                    promise(.failure(error))
+                    return
+                }
+
+                guard let data, !data.isEmpty else {
+                    promise(.failure(RequestError.unknownError))
+                    return
+                }
+
+                if let pdfData = Self.pdfData(from: data) {
+                    promise(.success(pdfData))
+                    return
+                }
+
+                if let message = Self.errorMessage(from: data) {
+                    promise(.failure(RequestError.apiMessage(message)))
+                    return
+                }
+
+                promise(.failure(RequestError.unknownError))
+            }.resume()
+        }
+        .eraseToAnyPublisher()
+    }
+
+    private static func pdfData(from data: Data) -> Data? {
+        if isPDFData(data) { return data }
+
+        guard let string = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !string.isEmptyString else {
+            return nil
+        }
+
+        if let hexData = dataFromHexString(string), isPDFData(hexData) {
+            return hexData
+        }
+
+        return nil
+    }
+
+    private static func isPDFData(_ data: Data) -> Bool {
+        guard data.count >= 4 else { return false }
+        return data[0] == 0x25 && data[1] == 0x50 && data[2] == 0x44 && data[3] == 0x46
+    }
+
+    private static func dataFromHexString(_ hex: String) -> Data? {
+        let cleaned = hex
+            .replacingOccurrences(of: "0x", with: "")
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "\n", with: "")
+        guard cleaned.count.isMultiple(of: 2) else { return nil }
+
+        var data = Data(capacity: cleaned.count / 2)
+        var index = cleaned.startIndex
+        while index < cleaned.endIndex {
+            let nextIndex = cleaned.index(index, offsetBy: 2)
+            guard nextIndex <= cleaned.endIndex else { return nil }
+            let byteString = cleaned[index..<nextIndex]
+            guard let byte = UInt8(byteString, radix: 16) else { return nil }
+            data.append(byte)
+            index = nextIndex
+        }
+        return data
+    }
+
+    private static func errorMessage(from data: Data) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        if let message = json["message"] as? String, !message.isEmpty {
+            return message
+        }
+        if let messages = json["message"] as? [String], let first = messages.first, !first.isEmpty {
+            return first
+        }
+        return nil
+    }
+
+    private static func urlEncodedBody(from params: [String: Any]) -> Data {
+        let allowed = CharacterSet.alphanumerics.union(.init(charactersIn: "-._~"))
+        let pairs = params.map { key, value -> String in
+            let encodedKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
+            let encodedValue = String(describing: value).addingPercentEncoding(withAllowedCharacters: allowed)
+                ?? String(describing: value)
+            return "\(encodedKey)=\(encodedValue)"
+        }.sorted()
+        return Data(pairs.joined(separator: "&").utf8)
+    }
+
+    func submitFullReturn(
+        orderId: String,
+        latitude: String,
+        longitude: String,
+        remark: String
+    ) -> AnyPublisher<StatusMessageResponse, Error> {
+        networkService.request(
+            APIRouter.orderReturnFull,
+            params: returnOrderBaseParams(
+                orderId: orderId,
+                latitude: latitude,
+                longitude: longitude,
+                remark: remark
+            ),
+            headers: authHeaders
+        )
+    }
+
+    func submitPartialReturn(
+        orderId: String,
+        latitude: String,
+        longitude: String,
+        remark: String,
+        items: [(orderItemId: Int, quantity: Int)]
+    ) -> AnyPublisher<StatusMessageResponse, Error> {
+        var params = returnOrderBaseParams(
+            orderId: orderId,
+            latitude: latitude,
+            longitude: longitude,
+            remark: remark
+        )
+        for (index, item) in items.enumerated() {
+            params["order_items_id[\(index)]"] = String(item.orderItemId)
+            params["order_items_id_qty[\(index)]"] = String(item.quantity)
+        }
+        return networkService.request(APIRouter.orderReturnPartial, params: params, headers: authHeaders)
+    }
+
+    private func returnOrderBaseParams(
+        orderId: String,
+        latitude: String,
+        longitude: String,
+        remark: String
+    ) -> [String: Any] {
+        let staffId = UserDefaultManager.shared.getUserDefaultsString(key: .userId)
+        return [
+            "order_id": orderId,
+            "staff_id": staffId,
+            "lat": latitude,
+            "lng": longitude,
+            "remark": remark
+        ]
+    }
 }
 
 private extension Double {

@@ -131,6 +131,9 @@
 		DDB659FC30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FD30342A1A005C1E91 /* PaymentInsightsFilterSheet.swift */; };
 		DDB659FE30342A1A005C1E91 /* PaymentInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */; };
 		DDB65A0130342A1E005C1E91 /* AudioRemarkRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */; };
+		DDB65A0130342B01005C1E91 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0230342B01005C1E91 /* LocationManager.swift */; };
+		DDB65A0430342B02005C1E91 /* LocationUploadServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0530342B02005C1E91 /* LocationUploadServiceManager.swift */; };
+		DDB65A0630342B02005C1E91 /* ConnectivityAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0730342B02005C1E91 /* ConnectivityAlertManager.swift */; };
 		DDB65A0630342A1B005C1E91 /* CriticalInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0230342A1B005C1E91 /* CriticalInsightsModels.swift */; };
 		DDB65A0730342A1B005C1E91 /* CriticalInsightsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0330342A1B005C1E91 /* CriticalInsightsServiceManager.swift */; };
 		DDB65A0830342A1B005C1E91 /* CriticalInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */; };
@@ -251,6 +254,16 @@
 		DDB65BE730342A25005C1E91 /* ViewBeatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BE230342A25005C1E91 /* ViewBeatsViewModel.swift */; };
 		DDB65BE830342A25005C1E91 /* BeatCommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BE330342A25005C1E91 /* BeatCommonViews.swift */; };
 		DDB65BE930342A25005C1E91 /* ViewBeatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BE430342A25005C1E91 /* ViewBeatsScreen.swift */; };
+		DDB65C6330342A40005C1E91 /* PartialReturnOrderScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6730342A40005C1E91 /* PartialReturnOrderScreen.swift */; };
+		DDB65C6230342A40005C1E91 /* FullReturnOrderScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6630342A40005C1E91 /* FullReturnOrderScreen.swift */; };
+		DDB65C6130342A40005C1E91 /* OrderReturnViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6530342A40005C1E91 /* OrderReturnViewModel.swift */; };
+		DDB65C6030342A40005C1E91 /* OrderReturnModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C6430342A40005C1E91 /* OrderReturnModels.swift */; };
+		DDB65D0130342A50005C1E91 /* ChequeSettlementModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0730342A50005C1E91 /* ChequeSettlementModels.swift */; };
+		DDB65D0230342A50005C1E91 /* ChequeSettlementServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0830342A50005C1E91 /* ChequeSettlementServiceManager.swift */; };
+		DDB65D0330342A50005C1E91 /* PendingSettleChequeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0930342A50005C1E91 /* PendingSettleChequeViewModel.swift */; };
+		DDB65D0430342A50005C1E91 /* PendingSettleChequeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0A30342A50005C1E91 /* PendingSettleChequeScreen.swift */; };
+		DDB65D0530342A50005C1E91 /* ChequeSettlementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0B30342A50005C1E91 /* ChequeSettlementViewModel.swift */; };
+		DDB65D0630342A50005C1E91 /* ChequeSettlementScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D0C30342A50005C1E91 /* ChequeSettlementScreen.swift */; };
 		DDB65C0130342A26005C1E91 /* TargetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BF030342A26005C1E91 /* TargetModels.swift */; };
 		DDB65C0230342A26005C1E91 /* TargetServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BF130342A26005C1E91 /* TargetServiceManager.swift */; };
 		DDB65C0330342A26005C1E91 /* ViewTargetsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65BF230342A26005C1E91 /* ViewTargetsViewModel.swift */; };
@@ -278,6 +291,14 @@
 		DDB65C4130342A2A005C1E91 /* ExpenseServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */; };
 		DDB65C4230342A2A005C1E91 /* ExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */; };
 		DDB65C4330342A2A005C1E91 /* ExpenseListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */; };
+		DDB65C4A30342A2B005C1E91 /* LeaveApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4B30342A2B005C1E91 /* LeaveApprovalModels.swift */; };
+		DDB65C4C30342A2B005C1E91 /* LeaveApprovalServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4D30342A2B005C1E91 /* LeaveApprovalServiceManager.swift */; };
+		DDB65C4E30342A2B005C1E91 /* LeaveApprovalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4F30342A2B005C1E91 /* LeaveApprovalViewModel.swift */; };
+		DDB65C5030342A2B005C1E91 /* LeaveApprovalScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C5130342A2B005C1E91 /* LeaveApprovalScreen.swift */; };
+		DDB65C5430342A2C005C1E91 /* RegularizeApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C5530342A2C005C1E91 /* RegularizeApprovalModels.swift */; };
+		DDB65C5630342A2C005C1E91 /* RegularizeApprovalServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C5730342A2C005C1E91 /* RegularizeApprovalServiceManager.swift */; };
+		DDB65C5830342A2C005C1E91 /* RegularizeApprovalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C5930342A2C005C1E91 /* RegularizeApprovalViewModel.swift */; };
+		DDB65C5A30342A2C005C1E91 /* RegularizeApprovalScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C5B30342A2C005C1E91 /* RegularizeApprovalScreen.swift */; };
 		DDB65C4430342A2A005C1E91 /* AddExpenseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */; };
 		DDB65C4530342A2A005C1E91 /* AddExpenseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */; };
 		DDB65C4830342A2B005C1E91 /* StaffReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */; };
@@ -295,6 +316,8 @@
 /* Begin PBXFileReference section */
 		7785127F00603FCCFB69AFE3 /* Pods_Truedata.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Truedata.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B99F423D9875306D8F875182 /* Pods-Truedata.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Truedata.release.xcconfig"; path = "Target Support Files/Pods-Truedata/Pods-Truedata.release.xcconfig"; sourceTree = "<group>"; };
+		C575B4AD3046B13F003E83D7 /* Truedata.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Truedata.entitlements; sourceTree = "<group>"; };
+		C575B4AE3046B145003E83D7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C59C009530457A6700A44298 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C803F2A05C60CEC7F097FFA8 /* Pods-Truedata.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Truedata.debug.xcconfig"; path = "Target Support Files/Pods-Truedata/Pods-Truedata.debug.xcconfig"; sourceTree = "<group>"; };
 		DDB65836303424E4005C1E91 /* Truedata.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Truedata.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -369,6 +392,16 @@
 		DDB6598E30342A1B005C1E91 /* EditOrderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOrderSheet.swift; sourceTree = "<group>"; };
 		DDB6599130342A1C005C1E91 /* EditOrderChooseBrandScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOrderChooseBrandScreen.swift; sourceTree = "<group>"; };
 		DDB6599230342A1D005C1E91 /* EditOrderSubmitScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOrderSubmitScreen.swift; sourceTree = "<group>"; };
+		DDB65C6430342A40005C1E91 /* OrderReturnModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderReturnModels.swift; sourceTree = "<group>"; };
+		DDB65D0730342A50005C1E91 /* ChequeSettlementModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChequeSettlementModels.swift; sourceTree = "<group>"; };
+		DDB65D0830342A50005C1E91 /* ChequeSettlementServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChequeSettlementServiceManager.swift; sourceTree = "<group>"; };
+		DDB65D0930342A50005C1E91 /* PendingSettleChequeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingSettleChequeViewModel.swift; sourceTree = "<group>"; };
+		DDB65D0A30342A50005C1E91 /* PendingSettleChequeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingSettleChequeScreen.swift; sourceTree = "<group>"; };
+		DDB65D0B30342A50005C1E91 /* ChequeSettlementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChequeSettlementViewModel.swift; sourceTree = "<group>"; };
+		DDB65D0C30342A50005C1E91 /* ChequeSettlementScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChequeSettlementScreen.swift; sourceTree = "<group>"; };
+		DDB65C6530342A40005C1E91 /* OrderReturnViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderReturnViewModel.swift; sourceTree = "<group>"; };
+		DDB65C6630342A40005C1E91 /* FullReturnOrderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullReturnOrderScreen.swift; sourceTree = "<group>"; };
+		DDB65C6730342A40005C1E91 /* PartialReturnOrderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartialReturnOrderScreen.swift; sourceTree = "<group>"; };
 		DDB6599330342A0B005C1E91 /* OrderInsightsFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderInsightsFilterSheet.swift; sourceTree = "<group>"; };
 		DDB6599530342A0C005C1E91 /* StartNewOrderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderModels.swift; sourceTree = "<group>"; };
 		DDB6599630342A0C005C1E91 /* StartNewOrderServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewOrderServiceManager.swift; sourceTree = "<group>"; };
@@ -421,6 +454,9 @@
 		DDB659FF30342A1A005C1E91 /* PaymentInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentInsightsScreen.swift; sourceTree = "<group>"; };
 		DDB65A0030342A1E005C1E91 /* AudioRemarkRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRemarkRecorder.swift; sourceTree = "<group>"; };
 		DDB65A0230342A1B005C1E91 /* CriticalInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsModels.swift; sourceTree = "<group>"; };
+		DDB65A0230342B01005C1E91 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		DDB65A0530342B02005C1E91 /* LocationUploadServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationUploadServiceManager.swift; sourceTree = "<group>"; };
+		DDB65A0730342B02005C1E91 /* ConnectivityAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityAlertManager.swift; sourceTree = "<group>"; };
 		DDB65A0330342A1B005C1E91 /* CriticalInsightsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsViewModel.swift; sourceTree = "<group>"; };
 		DDB65A0530342A1B005C1E91 /* CriticalInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsScreen.swift; sourceTree = "<group>"; };
@@ -567,6 +603,14 @@
 		DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseServiceManager.swift; sourceTree = "<group>"; };
 		DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViewModel.swift; sourceTree = "<group>"; };
 		DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseListScreen.swift; sourceTree = "<group>"; };
+		DDB65C4B30342A2B005C1E91 /* LeaveApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveApprovalModels.swift; sourceTree = "<group>"; };
+		DDB65C4D30342A2B005C1E91 /* LeaveApprovalServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveApprovalServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C4F30342A2B005C1E91 /* LeaveApprovalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveApprovalViewModel.swift; sourceTree = "<group>"; };
+		DDB65C5130342A2B005C1E91 /* LeaveApprovalScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveApprovalScreen.swift; sourceTree = "<group>"; };
+		DDB65C5530342A2C005C1E91 /* RegularizeApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizeApprovalModels.swift; sourceTree = "<group>"; };
+		DDB65C5730342A2C005C1E91 /* RegularizeApprovalServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizeApprovalServiceManager.swift; sourceTree = "<group>"; };
+		DDB65C5930342A2C005C1E91 /* RegularizeApprovalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizeApprovalViewModel.swift; sourceTree = "<group>"; };
+		DDB65C5B30342A2C005C1E91 /* RegularizeApprovalScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularizeApprovalScreen.swift; sourceTree = "<group>"; };
 		DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseViewModel.swift; sourceTree = "<group>"; };
 		DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseScreen.swift; sourceTree = "<group>"; };
 		DDB65C4630342A2B005C1E91 /* StaffReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffReportViewModel.swift; sourceTree = "<group>"; };
@@ -649,6 +693,9 @@
 				DDB658F1303429F8005C1E91 /* DeviceInfo.swift */,
 				DDB658F2303429F8005C1E91 /* NetworkMonitor.swift */,
 				DDB658F3303429F8005C1E91 /* UserDefaultManager.swift */,
+				DDB65A0230342B01005C1E91 /* LocationManager.swift */,
+				DDB65A0530342B02005C1E91 /* LocationUploadServiceManager.swift */,
+				DDB65A0730342B02005C1E91 /* ConnectivityAlertManager.swift */,
 				DDB6593D30342A02005C1E91 /* PermissionManager.swift */,
 			);
 			path = Core;
@@ -766,6 +813,7 @@
 				DDB65A5F30342A1E005C1E91 /* Attendance */,
 				DDB6597830342A08005C1E91 /* OrderDetail */,
 				DDB659B330342A0F005C1E91 /* SellerProfile */,
+				DDB65D0D30342A50005C1E91 /* ChequeSettlement */,
 				DDB659CC30342A13005C1E91 /* CreateOrder */,
 				DDB658FF303429F8005C1E91 /* Login */,
 				DDB65901303429F8005C1E91 /* Splash */,
@@ -795,6 +843,8 @@
 		DDB6590E303429F8005C1E91 /* Truedata */ = {
 			isa = PBXGroup;
 			children = (
+				C575B4AE3046B145003E83D7 /* Info.plist */,
+				C575B4AD3046B13F003E83D7 /* Truedata.entitlements */,
 				DDB658F4303429F8005C1E91 /* Core */,
 				DDB658F8303429F8005C1E91 /* Extensions */,
 				DDB65902303429F8005C1E91 /* Screens */,
@@ -859,6 +909,10 @@
 				DDB6598E30342A1B005C1E91 /* EditOrderSheet.swift */,
 				DDB6599130342A1C005C1E91 /* EditOrderChooseBrandScreen.swift */,
 				DDB6599230342A1D005C1E91 /* EditOrderSubmitScreen.swift */,
+				DDB65C6430342A40005C1E91 /* OrderReturnModels.swift */,
+				DDB65C6530342A40005C1E91 /* OrderReturnViewModel.swift */,
+				DDB65C6630342A40005C1E91 /* FullReturnOrderScreen.swift */,
+				DDB65C6730342A40005C1E91 /* PartialReturnOrderScreen.swift */,
 			);
 			path = OrderDetail;
 			sourceTree = "<group>";
@@ -880,6 +934,19 @@
 				DDB659BD30342A12005C1E91 /* BillSettlementScreen.swift */,
 			);
 			path = SellerProfile;
+			sourceTree = "<group>";
+		};
+		DDB65D0D30342A50005C1E91 /* ChequeSettlement */ = {
+			isa = PBXGroup;
+			children = (
+				DDB65D0730342A50005C1E91 /* ChequeSettlementModels.swift */,
+				DDB65D0830342A50005C1E91 /* ChequeSettlementServiceManager.swift */,
+				DDB65D0930342A50005C1E91 /* PendingSettleChequeViewModel.swift */,
+				DDB65D0A30342A50005C1E91 /* PendingSettleChequeScreen.swift */,
+				DDB65D0B30342A50005C1E91 /* ChequeSettlementViewModel.swift */,
+				DDB65D0C30342A50005C1E91 /* ChequeSettlementScreen.swift */,
+			);
+			path = ChequeSettlement;
 			sourceTree = "<group>";
 		};
 		DDB659CC30342A13005C1E91 /* CreateOrder */ = {
@@ -1010,6 +1077,14 @@
 				DDB65C3630342A2A005C1E91 /* ExpenseServiceManager.swift */,
 				DDB65C3730342A2A005C1E91 /* ExpenseViewModel.swift */,
 				DDB65C3830342A2A005C1E91 /* ExpenseListScreen.swift */,
+				DDB65C4B30342A2B005C1E91 /* LeaveApprovalModels.swift */,
+				DDB65C4D30342A2B005C1E91 /* LeaveApprovalServiceManager.swift */,
+				DDB65C4F30342A2B005C1E91 /* LeaveApprovalViewModel.swift */,
+				DDB65C5130342A2B005C1E91 /* LeaveApprovalScreen.swift */,
+				DDB65C5530342A2C005C1E91 /* RegularizeApprovalModels.swift */,
+				DDB65C5730342A2C005C1E91 /* RegularizeApprovalServiceManager.swift */,
+				DDB65C5930342A2C005C1E91 /* RegularizeApprovalViewModel.swift */,
+				DDB65C5B30342A2C005C1E91 /* RegularizeApprovalScreen.swift */,
 				DDB65C3930342A2A005C1E91 /* AddExpenseViewModel.swift */,
 				DDB65C3A30342A2A005C1E91 /* AddExpenseScreen.swift */,
 			);
@@ -1241,9 +1316,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1304,6 +1383,9 @@
 				DDB6593A30342A01005C1E91 /* DashboardViewModel.swift in Sources */,
 				DDB65B3B30342A24005C1E91 /* DashboardRole.swift in Sources */,
 				DDB6593B30342A01005C1E91 /* HomeAppBar.swift in Sources */,
+				DDB65A0130342B01005C1E91 /* LocationManager.swift in Sources */,
+				DDB65A0430342B02005C1E91 /* LocationUploadServiceManager.swift in Sources */,
+				DDB65A0630342B02005C1E91 /* ConnectivityAlertManager.swift in Sources */,
 				DDB6593C30342A02005C1E91 /* PermissionManager.swift in Sources */,
 				DDB6593E30342A02005C1E91 /* PermissionRequestView.swift in Sources */,
 				DDB6594030342A03005C1E91 /* DashboardCardStyles.swift in Sources */,
@@ -1434,6 +1516,14 @@
 				DDB65C4130342A2A005C1E91 /* ExpenseServiceManager.swift in Sources */,
 				DDB65C4230342A2A005C1E91 /* ExpenseViewModel.swift in Sources */,
 				DDB65C4330342A2A005C1E91 /* ExpenseListScreen.swift in Sources */,
+				DDB65C4A30342A2B005C1E91 /* LeaveApprovalModels.swift in Sources */,
+				DDB65C4C30342A2B005C1E91 /* LeaveApprovalServiceManager.swift in Sources */,
+				DDB65C4E30342A2B005C1E91 /* LeaveApprovalViewModel.swift in Sources */,
+				DDB65C5030342A2B005C1E91 /* LeaveApprovalScreen.swift in Sources */,
+				DDB65C5430342A2C005C1E91 /* RegularizeApprovalModels.swift in Sources */,
+				DDB65C5630342A2C005C1E91 /* RegularizeApprovalServiceManager.swift in Sources */,
+				DDB65C5830342A2C005C1E91 /* RegularizeApprovalViewModel.swift in Sources */,
+				DDB65C5A30342A2C005C1E91 /* RegularizeApprovalScreen.swift in Sources */,
 				DDB65C4430342A2A005C1E91 /* AddExpenseViewModel.swift in Sources */,
 				DDB65C4530342A2A005C1E91 /* AddExpenseScreen.swift in Sources */,
 				DDB6596730342A07005C1E91 /* ViewPendingBillsModels.swift in Sources */,
@@ -1451,6 +1541,16 @@
 				DDB6598D30342A1B005C1E91 /* EditOrderSheet.swift in Sources */,
 				DDB6599030342A1C005C1E91 /* EditOrderChooseBrandScreen.swift in Sources */,
 				DDB6599430342A1D005C1E91 /* EditOrderSubmitScreen.swift in Sources */,
+				DDB65C6030342A40005C1E91 /* OrderReturnModels.swift in Sources */,
+				DDB65D0130342A50005C1E91 /* ChequeSettlementModels.swift in Sources */,
+				DDB65D0230342A50005C1E91 /* ChequeSettlementServiceManager.swift in Sources */,
+				DDB65D0330342A50005C1E91 /* PendingSettleChequeViewModel.swift in Sources */,
+				DDB65D0430342A50005C1E91 /* PendingSettleChequeScreen.swift in Sources */,
+				DDB65D0530342A50005C1E91 /* ChequeSettlementViewModel.swift in Sources */,
+				DDB65D0630342A50005C1E91 /* ChequeSettlementScreen.swift in Sources */,
+				DDB65C6130342A40005C1E91 /* OrderReturnViewModel.swift in Sources */,
+				DDB65C6230342A40005C1E91 /* FullReturnOrderScreen.swift in Sources */,
+				DDB65C6330342A40005C1E91 /* PartialReturnOrderScreen.swift in Sources */,
 				DDB6597930342A09005C1E91 /* DashboardDatePicker.swift in Sources */,
 				DDB6598F30342A0A005C1E91 /* OrderInsightsModels.swift in Sources */,
 				DDB6599030342A0A005C1E91 /* OrderInsightsServiceManager.swift in Sources */,
@@ -1662,6 +1762,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TP9YK56DA7;
@@ -1669,15 +1770,20 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Truedata/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TruDataa;
-				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TruDataa needs microphone access to record voice remarks on orders.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa requires camera access to capture shop visit verification photos and scan payment cheques/receipts.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa requires continuous location access in the background during active work shifts to track field attendance and calculate travel allowance.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "TruDataa requires background location access during your work hours to track sales routes and shop visits accurately.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa requires your location while using the app to record attendance, verify client shop visits, and plot field sales routes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TruDataa requires microphone access to record voice notes and search products by voice.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "TruDataa requires access to your photo library to select and upload payment receipts and business documents.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "TruDataa requires speech recognition to transcribe voice input for quick product search and order remarks.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "fetch location processing remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphoneos*]" = LaunchScreen;
 				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphonesimulator*]" = LaunchScreen;
@@ -1720,6 +1826,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TP9YK56DA7;
@@ -1727,15 +1834,20 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Truedata/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TruDataa;
-				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa needs camera access to capture a selfie at the shop location.";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa needs your location for attendance tracking while you work in the field.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TruDataa needs microphone access to record voice remarks on orders.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "TruDataa requires camera access to capture shop visit verification photos and scan payment cheques/receipts.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TruDataa requires continuous location access in the background during active work shifts to track field attendance and calculate travel allowance.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "TruDataa requires background location access during your work hours to track sales routes and shop visits accurately.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TruDataa requires your location while using the app to record attendance, verify client shop visits, and plot field sales routes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TruDataa requires microphone access to record voice notes and search products by voice.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "TruDataa requires access to your photo library to select and upload payment receipts and business documents.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "TruDataa requires speech recognition to transcribe voice input for quick product search and order remarks.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "fetch location processing remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphoneos*]" = LaunchScreen;
 				"INFOPLIST_KEY_UILaunchStoryboardName[sdk=iphonesimulator*]" = LaunchScreen;

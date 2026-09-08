@@ -14,6 +14,7 @@ final class PermissionManager: NSObject, ObservableObject {
     static let shared = PermissionManager()
 
     @Published private(set) var locationGranted = false
+    @Published private(set) var isAlwaysLocationGranted = false
     @Published private(set) var locationServicesEnabled = false
     @Published private(set) var notificationGranted = false
     @Published var hasRequestedLocation = false
@@ -23,10 +24,7 @@ final class PermissionManager: NSObject, ObservableObject {
     }
 
     var needsNotificationPermission: Bool {
-        if #available(iOS 10.0, *) {
-            return !notificationGranted
-        }
-        return false
+        !notificationGranted
     }
 
     var isLocationPermanentlyDenied: Bool {
@@ -34,21 +32,28 @@ final class PermissionManager: NSObject, ObservableObject {
         return status == .denied || status == .restricted
     }
 
+    var authorizationStatus: CLAuthorizationStatus {
+        locationManager.authorizationStatus
+    }
+
     private let locationManager = CLLocationManager()
 
     override private init() {
         super.init()
         locationManager.delegate = self
+        refreshStatus()
     }
 
     func refreshStatus() {
         let servicesEnabled = CLLocationManager.locationServicesEnabled()
         let status = locationManager.authorizationStatus
         let granted = status == .authorizedWhenInUse || status == .authorizedAlways
+        let alwaysGranted = status == .authorizedAlways
 
         DispatchQueue.main.async {
             self.locationServicesEnabled = servicesEnabled
             self.locationGranted = granted
+            self.isAlwaysLocationGranted = alwaysGranted
         }
 
         UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
@@ -63,16 +68,27 @@ final class PermissionManager: NSObject, ObservableObject {
         let status = locationManager.authorizationStatus
         if status == .notDetermined {
             locationManager.requestWhenInUseAuthorization()
+        } else if status == .authorizedWhenInUse {
+            locationManager.requestAlwaysAuthorization()
         } else if status == .denied || status == .restricted {
             openAppSettings()
         }
 
-        if #available(iOS 10.0, *) {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, _ in
-                DispatchQueue.main.async {
-                    self?.notificationGranted = granted
-                }
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, _ in
+            DispatchQueue.main.async {
+                self?.notificationGranted = granted
             }
+        }
+    }
+
+    func requestAlwaysLocationPermission() {
+        let status = locationManager.authorizationStatus
+        if status == .authorizedWhenInUse {
+            locationManager.requestAlwaysAuthorization()
+        } else if status == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+        } else if status == .denied || status == .restricted {
+            openAppSettings()
         }
     }
 

@@ -1761,11 +1761,20 @@ struct OperationsCard: View {
     let operations: [String]
     var onOperationTap: (String) -> Void = { _ in }
 
+    /// Matches Android `ProfessionalLightColors.TileColors`.
     private let tileColors: [[Color]] = [
         [Color(hex: "E0F7FA"), Color(hex: "B2EBF2")],
         [Color(hex: "E8F5E9"), Color(hex: "C8E6C9")],
         [Color(hex: "FFF3E0"), Color(hex: "FFE0B2")],
-        [Color(hex: "EDE7F6"), Color(hex: "D1C4E9")]
+        [Color(hex: "EDE7F6"), Color(hex: "D1C4E9")],
+        [Color(hex: "F3E5F5"), Color(hex: "E1BEE7")],
+        [Color(hex: "E1F5FE"), Color(hex: "B3E5FC")],
+        [Color(hex: "F0F4C3"), Color(hex: "E6EE9C")],
+        [Color(hex: "FFFDE7"), Color(hex: "FFF9C4")],
+        [Color(hex: "F1F8E9"), Color(hex: "DCEDC8")],
+        [Color(hex: "E0F2F1"), Color(hex: "B2DFDB")],
+        [Color(hex: "FAFAFA"), Color(hex: "F5F5F5")],
+        [Color(hex: "ECEFF1"), Color(hex: "CFD8DC")]
     ]
 
     var body: some View {

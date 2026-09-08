@@ -45,7 +45,7 @@ struct AuthHeader: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            Color(hex: "0F2C42")
+            AppTheme.authHeader
 
             starfield
                 .opacity(animatedAlpha)
@@ -80,10 +80,10 @@ struct AuthHeader: View {
             let time = timeline.date.timeIntervalSinceReferenceDate
             Canvas { context, _ in
                 // 1. Space background
-                context.fill(Path(CGRect(x: 0, y: 0, width: width, height: height)), with: .color(Color(hex: "0F2C42")))
+                context.fill(Path(CGRect(x: 0, y: 0, width: width, height: height)), with: .color(AppTheme.authHeader))
 
                 // 2. 8x8 Grid lines
-                let gridColor = Color(hex: "1A4668")
+                let gridColor = AppTheme.authGrid
                 let lines = 8
                 let stepX = width / CGFloat(lines)
                 let stepY = height / CGFloat(lines)

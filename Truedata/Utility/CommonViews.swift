@@ -43,49 +43,105 @@ private struct PressScaleButtonStyle: ButtonStyle {
 }
 
 struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-    var lineSpacing: CGFloat = 8
+    var spacing: CGFloat
+    var lineSpacing: CGFloat
+    var alignment: HorizontalAlignment
+
+    init(
+        spacing: CGFloat = 8,
+        lineSpacing: CGFloat? = nil,
+        alignment: HorizontalAlignment = .leading
+    ) {
+        self.spacing = spacing
+        self.lineSpacing = lineSpacing ?? spacing
+        self.alignment = alignment
+    }
+
+    struct Row {
+        var subviews: [(subview: LayoutSubview, size: CGSize, x: CGFloat)] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    struct LayoutResult {
+        var rows: [Row] = []
+        var totalSize: CGSize = .zero
+    }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let maxWidth = proposal.width ?? .infinity
-        var totalHeight: CGFloat = 0
-        var currentLineWidth: CGFloat = 0
-        var currentLineHeight: CGFloat = 0
-        var maxRowWidth: CGFloat = 0
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if currentLineWidth + size.width > maxWidth, currentLineWidth > 0 {
-                maxRowWidth = max(maxRowWidth, currentLineWidth - spacing)
-                totalHeight += currentLineHeight + lineSpacing
-                currentLineWidth = size.width + spacing
-                currentLineHeight = size.height
-            } else {
-                currentLineWidth += size.width + spacing
-                currentLineHeight = max(currentLineHeight, size.height)
-            }
-        }
-        maxRowWidth = max(maxRowWidth, max(0, currentLineWidth - spacing))
-        totalHeight += currentLineHeight
-        return CGSize(width: proposal.width ?? maxRowWidth, height: totalHeight)
+        arrange(proposal: proposal, subviews: subviews).totalSize
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX
+        let result = arrange(proposal: proposal, subviews: subviews)
         var y = bounds.minY
-        var currentLineHeight: CGFloat = 0
+
+        for row in result.rows {
+            let rowOffset: CGFloat
+            switch alignment {
+            case .leading:
+                rowOffset = 0
+            case .center:
+                rowOffset = max(0, (bounds.width - row.width) / 2)
+            case .trailing:
+                rowOffset = max(0, bounds.width - row.width)
+            default:
+                rowOffset = 0
+            }
+
+            for item in row.subviews {
+                let x = bounds.minX + item.x + rowOffset
+                let itemY = y + (row.height - item.size.height) / 2
+                item.subview.place(at: CGPoint(x: x, y: itemY), proposal: ProposedViewSize(item.size))
+            }
+
+            y += row.height + lineSpacing
+        }
+    }
+
+    private func arrange(proposal: ProposedViewSize, subviews: Subviews) -> LayoutResult {
+        let maxWidth = proposal.width ?? .infinity
+        var rows: [Row] = []
+        var currentRow = Row()
+        var currentX: CGFloat = 0
 
         for subview in subviews {
             let size = subview.sizeThatFits(.unspecified)
-            if x + size.width > bounds.maxX, x > bounds.minX {
-                x = bounds.minX
-                y += currentLineHeight + lineSpacing
-                currentLineHeight = size.height
+            if currentX + size.width > maxWidth, !currentRow.subviews.isEmpty {
+                currentRow.width = max(0, currentX - spacing)
+                rows.append(currentRow)
+                currentRow = Row()
+                currentX = 0
             }
-            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-            x += size.width + spacing
-            currentLineHeight = max(currentLineHeight, size.height)
+
+            currentRow.subviews.append((subview: subview, size: size, x: currentX))
+            currentRow.height = max(currentRow.height, size.height)
+            currentX += size.width + spacing
         }
+
+        if !currentRow.subviews.isEmpty {
+            currentRow.width = max(0, currentX - spacing)
+            rows.append(currentRow)
+        }
+
+        let maxRowWidth = rows.map(\.width).max() ?? 0
+        let totalHeight: CGFloat
+        if rows.isEmpty {
+            totalHeight = 0
+        } else {
+            let rowHeightsSum = rows.map(\.height).reduce(0, +)
+            let spacingSum = CGFloat(max(0, rows.count - 1)) * lineSpacing
+            totalHeight = rowHeightsSum + spacingSum
+        }
+
+        let computedWidth = (proposal.width != nil && proposal.width != .infinity)
+            ? proposal.width!
+            : maxRowWidth
+
+        return LayoutResult(
+            rows: rows,
+            totalSize: CGSize(width: computedWidth, height: totalHeight)
+        )
     }
 }
 

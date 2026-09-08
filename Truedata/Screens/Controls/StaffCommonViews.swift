@@ -81,7 +81,7 @@ struct StaffMemberCard: View {
                 Button(action: onToggleStatus) {
                     Text(selectedTab == .active ? "Deactivate" : "Activate")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: "002B45"))
+                        .foregroundStyle(AppTheme.darkMidnightBlue)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                 }
@@ -93,7 +93,7 @@ struct StaffMemberCard: View {
                 Button(action: onEdit) {
                     Text("Edit")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: "002B45"))
+                        .foregroundStyle(AppTheme.darkMidnightBlue)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                 }

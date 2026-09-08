@@ -74,7 +74,12 @@ final class AppRootManager: ObservableObject {
 
         targetWindow.overrideUserInterfaceStyle = .light
         targetWindow.enableTapToDismissKeyboard()
-        let hostingController = UIHostingController(rootView: view.handleNoInternet().preferredColorScheme(.light))
+        let hostingController = UIHostingController(
+            rootView: view
+                .dynamicTypeSize(.large)
+                .handleNoInternet()
+                .preferredColorScheme(.light)
+        )
         hostingController.overrideUserInterfaceStyle = .light
         targetWindow.rootViewController = hostingController
         UIView.transition(

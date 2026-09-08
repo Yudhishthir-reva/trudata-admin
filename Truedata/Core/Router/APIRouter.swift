@@ -7,6 +7,7 @@ enum APIRouter: RouterManagable {
 
     case loginUser
     case homeV2
+    case subMenu
     case logout
     case getRiderList
     case getBeatAssignOrderWise
@@ -48,6 +49,7 @@ enum APIRouter: RouterManagable {
     case addProductSpecialPrice
     case shopLocationVisited
     case locationConfig
+    case addLocation
     case getRoles
     case getLeaveType
     case getSellerType
@@ -82,8 +84,12 @@ enum APIRouter: RouterManagable {
     case markAttendance
     case attendanceList
     case regularizeList
+    case regularizeTeamWiseList
+    case updateRegularizeStatus
     case addRegularize
     case leaveList
+    case leaveTeamWiseList
+    case updateLeaveStatus
     case addLeave
     case allExpensesList
     case updateExpenseStatus
@@ -103,6 +109,7 @@ enum APIRouter: RouterManagable {
     case assignVehicleToRider
     case unassignVehicle
     case beatList
+    case beatList2
     case createBeat
     case updateBeat
     case deleteBeat
@@ -120,10 +127,17 @@ enum APIRouter: RouterManagable {
     case teamWiseAttendanceList
     case teamWiseLocationList
     case cancelOrder
+    case unassignOrder
+    case paymentReceipt
+    case orderReturnFull
+    case orderReturnPartial
     case riderHistory
     case b2cOrderList
     case b2cOrderDetail
     case b2cOrderStatusUpdate
+    case pendingSettleCheque
+    case chequeBillList
+    case chequeSettlement
     case retailerPaymentRequestList
     case updateRetailerPaymentRequest
 
@@ -133,6 +147,8 @@ enum APIRouter: RouterManagable {
             return "login-user"
         case .homeV2:
             return "V2/home3"
+        case .subMenu:
+            return "sub-menu"
         case .logout:
             return "logout"
         case .getRiderList:
@@ -215,6 +231,8 @@ enum APIRouter: RouterManagable {
             return "shop-location-visited"
         case .locationConfig:
             return "location-config"
+        case .addLocation:
+            return "add-location"
         case .getRoles:
             return "get-role"
         case .getLeaveType:
@@ -283,10 +301,18 @@ enum APIRouter: RouterManagable {
             return "attendance-list"
         case .regularizeList:
             return "regularize-list"
+        case .regularizeTeamWiseList:
+            return "regularize-team-wise-list"
+        case .updateRegularizeStatus:
+            return "update-regularize-status"
         case .addRegularize:
             return "add-regularize"
         case .leaveList:
             return "leave-list"
+        case .leaveTeamWiseList:
+            return "leave-team-wise-list"
+        case .updateLeaveStatus:
+            return "update-leave-status"
         case .addLeave:
             return "add-leave"
         case .allExpensesList:
@@ -325,6 +351,8 @@ enum APIRouter: RouterManagable {
             return "unassign-vehicle"
         case .beatList:
             return "beat-list"
+        case .beatList2:
+            return "beat-list2"
         case .createBeat:
             return "create-new-beat"
         case .updateBeat:
@@ -359,6 +387,14 @@ enum APIRouter: RouterManagable {
             return "team-wise-location-list"
         case .cancelOrder:
             return "cancel-order"
+        case .unassignOrder:
+            return "unassign-order"
+        case .paymentReceipt:
+            return "payment-receipt"
+        case .orderReturnFull:
+            return "order-return-full"
+        case .orderReturnPartial:
+            return "order-return-partial"
         case .riderHistory:
             return "admin-rider-history"
         case .b2cOrderList:
@@ -367,6 +403,12 @@ enum APIRouter: RouterManagable {
             return "V2/order-detail-customer"
         case .b2cOrderStatusUpdate:
             return "V2/order-status-update-customer"
+        case .pendingSettleCheque:
+            return "pending-settle-cheque"
+        case .chequeBillList:
+            return "cheque-bill-list"
+        case .chequeSettlement:
+            return "cheque-settlement"
         case .retailerPaymentRequestList:
             return "retailer-payment-request-list"
         case .updateRetailerPaymentRequest:
@@ -378,7 +420,7 @@ enum APIRouter: RouterManagable {
         switch self {
         case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit, .addCart, .createOrder:
             return .json
-        case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense, .retailerPaymentRequestList, .updateRetailerPaymentRequest:
+        case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense, .addLocation, .retailerPaymentRequestList, .updateRetailerPaymentRequest, .b2cOrderList, .b2cOrderDetail, .b2cOrderStatusUpdate, .pendingSettleCheque, .chequeBillList, .chequeSettlement:
             return .multipartForm
         default:
             return .urlEncoded

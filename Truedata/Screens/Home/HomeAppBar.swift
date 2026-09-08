@@ -65,7 +65,7 @@ struct HomeAppBar: View {
             )
             .fill(
                 LinearGradient(
-                    colors: [AppTheme.darkMidnightBlue, Color(hex: "632BC7")],
+                    colors: [AppTheme.heroTop, AppTheme.heroMid, AppTheme.heroBottom],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

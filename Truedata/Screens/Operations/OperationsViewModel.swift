@@ -28,7 +28,6 @@ final class OperationsViewModel: ObservableObject {
 
         let today = DashboardDateFormat.todayString
         service.loadHome(
-            deviceId: DeviceInfo.current().deviceId,
             startDate: today,
             endDate: today
         )
@@ -42,7 +41,7 @@ final class OperationsViewModel: ObservableObject {
         } receiveValue: { [weak self] response in
             guard let self else { return }
             if response.status, let data = response.data {
-                self.items = Self.filteredItems(from: data.items, screenType: self.screenType)
+                self.items = Self.filteredItems(from: data.allItems, screenType: self.screenType)
                 self.errorMessage = nil
             } else {
                 self.errorMessage = response.message.isEmptyString

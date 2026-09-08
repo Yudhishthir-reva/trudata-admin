@@ -50,6 +50,8 @@ final class OrderInsightsViewModel: ObservableObject {
     @Published var isExporting = false
     @Published var exportAlertMessage: String?
     @Published var exportShareURL: URL?
+    @Published var unassigningOrderId: Int?
+    @Published var unassignAlertMessage: String?
 
     private let quickShareService = QuickShareServiceManager()
 
@@ -483,5 +485,44 @@ final class OrderInsightsViewModel: ObservableObject {
         } catch {
             exportAlertMessage = "Unable to prepare PDF for sharing."
         }
+    }
+
+    func unassignOrder(_ order: OrderInsightsOrder) {
+        guard order.id > 0 else {
+            unassignAlertMessage = "Order ID is missing."
+            return
+        }
+        guard unassigningOrderId == nil else { return }
+
+        unassigningOrderId = order.id
+        unassignAlertMessage = nil
+
+        service.unassignOrder(orderId: String(order.id))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.unassigningOrderId = nil
+                if case .failure(let error) = completion {
+                    self.unassignAlertMessage = (error as? RequestError)?.errorString ?? error.localizedDescription
+                }
+            } receiveValue: { [weak self] response in
+                guard let self else { return }
+                self.unassigningOrderId = nil
+                if response.status {
+                    self.orders.removeAll { $0.id == order.id }
+                    if self.recordsCount > 0 {
+                        self.recordsCount -= 1
+                    }
+                    self.unassignAlertMessage = response.message.isEmptyString
+                        ? "Order unassigned successfully."
+                        : response.message
+                    self.loadOrders(isRefresh: true)
+                } else {
+                    self.unassignAlertMessage = response.message.isEmptyString
+                        ? "Failed to unassign order."
+                        : response.message
+                }
+            }
+            .store(in: &cancellables)
     }
 }

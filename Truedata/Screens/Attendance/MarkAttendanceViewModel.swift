@@ -109,8 +109,10 @@ final class MarkAttendanceViewModel: ObservableObject {
                 let message: String
                 if self.markType == "in" {
                     message = "Punch in completed at \(response.data.inTime)"
+                    LocationManager.shared.startShiftTracking()
                 } else {
                     message = "Punch out completed at \(response.data.outTime ?? "")"
+                    LocationManager.shared.stopShiftTracking()
                 }
                 self.punchSuccessMessage = message
                 self.loadStatus()
@@ -143,12 +145,14 @@ final class MarkAttendanceViewModel: ObservableObject {
                 if data.inTimeStatus && !data.outTimeStatus {
                     self.markType = "out"
                     self.checkInState = .checkOut
+                    LocationManager.shared.startShiftTracking()
                 } else if !data.inTimeStatus {
                     self.markType = "in"
                     self.checkInState = .checkIn
                 } else {
                     self.markType = "done"
                     self.checkInState = .done
+                    LocationManager.shared.stopShiftTracking()
                 }
             }
             .store(in: &cancellables)

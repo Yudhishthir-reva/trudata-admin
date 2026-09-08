@@ -73,7 +73,6 @@ final class ControlsViewModel: ObservableObject {
 
         let today = DashboardDateFormat.todayString
         service.loadHome(
-            deviceId: DeviceInfo.current().deviceId,
             startDate: today,
             endDate: today
         )
@@ -86,7 +85,7 @@ final class ControlsViewModel: ObservableObject {
             }
         } receiveValue: { [weak self] response in
             guard let self else { return }
-            if response.status, let items = response.data?.items {
+            if response.status, let items = response.data?.allItems {
                 self.apply(items: items)
                 self.errorMessage = nil
             } else {

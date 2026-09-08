@@ -231,7 +231,14 @@ struct SellersAppBar: View {
         .padding(.horizontal, 12)
         .padding(.top, 6)
         .padding(.bottom, 14)
-        .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
+        .background {
+            LinearGradient(
+                colors: [AppTheme.homeHeaderBottom, AppTheme.darkMidnightBlue],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea(edges: .top)
+        }
     }
 }
 
@@ -314,7 +321,7 @@ private struct RegisteredSellerCard: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: "002B45"))
+                .foregroundStyle(AppTheme.darkMidnightBlue)
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

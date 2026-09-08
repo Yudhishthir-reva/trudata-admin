@@ -693,4 +693,8 @@ extension OrderInsightsOrder {
             return "person.fill"
         }
     }
+
+    var showsUnassign: Bool {
+        OrderInsightsStatusStyle.from(status: status) == .assigned
+    }
 }

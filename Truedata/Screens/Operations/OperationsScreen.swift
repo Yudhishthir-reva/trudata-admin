@@ -21,7 +21,7 @@ struct OperationsScreen: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(hex: "DEE6F8"), Color(hex: "E7EBEF")],
+                colors: [AppTheme.brandBackgroundTop, AppTheme.brandBackgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -121,7 +121,7 @@ struct OperationsScreen: View {
     private func handleRoute(_ route: String) {
         switch route {
         case "registered_sellers", "view_products", "today_achievements", "attendance",
-             "mark_attendance", "regularization_requests", "view_leaves", "add_new_sellers",
+             "mark_attendance", "regularization_requests", "view_leaves", "leave", "add_new_sellers",
              "controls", "manage_employees", "staff_report", "rider_report",
              "expense_approval", "apply_reimbursements":
             onNavigate(route)

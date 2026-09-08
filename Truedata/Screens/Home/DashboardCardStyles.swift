@@ -6,9 +6,11 @@
 import SwiftUI
 
 enum DashboardTheme {
-    static let primaryBlue = Color(hex: "225EC2")
+    /// Android `AppColors.PrimaryBlue` → Brand.primary (green when `USE_GREEN_THEME`).
+    static let primaryBlue = Color(hex: AppTheme.useGreenTheme ? "167444" : "225EC2")
+    static let primaryBlueDark = Color(hex: AppTheme.useGreenTheme ? "0E4A28" : "3730A3")
     static let secondaryPurple = Color(hex: "7C3AED")
-    static let accentTeal = Color(hex: "0891B2")
+    static let accentTeal = Color(hex: AppTheme.useGreenTheme ? "0D9488" : "0891B2")
     static let infoBlue = Color(hex: "3B82F6")
     static let successGreen = Color(hex: "10B981")
     static let warningYellow = Color(hex: "EAB308")
@@ -16,11 +18,13 @@ enum DashboardTheme {
     static let pickupOrange = Color(hex: "F97316")
     static let neutralDark = Color(hex: "1F2937")
     static let neutralMedium = Color(hex: "6B7280")
-    static let surfaceVariant = Color(hex: "F3F4F6")
+    static let neutralLight = Color(hex: "9CA3AF")
+    static let surface = Color(hex: "FAFAFA")
+    static let surfaceVariant = Color(hex: AppTheme.useGreenTheme ? "E7EEE9" : "F3F4F6")
     static let rankGold = Color(hex: "FFB300")
     static let rankSilver = Color(hex: "78909C")
     static let rankBronze = Color(hex: "8D6E63")
-    static let rankDefault = Color(hex: "ACC3F8")
+    static let rankDefault = Color(hex: AppTheme.useGreenTheme ? "B7E4C7" : "ACC3F8")
 }
 
 struct DashboardCardChrome<Content: View>: View {
@@ -39,7 +43,7 @@ struct DashboardCardChrome<Content: View>: View {
 
 struct DashboardBulletTitle: View {
     let title: String
-    var colors: [Color] = [DashboardTheme.primaryBlue, DashboardTheme.secondaryPurple]
+    var colors: [Color] = [DashboardTheme.primaryBlue, DashboardTheme.accentTeal]
     var systemImage: String?
 
     var body: some View {

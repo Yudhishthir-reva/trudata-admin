@@ -64,6 +64,18 @@ struct DashboardData: Decodable {
         sections.flatMap(\.items)
     }
 
+    /// Full dashboard items without home-screen exclusions (used by Operations / Controls).
+    var allItems: [DashboardItem] {
+        components
+            .sorted { $0.orderInt < $1.orderInt }
+            .flatMap { group in
+                group.subMenu.flatMap(\.componentData.items)
+            }
+            .filter { item in
+                !item.route.isEmptyString && !item.title.isEmptyString
+            }
+    }
+
     var sections: [DashboardSection] {
         let excludedRoutes: Set<String> = [
             "attendance",

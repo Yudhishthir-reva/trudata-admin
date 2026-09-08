@@ -13,6 +13,7 @@ struct OrderInsightsScreen: View {
     @State private var navigatedOrderNo: String? = nil
     @State private var selectedSellerProfileId: Int? = nil
     @State private var showLastUsedFilterPrompt = true
+    @State private var orderToUnassign: OrderInsightsOrder? = nil
 
     init(
         startDate: String? = nil,
@@ -125,6 +126,26 @@ struct OrderInsightsScreen: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .alert("Unassign Order", isPresented: unassignConfirmBinding) {
+            Button("Unassign", role: .destructive) {
+                if let order = orderToUnassign {
+                    viewModel.unassignOrder(order)
+                }
+                orderToUnassign = nil
+            }
+            Button("Cancel", role: .cancel) {
+                orderToUnassign = nil
+            }
+        } message: {
+            if let order = orderToUnassign {
+                Text("Are you sure you want to unassign Order \(order.displayOrderNo)?")
+            }
+        }
+        .alert("Unassign Order", isPresented: unassignResultBinding) {
+            Button("OK") { viewModel.unassignAlertMessage = nil }
+        } message: {
+            Text(viewModel.unassignAlertMessage ?? "")
+        }
         .navigationDestination(isPresented: Binding(
             get: { navigatedOrderNo != nil },
             set: { isPresented in
@@ -145,6 +166,20 @@ struct OrderInsightsScreen: View {
                 SellerProfileScreen(sellerId: sellerId)
             }
         }
+    }
+
+    private var unassignConfirmBinding: Binding<Bool> {
+        Binding(
+            get: { orderToUnassign != nil },
+            set: { if !$0 { orderToUnassign = nil } }
+        )
+    }
+
+    private var unassignResultBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.unassignAlertMessage != nil && orderToUnassign == nil },
+            set: { if !$0 { viewModel.unassignAlertMessage = nil } }
+        )
     }
 
     private var searchAndFilterBar: some View {
@@ -293,11 +328,15 @@ struct OrderInsightsScreen: View {
                             order: order,
                             isInSelectionMode: viewModel.isInSelectionMode,
                             isSelected: viewModel.isOrderSelected(orderId: order.id),
+                            isUnassigning: viewModel.unassigningOrderId == order.id,
                             onViewDetails: { orderNo in
                                 navigatedOrderNo = orderNo
                             },
                             onSellerProfile: { sellerId in
                                 selectedSellerProfileId = sellerId
+                            },
+                            onUnassign: {
+                                orderToUnassign = order
                             }
                         )
                         .onTapGesture {
@@ -555,8 +594,10 @@ private struct OrderInsightsOrderCard: View {
     let order: OrderInsightsOrder
     var isInSelectionMode: Bool = false
     var isSelected: Bool = false
+    var isUnassigning: Bool = false
     var onViewDetails: (String) -> Void
     var onSellerProfile: (Int) -> Void
+    var onUnassign: () -> Void
 
     private var statusStyle: OrderInsightsStatusStyle {
         OrderInsightsStatusStyle.from(status: order.status)
@@ -694,6 +735,33 @@ private struct OrderInsightsOrderCard: View {
                                 .clipShape(Capsule())
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        if order.showsUnassign {
+                            Button {
+                                onUnassign()
+                            } label: {
+                                HStack(spacing: 4) {
+                                    if isUnassigning {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                            .tint(DashboardTheme.dangerRed)
+                                    }
+                                    Text("Unassign")
+                                        .font(.system(size: 12, weight: .semibold))
+                                }
+                                .foregroundStyle(DashboardTheme.dangerRed)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white)
+                                .overlay {
+                                    Capsule()
+                                        .stroke(DashboardTheme.dangerRed.opacity(0.5), lineWidth: 1)
+                                }
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isUnassigning)
                         }
 
                         Button {

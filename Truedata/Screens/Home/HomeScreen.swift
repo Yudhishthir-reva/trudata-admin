@@ -41,7 +41,9 @@ enum HomeDestination: Hashable {
     case controls
     case markAttendance
     case regularizationRequests
+    case regularizeApproval
     case viewLeaves
+    case leaveApproval
     case achievementHistory(startDate: String, endDate: String)
     case productCatalogue
     case productCalculator
@@ -61,6 +63,8 @@ enum HomeDestination: Hashable {
     case riderInsights
     case b2cOrders
     case retailerAppPayments
+    case pendingSettleCheque
+    case chequeSettlement(sellerId: Int)
 }
 
 struct HomeScreen: View {
@@ -186,8 +190,12 @@ struct HomeScreen: View {
                         MarkAttendanceScreen()
                     case .regularizationRequests:
                         RegularizationListScreen()
+                    case .regularizeApproval:
+                        RegularizeApprovalScreen()
                     case .viewLeaves:
                         LeaveListScreen()
+                    case .leaveApproval:
+                        LeaveApprovalScreen()
                     case .achievementHistory(let startDate, let endDate):
                         AchievementHistoryScreen(startDate: startDate, endDate: endDate)
                     case .productCatalogue:
@@ -230,6 +238,10 @@ struct HomeScreen: View {
                         B2COrdersScreen()
                     case .retailerAppPayments:
                         RetailerAppPaymentScreen()
+                    case .pendingSettleCheque:
+                        PendingSettleChequeScreen()
+                    case .chequeSettlement(let sellerId):
+                        ChequeSettlementScreen(sellerId: sellerId)
                     }
                 }
         }
@@ -238,7 +250,7 @@ struct HomeScreen: View {
     private var homeContent: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(hex: "DEE6F8"), Color(hex: "E7EBEF")],
+                colors: [AppTheme.brandBackgroundTop, AppTheme.brandBackgroundBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -304,6 +316,9 @@ struct HomeScreen: View {
                 viewModel.loadHomeForResume()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .fcmTokenUpdated)) { _ in
+            loadDashboardIfReady()
+        }
         .alert("Logout", isPresented: $showLogoutDialog) {
             Button("Cancel", role: .cancel) {}
             Button("Logout", role: .destructive) {
@@ -349,9 +364,13 @@ struct HomeScreen: View {
             navigationPath.append(HomeDestination.viewBeatSummary)
         case "assignment_history":
             navigationPath.append(HomeDestination.assignBeats)
-        case "leave_approval", "view_leaves":
+        case "leave_approval":
+            navigationPath.append(HomeDestination.leaveApproval)
+        case "view_leaves", "leave":
             navigationPath.append(HomeDestination.viewLeaves)
-        case "regularize_approval", "regularization_requests":
+        case "regularize_approval":
+            navigationPath.append(HomeDestination.regularizeApproval)
+        case "regularization_requests":
             navigationPath.append(HomeDestination.regularizationRequests)
         case "staff_report":
             navigationPath.append(HomeDestination.staffReport)
@@ -367,6 +386,8 @@ struct HomeScreen: View {
             navigationPath.append(HomeDestination.assignOrder)
         case "approve_bills":
             navigationPath.append(HomeDestination.approveBills)
+        case "pending_settle_cheque", "settle_cheque", "cheque_settlement", "cheque_settle":
+            navigationPath.append(HomeDestination.pendingSettleCheque)
         case "order_approval", "approve_orders", "approve_sellers_to_make_order":
             navigationPath.append(HomeDestination.orderApproval)
         case "b2c_orders":
@@ -591,7 +612,9 @@ struct HomeScreen: View {
                     OperationsCard(
                         operations: viewModel.operationTitles,
                         onOperationTap: { title in
-                            if let type = OperationsScreenType(rawValue: title) {
+                            if title == "Pending Cheques" {
+                                navigationPath.append(HomeDestination.pendingSettleCheque)
+                            } else if let type = OperationsScreenType(rawValue: title) {
                                 if type == .controls {
                                     navigationPath.append(HomeDestination.controls)
                                 } else {

@@ -57,6 +57,7 @@ final class HomePrefetchManager {
                     guard response.status, let data = response.data else { return }
                     HomePrefetchStore.shared.locationConfig = response
                     UserDefaultManager.shared.updateLocationConfig(data)
+                    LocationManager.shared.syncTrackingState()
                 }
             )
             .store(in: &cancellables)

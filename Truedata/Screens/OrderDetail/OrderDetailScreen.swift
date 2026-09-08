@@ -11,6 +11,9 @@ struct OrderDetailScreen: View {
     @State private var showCancelConfirm = false
     @State private var showChangeSeller = false
     @State private var showEditOrder = false
+    @State private var showReturnTypeDialog = false
+    @State private var showFullReturn = false
+    @State private var showPartialReturn = false
     @State private var sellerProfileId: Int?
 
     init(orderId: String) {
@@ -32,7 +35,7 @@ struct OrderDetailScreen: View {
 
                 content
 
-                if viewModel.isCancelling {
+                if viewModel.isCancelling || viewModel.isDownloadingSettlement {
                     Color.black.opacity(0.15)
                         .ignoresSafeArea()
                     ProgressView()
@@ -101,6 +104,39 @@ struct OrderDetailScreen: View {
         .fullScreenCover(isPresented: sellerProfileBinding) {
             if let sellerId = sellerProfileId {
                 SellerProfileScreen(sellerId: sellerId)
+            }
+        }
+        .fullScreenCover(isPresented: $showFullReturn) {
+            FullReturnOrderScreen(orderId: orderId)
+        }
+        .fullScreenCover(isPresented: $showPartialReturn) {
+            PartialReturnOrderScreen(orderId: orderId)
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.settlementShareURL != nil },
+            set: { isPresented in
+                if !isPresented { viewModel.settlementShareURL = nil }
+            }
+        )) {
+            if let url = viewModel.settlementShareURL {
+                ActivityShareSheet(items: [url])
+            }
+        }
+        .overlay {
+            if showReturnTypeDialog, let order = viewModel.order {
+                ReturnOrderTypeDialog(
+                    orderNo: order.orderNo.isEmptyString ? "\(order.orderId)" : order.orderNo,
+                    onDismiss: { showReturnTypeDialog = false },
+                    onTypeSelected: { type in
+                        showReturnTypeDialog = false
+                        switch type {
+                        case .full:
+                            showFullReturn = true
+                        case .partial:
+                            showPartialReturn = true
+                        }
+                    }
+                )
             }
         }
     }
@@ -462,6 +498,19 @@ struct OrderDetailScreen: View {
                 .buttonStyle(.plain)
             }
 
+            if order.showsReturnOrder {
+                Button {
+                    showReturnTypeDialog = true
+                } label: {
+                    orderActionButton(
+                        title: "Return Order",
+                        icon: "arrow.uturn.backward.circle.fill",
+                        color: Color(hex: "673AB7")
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
             if order.showsDownloadInvoice {
                 Button {
                     downloadInvoice(order)
@@ -482,10 +531,12 @@ struct OrderDetailScreen: View {
                     orderActionButton(
                         title: "Download Settlement Receipt",
                         icon: "arrow.down.circle.fill",
-                        color: AppTheme.darkMidnightBlue
+                        color: AppTheme.darkMidnightBlue,
+                        isDisabled: viewModel.isDownloadingSettlement
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(viewModel.isDownloadingSettlement)
             }
 
             if order.showsCancelOrder {
@@ -523,12 +574,9 @@ struct OrderDetailScreen: View {
     }
 
     private func downloadSettlementReceipt(_ order: OrderDetailData) {
-        guard !order.paymentReceiptLink.isEmptyString,
-              let url = URL(string: order.paymentReceiptLink.trim) else {
-            actionMessage = "Settlement receipt link is not available."
-            return
+        viewModel.downloadSettlementReceipt(for: order) { message in
+            actionMessage = message
         }
-        UIApplication.shared.open(url)
     }
 
     private func downloadInvoice(_ order: OrderDetailData) {
@@ -616,7 +664,7 @@ private struct OrderDetailStyledCard<Content: View>: View {
 
 // MARK: - App Bar
 
-private struct OrderDetailAppBar: View {
+struct OrderDetailAppBar: View {
     let title: String
     var onBack: () -> Void
     var onHome: () -> Void
@@ -981,6 +1029,117 @@ final class OrderDetailAudioPlayer: NSObject, ObservableObject, AVAudioPlayerDel
 private extension Double {
     var priceLabel: String {
         String(self).priceLabel
+    }
+}
+
+// MARK: - Return Order Type Dialog
+
+struct ReturnOrderTypeDialog: View {
+    let orderNo: String
+    var onDismiss: () -> Void
+    var onTypeSelected: (OrderReturnType) -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "673AB7").opacity(0.1))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "arrow.uturn.backward.circle.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(Color(hex: "673AB7"))
+                }
+
+                VStack(spacing: 8) {
+                    Text("Return Order")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(AppTheme.darkMidnightBlue)
+                    Text("Select return type for Order #\(orderNo)")
+                        .font(.system(size: 14))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 12) {
+                    returnTypeButton(
+                        title: "Full Return",
+                        subtitle: "Return all items in this order",
+                        icon: "xmark.circle.fill",
+                        iconColor: DashboardTheme.dangerRed
+                    ) {
+                        onTypeSelected(.full)
+                    }
+
+                    returnTypeButton(
+                        title: "Partial Return",
+                        subtitle: "Return selected items only",
+                        icon: "list.bullet.rectangle",
+                        iconColor: Color(hex: "673AB7")
+                    ) {
+                        onTypeSelected(.partial)
+                    }
+                }
+
+                Button("Cancel", action: onDismiss)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(24)
+            .frame(maxWidth: 340)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .padding(.horizontal, 24)
+        }
+    }
+
+    private func returnTypeButton(
+        title: String,
+        subtitle: String,
+        icon: String,
+        iconColor: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(iconColor.opacity(0.12))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(iconColor)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AppTheme.darkMidnightBlue)
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(hex: "F9FAFB"))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

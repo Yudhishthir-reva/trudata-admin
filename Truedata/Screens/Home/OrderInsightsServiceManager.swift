@@ -95,4 +95,12 @@ class OrderInsightsServiceManager {
         if !userId.isEmptyString { params["user_id"] = userId }
         return networkService.request(APIRouter.getAllArea, params: params, headers: authHeaders)
     }
+
+    func unassignOrder(orderId: String) -> AnyPublisher<StatusMessageResponse, Error> {
+        networkService.request(
+            APIRouter.unassignOrder,
+            params: ["order_id": orderId],
+            headers: authHeaders
+        )
+    }
 }
