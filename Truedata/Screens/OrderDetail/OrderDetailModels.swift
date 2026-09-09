@@ -320,6 +320,10 @@ struct OrderDetailData: Decodable {
         canReturn ?? false
     }
 
+    var showsUnassignOrder: Bool {
+        OrderInsightsStatusStyle.from(status: status) == .assigned
+    }
+
     var showsDownloadInvoice: Bool {
         canDownloadInvoice && !invoiceLink.isEmptyString
     }

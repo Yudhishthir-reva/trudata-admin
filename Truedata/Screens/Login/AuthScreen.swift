@@ -7,6 +7,7 @@ import SwiftUI
 
 struct AuthScreen: View {
 
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel = AuthViewModel()
 
     var body: some View {
@@ -73,10 +74,26 @@ struct AuthScreen: View {
     }
 
     private var legalFooter: some View {
-        Text(legalText)
-            .font(.system(size: 12))
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
+        VStack(spacing: 8) {
+            Text(legalText)
+                .font(.system(size: 12))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .tint(Color(hex: "4B5563"))
+                .environment(\.openURL, OpenURLAction { url in
+                    openURL(url)
+                    return .handled
+                })
+
+            Button {
+                openURL(AppLegalLinks.support)
+            } label: {
+                Text("Need help? Contact Support")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private var legalText: AttributedString {
@@ -87,6 +104,7 @@ struct AuthScreen: View {
         terms.foregroundColor = Color(hex: "4B5563")
         terms.underlineStyle = .single
         terms.font = .system(size: 12, weight: .semibold)
+        terms.link = AppLegalLinks.termsOfService
 
         var mid = AttributedString(" and ")
         mid.foregroundColor = .gray
@@ -95,6 +113,7 @@ struct AuthScreen: View {
         privacy.foregroundColor = Color(hex: "4B5563")
         privacy.underlineStyle = .single
         privacy.font = .system(size: 12, weight: .semibold)
+        privacy.link = AppLegalLinks.privacyPolicy
 
         return lead + terms + mid + privacy
     }

@@ -5,6 +5,25 @@
 
 import Foundation
 
+enum ExpenseListMode {
+    case approvals
+    case personal
+
+    var title: String {
+        switch self {
+        case .approvals: return "Expense Requests"
+        case .personal: return "My Expenses"
+        }
+    }
+
+    var emptyMessage: String {
+        switch self {
+        case .approvals: return "No expense requests found for this category."
+        case .personal: return "No expenses found for this category."
+        }
+    }
+}
+
 struct ExpenseItem: Identifiable, Hashable, Decodable {
     var id: Int
     var staffId: String

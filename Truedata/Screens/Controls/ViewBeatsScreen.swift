@@ -106,49 +106,22 @@ struct ViewBeatsScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search beats or locations...", text: $viewModel.searchText)
-                .font(.system(size: 15))
-            if !viewModel.searchText.isEmptyString {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        AppSearchBar(
+            placeholder: "Search beats or locations...",
+            text: $viewModel.searchText
+        )
     }
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading && viewModel.beats.isEmpty {
-            ProgressView("Loading beats...")
-                .tint(DashboardTheme.primaryBlue)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let error = viewModel.errorMessage, viewModel.beats.isEmpty {
-            VStack(spacing: 12) {
-                Text(error)
-                    .font(.system(size: 14))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                    .multilineTextAlignment(.center)
-                PrimaryActionButton(title: "Try Again") {
-                    viewModel.load(reset: true)
-                }
-                .padding(.horizontal, 40)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
+        AppContentState(
+            isLoading: viewModel.isLoading,
+            loadingMessage: "Loading beats...",
+            errorMessage: viewModel.errorMessage,
+            hasNoLoadedData: viewModel.beats.isEmpty,
+            retryTitle: "Try Again",
+            onRetry: { viewModel.load(reset: true) }
+        ) {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     if viewModel.filteredBeats.isEmpty {

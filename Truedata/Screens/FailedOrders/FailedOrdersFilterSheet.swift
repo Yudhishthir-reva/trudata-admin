@@ -30,87 +30,66 @@ struct FailedOrdersFilterSheet: View {
         _draftRiderId = State(initialValue: filters.riderId)
     }
 
+    private var categoryItems: [FilterCategoryItem] {
+        FailedOrdersFilterCategory.allCases.map { FilterCategoryItem(id: $0.rawValue, title: $0.rawValue) }
+    }
+
+    private var selectedCategoryID: Binding<String> {
+        Binding(
+            get: { selectedCategory.rawValue },
+            set: { if let value = FailedOrdersFilterCategory(rawValue: $0) { selectedCategory = value } }
+        )
+    }
+
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    categorySidebar
-                    Divider()
-                    categoryContent
-                }
-                .frame(maxHeight: .infinity)
-
-                footerButtons
+        AppFilterSheetChrome(
+            title: "Filter Failed Orders",
+            categories: categoryItems,
+            selectedCategoryID: selectedCategoryID,
+            accent: DashboardTheme.dangerRed,
+            resetTitle: "Clear All",
+            applyTitle: "Apply Filters",
+            showsResetIcon: false,
+            showsApplyIcon: false,
+            onReset: {
+                draftStartDate = OrderInsightsDateFormat.todayString
+                draftEndDate = OrderInsightsDateFormat.todayString
+                draftDatePreset = .today
+                draftSellerId = ""
+                draftRiderId = ""
+                viewModel.clearFilters()
+                dismiss()
+            },
+            onApply: {
+                applyDraftFilters()
+                dismiss()
             }
-            .background(Color(hex: "F3F4F6"))
-            .navigationTitle("Filter Failed Orders")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
+        ) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    FilterSectionTitle(title: selectedCategory.rawValue, accent: DashboardTheme.dangerRed)
+                    switch selectedCategory {
+                    case .dateRange:
+                        dateRangeContent
+                    case .rider:
+                        riderContent
+                    case .seller:
+                        sellerContent
                     }
                 }
+                .padding(12)
             }
         }
-    }
-
-    private var categorySidebar: some View {
-        ScrollView {
-            VStack(spacing: 4) {
-                ForEach(FailedOrdersFilterCategory.allCases, id: \.self) { category in
-                    Button { selectedCategory = category } label: {
-                        Text(category.rawValue)
-                            .font(.system(size: 13, weight: selectedCategory == category ? .bold : .medium))
-                            .foregroundStyle(selectedCategory == category ? .white : DashboardTheme.neutralDark)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 12)
-                            .background(
-                                selectedCategory == category
-                                    ? DashboardTheme.dangerRed
-                                    : Color.clear
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(8)
-        }
-        .frame(width: 128)
-        .background(DashboardTheme.surfaceVariant.opacity(0.5))
-    }
-
-    @ViewBuilder
-    private var categoryContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(selectedCategory.rawValue.uppercased())
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(DashboardTheme.dangerRed)
-
-                switch selectedCategory {
-                case .dateRange:
-                    dateRangeContent
-                case .rider:
-                    riderContent
-                case .seller:
-                    sellerContent
-                }
-            }
-            .padding(12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white)
     }
 
     private var dateRangeContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(AchievementHistoryDatePreset.allCases, id: \.self) { preset in
-                filterRadio(title: preset.rawValue, isSelected: draftDatePreset == preset) {
+                FilterRadioRow(
+                    title: preset.rawValue,
+                    isSelected: draftDatePreset == preset,
+                    accent: DashboardTheme.dangerRed
+                ) {
                     draftDatePreset = preset
                     if preset != .custom, let range = AchievementHistoryDatePreset.dateRange(for: preset) {
                         draftStartDate = range.start
@@ -129,10 +108,18 @@ struct FailedOrdersFilterSheet: View {
 
     private var riderContent: some View {
         VStack(alignment: .leading, spacing: 8) {
-            searchField(placeholder: "Search rider...", text: $riderSearch)
-            filterRadio(title: "All Riders", isSelected: draftRiderId.isEmptyString) { draftRiderId = "" }
+            FilterSearchField(placeholder: "Search rider...", text: $riderSearch, filledBackground: true)
+            FilterRadioRow(
+                title: "All Riders",
+                isSelected: draftRiderId.isEmptyString,
+                accent: DashboardTheme.dangerRed
+            ) { draftRiderId = "" }
             ForEach(filteredRiders) { rider in
-                filterRadio(title: rider.name, isSelected: draftRiderId == String(rider.id)) {
+                FilterRadioRow(
+                    title: rider.name,
+                    isSelected: draftRiderId == String(rider.id),
+                    accent: DashboardTheme.dangerRed
+                ) {
                     draftRiderId = String(rider.id)
                 }
             }
@@ -153,15 +140,20 @@ struct FailedOrdersFilterSheet: View {
                     viewModel.loadSellers(isRefresh: true, stateId: id, search: sellerSearch)
                 }
             )
-            searchField(placeholder: "Search sellers...", text: $sellerSearch)
+            FilterSearchField(placeholder: "Search sellers...", text: $sellerSearch, filledBackground: true)
                 .onChange(of: sellerSearch) { _, query in
                     viewModel.loadSellers(isRefresh: true, stateId: sellerStateId, search: query)
                 }
-            filterRadio(title: "All Sellers", isSelected: draftSellerId.isEmptyString) { draftSellerId = "" }
+            FilterRadioRow(
+                title: "All Sellers",
+                isSelected: draftSellerId.isEmptyString,
+                accent: DashboardTheme.dangerRed
+            ) { draftSellerId = "" }
             ForEach(viewModel.sellerList) { seller in
-                filterRadio(
+                FilterRadioRow(
                     title: seller.displayName.isEmptyString ? "Seller #\(seller.id)" : seller.displayName,
-                    isSelected: draftSellerId == String(seller.id)
+                    isSelected: draftSellerId == String(seller.id),
+                    accent: DashboardTheme.dangerRed
                 ) {
                     draftSellerId = String(seller.id)
                 }
@@ -170,49 +162,6 @@ struct FailedOrdersFilterSheet: View {
                 ProgressView().tint(DashboardTheme.dangerRed)
             }
         }
-    }
-
-    private var footerButtons: some View {
-        HStack(spacing: 12) {
-            Button {
-                draftStartDate = OrderInsightsDateFormat.todayString
-                draftEndDate = OrderInsightsDateFormat.todayString
-                draftDatePreset = .today
-                draftSellerId = ""
-                draftRiderId = ""
-                viewModel.clearFilters()
-                dismiss()
-            } label: {
-                Text("Clear All")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(DashboardTheme.dangerRed)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.white)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(DashboardTheme.dangerRed, lineWidth: 1.5)
-                    }
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                applyDraftFilters()
-                dismiss()
-            } label: {
-                Text("Apply Filters")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(DashboardTheme.dangerRed)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.white)
     }
 
     private var filteredRiders: [OrderInsightsStaffMember] {
@@ -238,36 +187,6 @@ struct FailedOrdersFilterSheet: View {
                 riderId: draftRiderId
             )
         )
-    }
-
-    private func filterRadio(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(isSelected ? DashboardTheme.dangerRed : DashboardTheme.neutralMedium)
-                Text(title)
-                    .font(.system(size: 14))
-                    .foregroundStyle(isSelected ? DashboardTheme.dangerRed : DashboardTheme.neutralDark)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.vertical, 4)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func searchField(placeholder: String, text: Binding<String>) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField(placeholder, text: text)
-                .font(.system(size: 14))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color(hex: "F3F4F6"))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func statePicker(

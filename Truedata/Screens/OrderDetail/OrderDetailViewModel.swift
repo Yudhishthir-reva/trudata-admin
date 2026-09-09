@@ -55,6 +55,7 @@ final class OrderDetailViewModel: ObservableObject {
     }
 
     @Published var isCancelling = false
+    @Published var isUnassigning = false
     @Published var isDownloadingSettlement = false
     @Published var settlementShareURL: URL?
 
@@ -83,6 +84,46 @@ final class OrderDetailViewModel: ObservableObject {
                     onComplete(true, response.message.isEmptyString ? "Order cancelled successfully." : response.message)
                 } else {
                     onComplete(false, response.message.isEmptyString ? "Failed to cancel order." : response.message)
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func unassignOrder(onComplete: @escaping (Bool, String) -> Void) {
+        let resolvedId: String = {
+            if let order, order.orderId > 0 { return String(order.orderId) }
+            return orderId
+        }()
+        guard !resolvedId.isEmptyString else {
+            onComplete(false, "Order ID is missing.")
+            return
+        }
+        guard !isUnassigning else { return }
+
+        isUnassigning = true
+        errorMessage = nil
+
+        service.unassignOrder(orderId: resolvedId)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.isUnassigning = false
+                if case .failure(let error) = completion {
+                    onComplete(false, (error as? RequestError)?.errorString ?? error.localizedDescription)
+                }
+            } receiveValue: { [weak self] response in
+                guard let self else { return }
+                self.isUnassigning = false
+                if response.status {
+                    onComplete(
+                        true,
+                        response.message.isEmptyString ? "Order unassigned successfully." : response.message
+                    )
+                } else {
+                    onComplete(
+                        false,
+                        response.message.isEmptyString ? "Failed to unassign order." : response.message
+                    )
                 }
             }
             .store(in: &cancellables)

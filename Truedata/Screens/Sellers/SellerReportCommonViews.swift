@@ -130,6 +130,14 @@ struct SellerReportFilterSheet: View {
 
     private let categories = ["Date Range", "Registered by", "Beat/Area"]
 
+    private var categoryItems: [FilterCategoryItem] {
+        categories.map { FilterCategoryItem(id: $0, title: $0) }
+    }
+
+    private var selectedCategoryID: Binding<String> {
+        Binding(get: { selectedCategory }, set: { selectedCategory = $0 })
+    }
+
     private var draftCities: [OrderInsightsCityArea] {
         guard let draftStateId else { return [] }
         return areas.first(where: { $0.id == draftStateId })?.cities ?? []
@@ -141,75 +149,34 @@ struct SellerReportFilterSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    VStack(spacing: 0) {
-                        ForEach(categories, id: \.self) { category in
-                            Button {
-                                selectedCategory = category
-                            } label: {
-                                Text(category)
-                                    .font(.system(size: 12, weight: selectedCategory == category ? .bold : .medium))
-                                    .foregroundStyle(
-                                        selectedCategory == category
-                                            ? DashboardTheme.primaryBlue
-                                            : DashboardTheme.neutralDark.opacity(0.7)
-                                    )
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 16)
-                                    .background(selectedCategory == category ? Color.white : Color.clear)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .frame(width: 115)
-                    .background(DashboardTheme.surfaceVariant.opacity(0.2))
-
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            switch selectedCategory {
-                            case "Date Range":
-                                dateRangeContent
-                            case "Registered by":
-                                staffContent
-                            default:
-                                beatContent
-                            }
-                        }
-                        .padding(16)
-                    }
-                }
-                .frame(maxHeight: .infinity)
-
-                HStack(spacing: 12) {
-                    Button(action: onReset) {
-                        Text("Clear All")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(DashboardTheme.primaryBlue.opacity(0.4), lineWidth: 1)
-                            }
-                    }
-                    .buttonStyle(.plain)
-
-                    PrimaryActionButton(title: "Apply Filters", isEnabled: true) {
-                        applyDraftFilters()
-                        onApply()
+        AppFilterSheetChrome(
+            title: "Filter Report",
+            categories: categoryItems,
+            selectedCategoryID: selectedCategoryID,
+            resetTitle: "Clear All",
+            applyTitle: "Apply Filters",
+            showsResetIcon: false,
+            showsApplyIcon: false,
+            onReset: onReset,
+            onApply: {
+                applyDraftFilters()
+                onApply()
+            },
+            onDismiss: onDismiss
+        ) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    FilterSectionTitle(title: selectedCategory)
+                    switch selectedCategory {
+                    case "Date Range":
+                        dateRangeContent
+                    case "Registered by":
+                        staffContent
+                    default:
+                        beatContent
                     }
                 }
                 .padding(16)
-            }
-            .navigationTitle("Filter Report")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close", action: onDismiss)
-                }
             }
         }
         .presentationDetents([.large])
@@ -231,10 +198,7 @@ struct SellerReportFilterSheet: View {
     private var dateRangeContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(AchievementHistoryDatePreset.allCases, id: \.self) { preset in
-                filterOption(
-                    text: preset.rawValue,
-                    isSelected: draftFilters.datePreset == preset
-                ) {
+                FilterRadioRow(title: preset.rawValue, isSelected: draftFilters.datePreset == preset) {
                     draftFilters.datePreset = preset
                     if preset != .custom, let range = AchievementHistoryDatePreset.dateRange(for: preset) {
                         draftFilters.startDate = range.start
@@ -256,29 +220,16 @@ struct SellerReportFilterSheet: View {
 
     private var staffContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search name...", text: $staffSearch)
-                    .font(.system(size: 13))
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
-            }
+            FilterSearchField(placeholder: "Search name...", text: $staffSearch, filledBackground: true)
 
-            filterOption(text: "All Persons", isSelected: draftFilters.staffId.isEmpty) {
+            FilterRadioRow(title: "All Persons", isSelected: draftFilters.staffId.isEmpty) {
                 draftFilters.staffId = ""
                 draftFilters.staffName = ""
             }
 
             ForEach(filteredStaff) { staff in
-                filterOption(
-                    text: staff.name,
+                FilterRadioRow(
+                    title: staff.name,
                     isSelected: draftFilters.staffId == String(staff.id)
                 ) {
                     draftFilters.staffId = String(staff.id)
@@ -387,32 +338,6 @@ struct SellerReportFilterSheet: View {
                     .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
             }
         }
-    }
-
-    private func filterOption(text: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .stroke(
-                            isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium.opacity(0.5),
-                            lineWidth: 1.5
-                        )
-                        .frame(width: 18, height: 18)
-                    if isSelected {
-                        Circle()
-                            .fill(DashboardTheme.primaryBlue)
-                            .frame(width: 10, height: 10)
-                    }
-                }
-                Text(text)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralDark)
-                Spacer()
-            }
-            .padding(.vertical, 8)
-        }
-        .buttonStyle(.plain)
     }
 
     private func applyDraftFilters() {

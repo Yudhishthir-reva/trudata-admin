@@ -32,6 +32,7 @@
 		DDB65923303429F8005C1E91 /* AlertToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65903303429F8005C1E91 /* AlertToast.swift */; };
 		DDB65924303429F8005C1E91 /* AppConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65904303429F8005C1E91 /* AppConstant.swift */; };
 		DDB65925303429F8005C1E91 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65905303429F8005C1E91 /* AppTheme.swift */; };
+		DDB65F0230342A80005C1E91 /* AppFilterComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65F0130342A80005C1E91 /* AppFilterComponents.swift */; };
 		DDB65926303429F8005C1E91 /* CommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65906303429F8005C1E91 /* CommonViews.swift */; };
 		DDB65927303429F8005C1E91 /* InputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65907303429F8005C1E91 /* InputField.swift */; };
 		DDB65928303429F8005C1E91 /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65908303429F8005C1E91 /* RemoteImage.swift */; };
@@ -139,6 +140,7 @@
 		DDB65A0830342A1B005C1E91 /* CriticalInsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */; };
 		DDB65A0930342A1B005C1E91 /* CriticalInsightsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0530342A1B005C1E91 /* CriticalInsightsScreen.swift */; };
 		DDB65A0B30342A1B005C1E91 /* MaintenanceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A0A30342A1B005C1E91 /* MaintenanceScreen.swift */; };
+		DDB65D2130342A60005C1E91 /* SupportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65D2030342A60005C1E91 /* SupportScreen.swift */; };
 		DDB65A1A30342A1C005C1E91 /* LoginRequestsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A1530342A1C005C1E91 /* LoginRequestsModels.swift */; };
 		DDB65A1B30342A1C005C1E91 /* LoginRequestsServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A1630342A1C005C1E91 /* LoginRequestsServiceManager.swift */; };
 		DDB65A1C30342A1C005C1E91 /* LoginRequestsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65A1730342A1C005C1E91 /* LoginRequestsViewModel.swift */; };
@@ -343,6 +345,7 @@
 		DDB65903303429F8005C1E91 /* AlertToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertToast.swift; sourceTree = "<group>"; };
 		DDB65904303429F8005C1E91 /* AppConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstant.swift; sourceTree = "<group>"; };
 		DDB65905303429F8005C1E91 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		DDB65F0130342A80005C1E91 /* AppFilterComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFilterComponents.swift; sourceTree = "<group>"; };
 		DDB65906303429F8005C1E91 /* CommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonViews.swift; sourceTree = "<group>"; };
 		DDB65907303429F8005C1E91 /* InputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputField.swift; sourceTree = "<group>"; };
 		DDB65908303429F8005C1E91 /* RemoteImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImage.swift; sourceTree = "<group>"; };
@@ -461,6 +464,7 @@
 		DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsViewModel.swift; sourceTree = "<group>"; };
 		DDB65A0530342A1B005C1E91 /* CriticalInsightsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalInsightsScreen.swift; sourceTree = "<group>"; };
 		DDB65A0A30342A1B005C1E91 /* MaintenanceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceScreen.swift; sourceTree = "<group>"; };
+		DDB65D2030342A60005C1E91 /* SupportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportScreen.swift; sourceTree = "<group>"; };
 		DDB65A1530342A1C005C1E91 /* LoginRequestsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequestsModels.swift; sourceTree = "<group>"; };
 		DDB65A1630342A1C005C1E91 /* LoginRequestsServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequestsServiceManager.swift; sourceTree = "<group>"; };
 		DDB65A1730342A1C005C1E91 /* LoginRequestsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRequestsViewModel.swift; sourceTree = "<group>"; };
@@ -741,6 +745,7 @@
 				DDB65A0430342A1B005C1E91 /* CriticalInsightsViewModel.swift */,
 				DDB65A0530342A1B005C1E91 /* CriticalInsightsScreen.swift */,
 				DDB65A0A30342A1B005C1E91 /* MaintenanceScreen.swift */,
+				DDB65D2030342A60005C1E91 /* SupportScreen.swift */,
 				DDB6599530342A0C005C1E91 /* StartNewOrderModels.swift */,
 				DDB6599630342A0C005C1E91 /* StartNewOrderServiceManager.swift */,
 				DDB6599730342A0C005C1E91 /* StartNewOrderViewModel.swift */,
@@ -827,6 +832,7 @@
 				DDB65903303429F8005C1E91 /* AlertToast.swift */,
 				DDB65904303429F8005C1E91 /* AppConstant.swift */,
 				DDB65905303429F8005C1E91 /* AppTheme.swift */,
+				DDB65F0130342A80005C1E91 /* AppFilterComponents.swift */,
 				DDB65906303429F8005C1E91 /* CommonViews.swift */,
 				DDB65907303429F8005C1E91 /* InputField.swift */,
 				DDB65908303429F8005C1E91 /* RemoteImage.swift */,
@@ -1359,6 +1365,7 @@
 				DDB65923303429F8005C1E91 /* AlertToast.swift in Sources */,
 				DDB65924303429F8005C1E91 /* AppConstant.swift in Sources */,
 				DDB65925303429F8005C1E91 /* AppTheme.swift in Sources */,
+				DDB65F0230342A80005C1E91 /* AppFilterComponents.swift in Sources */,
 				DDB65926303429F8005C1E91 /* CommonViews.swift in Sources */,
 				DDB65927303429F8005C1E91 /* InputField.swift in Sources */,
 				DDB65928303429F8005C1E91 /* RemoteImage.swift in Sources */,
@@ -1562,6 +1569,7 @@
 				DDB65A0830342A1B005C1E91 /* CriticalInsightsViewModel.swift in Sources */,
 				DDB65A0930342A1B005C1E91 /* CriticalInsightsScreen.swift in Sources */,
 				DDB65A0B30342A1B005C1E91 /* MaintenanceScreen.swift in Sources */,
+				DDB65D2130342A60005C1E91 /* SupportScreen.swift in Sources */,
 				DDB6599D30342A0C005C1E91 /* StartNewOrderModels.swift in Sources */,
 				DDB6599E30342A0C005C1E91 /* StartNewOrderServiceManager.swift in Sources */,
 				DDB6599F30342A0C005C1E91 /* StartNewOrderViewModel.swift in Sources */,

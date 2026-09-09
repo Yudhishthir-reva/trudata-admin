@@ -58,50 +58,15 @@ struct ManageProductsScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search products...", text: $viewModel.searchText)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .onChange(of: viewModel.searchText) { _, value in
-                        viewModel.onSearchChanged(value)
-                    }
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 44)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.primaryBlue.opacity(0.35), lineWidth: 1)
-            }
-
-            Button {
-                showFilterSheet = true
-            } label: {
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(DashboardTheme.primaryBlue)
-                        .frame(width: 44, height: 44)
-                        .overlay {
-                            Image(systemName: "slider.horizontal.3")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                    if viewModel.hasActiveFilters {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 2, y: -2)
-                    }
-                }
-            }
+        SearchAndFilterBar(
+            placeholder: "Search products...",
+            searchText: $viewModel.searchText,
+            isFilterActive: viewModel.hasActiveFilters,
+            onFilterTap: { showFilterSheet = true }
+        )
+        .onChange(of: viewModel.searchText) { _, value in
+            viewModel.onSearchChanged(value)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.white)
     }
 
     @ViewBuilder

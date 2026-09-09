@@ -8,9 +8,9 @@ import SwiftUI
 struct MyProfileScreen: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel = MyProfileViewModel()
     @State private var showLogoutDialog = false
-    @State private var showDeleteAccountDialog = false
     @State private var documentPreviewURL: String?
 
     var body: some View {
@@ -27,7 +27,7 @@ struct MyProfileScreen: View {
                 content
             }
 
-            if viewModel.isLoggingOut || viewModel.isDeletingAccount {
+            if viewModel.isLoggingOut {
                 Color.black.opacity(0.15).ignoresSafeArea()
                 ProgressView()
                     .tint(DashboardTheme.primaryBlue)
@@ -43,14 +43,6 @@ struct MyProfileScreen: View {
             }
         } message: {
             Text("Are you sure you want to logout?")
-        }
-        .alert("Delete Account", isPresented: $showDeleteAccountDialog) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete Forever", role: .destructive) {
-                viewModel.deleteAccount()
-            }
-        } message: {
-            Text("Deleting your account is permanent. All your shift logs, pending orders, and personal data will be erased. Are you sure?")
         }
         .fullScreenCover(isPresented: documentPreviewBinding) {
             if let url = documentPreviewURL {
@@ -101,6 +93,24 @@ struct MyProfileScreen: View {
                         }
                     }
 
+                    infoCard(title: "Legal & Support") {
+                        legalLinkRow(
+                            icon: "hand.raised.fill",
+                            title: "Privacy Policy",
+                            url: AppLegalLinks.privacyPolicy
+                        )
+                        legalLinkRow(
+                            icon: "doc.text.fill",
+                            title: "Terms of Service",
+                            url: AppLegalLinks.termsOfService
+                        )
+                        legalLinkRow(
+                            icon: "questionmark.circle.fill",
+                            title: "Support",
+                            url: AppLegalLinks.support
+                        )
+                    }
+
                     VStack(spacing: 12) {
                         Button {
                             showLogoutDialog = true
@@ -111,18 +121,6 @@ struct MyProfileScreen: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
                                 .background(DashboardTheme.dangerRed)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-
-                        Button {
-                            showDeleteAccountDialog = true
-                        } label: {
-                            Label("Delete Account", systemImage: "trash.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(Color(hex: "DC2626"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color(hex: "FEE2E2"))
                                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
                     }
@@ -223,6 +221,31 @@ struct MyProfileScreen: View {
                     .foregroundStyle(DashboardTheme.neutralDark)
 
                 Spacer()
+            }
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func legalLinkRow(icon: String, title: String, url: URL) -> some View {
+        Button {
+            openURL(url)
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
+                    .frame(width: 22)
+
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+
+                Spacer()
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
             }
             .padding(.vertical, 10)
         }

@@ -40,7 +40,10 @@ struct SellerProfileActionsTab: View {
                 description: "Review payments this retailer submitted from their app...",
                 buttonTitle: "Go to Retailer App Payments",
                 destination: {
-                    RetailerAppPaymentScreen()
+                    RetailerAppPaymentScreen(
+                        lockedSellerId: sellerId,
+                        lockedSellerName: screenTitle
+                    )
                 }
             )
         }

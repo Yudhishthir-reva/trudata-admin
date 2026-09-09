@@ -73,6 +73,8 @@ struct DashboardItemCard: View {
             manageEmployeesCard
         case "controls":
             controlsCard
+        case "support":
+            supportCard
         default:
             genericCard
         }
@@ -1376,6 +1378,42 @@ struct DashboardItemCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
+    }
+
+    private var supportCard: some View {
+        let sales = payload?.string(for: "forSales", "for_sales") ?? ""
+        return DashboardCardChrome {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    DashboardBulletTitle(
+                        title: displayTitle("Support"),
+                        colors: [DashboardTheme.dangerRed, DashboardTheme.pickupOrange]
+                    )
+                    Text(
+                        sales.isEmptyString
+                        ? "Call for support and emergencies."
+                        : "Call \(sales) for support and emergencies."
+                    )
+                    .font(.system(size: 12))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+                    .lineLimit(2)
+                }
+                Spacer(minLength: 8)
+                Button(action: { onNavigate("support") }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "phone.fill")
+                        Text("Call")
+                    }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DashboardTheme.dangerRed)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     private var genericCard: some View {

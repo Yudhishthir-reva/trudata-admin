@@ -8,10 +8,14 @@ import SwiftUI
 struct ExpenseListScreen: View {
 
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = ExpenseViewModel()
+    @StateObject private var viewModel: ExpenseViewModel
     @State private var showAddExpense = false
     @State private var pendingAction: ExpenseStatusAction?
     @State private var previewImageURL: String?
+
+    init(mode: ExpenseListMode = .approvals) {
+        _viewModel = StateObject(wrappedValue: ExpenseViewModel(mode: mode))
+    }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -19,7 +23,7 @@ struct ExpenseListScreen: View {
 
             VStack(spacing: 0) {
                 SellersAppBar(
-                    title: "Expense Requests",
+                    title: viewModel.mode.title,
                     onBack: { dismiss() },
                     onHome: { dismiss() },
                     onRefresh: { viewModel.load() }
@@ -126,7 +130,7 @@ struct ExpenseListScreen: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if viewModel.filteredItems.isEmpty {
-            Text("No expense requests found for this category.")
+            Text(viewModel.mode.emptyMessage)
                 .font(.system(size: 14))
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -139,7 +143,7 @@ struct ExpenseListScreen: View {
                         ExpenseRequestCard(
                             item: item,
                             indicatorColor: viewModel.selectedTab.indicatorColor,
-                            showActions: viewModel.selectedTab == .pending,
+                            showActions: viewModel.showsApprovalActions,
                             onApprove: {
                                 pendingAction = ExpenseStatusAction(
                                     expenseId: item.id,

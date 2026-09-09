@@ -130,26 +130,11 @@ struct ViewVehiclesScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search vehicles or riders...", text: $viewModel.searchText)
-                .font(.system(size: 15))
-            if !viewModel.searchText.isEmptyString {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal, 16)
+        AppSearchBar(
+            placeholder: "Search vehicles or riders...",
+            text: $viewModel.searchText,
+            verticalPadding: 0
+        )
         .padding(.bottom, 8)
     }
 

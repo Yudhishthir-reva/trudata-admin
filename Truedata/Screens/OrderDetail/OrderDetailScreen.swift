@@ -9,6 +9,7 @@ struct OrderDetailScreen: View {
     @State private var previewImageURL: String?
     @State private var actionMessage: String?
     @State private var showCancelConfirm = false
+    @State private var showUnassignConfirm = false
     @State private var showChangeSeller = false
     @State private var showEditOrder = false
     @State private var showReturnTypeDialog = false
@@ -35,7 +36,7 @@ struct OrderDetailScreen: View {
 
                 content
 
-                if viewModel.isCancelling || viewModel.isDownloadingSettlement {
+                if viewModel.isCancelling || viewModel.isUnassigning || viewModel.isDownloadingSettlement {
                     Color.black.opacity(0.15)
                         .ignoresSafeArea()
                     ProgressView()
@@ -64,6 +65,21 @@ struct OrderDetailScreen: View {
                     actionMessage = message
                     if success {
                         viewModel.loadOrderDetail()
+                    }
+                }
+            }
+            Button("Dismiss", role: .cancel) {}
+        }
+        .confirmationDialog(
+            "Unassign this order?",
+            isPresented: $showUnassignConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Unassign Order", role: .destructive) {
+                viewModel.unassignOrder { success, message in
+                    actionMessage = message
+                    if success {
+                        dismiss()
                     }
                 }
             }
@@ -509,6 +525,21 @@ struct OrderDetailScreen: View {
                     )
                 }
                 .buttonStyle(.plain)
+            }
+
+            if order.showsUnassignOrder {
+                Button {
+                    showUnassignConfirm = true
+                } label: {
+                    orderActionButton(
+                        title: "Unassign Order",
+                        icon: "person.crop.circle.badge.minus",
+                        color: DashboardTheme.warningYellow,
+                        isDisabled: viewModel.isUnassigning
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isUnassigning)
             }
 
             if order.showsDownloadInvoice {

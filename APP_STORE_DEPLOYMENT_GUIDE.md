@@ -87,10 +87,9 @@ Before submitting your app to App Store Connect, ensure these 5 requirements are
 > **Compliance Confirmed**: GPS background tracking stops immediately upon:
 > - User punching out in `MarkAttendanceViewModel`
 > - User logging out in `MyProfileViewModel`
-> - User deleting account in `MyProfileViewModel`
 
-### 2. In-App Account Deletion (Guideline 5.1.1(v))
-> **Compliance Confirmed**: In [`MyProfileScreen.swift`](file:///Users/reva/Documents/GitHub/trudata-admin/Truedata/Screens/Profile/MyProfileScreen.swift), users can tap **"Delete Account"** to initiate permanent account deletion with confirmation dialog.
+### 2. Account Deletion (Guideline 5.1.1(v))
+> **Not applicable for self-serve delete**: TruDataa is an employer-provisioned admin / workforce app. Staff accounts are created by the company — end users cannot self-register in the app. In-app **Delete Account** is intentionally omitted. Document account-removal requests via Privacy Policy / support (employer or `spicemonktech@gmail.com`). Mention this in App Review Notes.
 
 ### 3. App Store Metadata Battery Disclaimer
 Copy and paste this sentence at the bottom of your **App Description** in App Store Connect:
@@ -100,7 +99,7 @@ Copy and paste this sentence at the bottom of your **App Description** in App St
 In App Store Connect under **App Review Information**:
 - Provide valid **Username** and **Password** for a test employee account.
 - In the **Notes** section, write:
-  > *"TruDataa is a workforce management and field sales tracking application. Location tracking in the background is only activated after the employee logs in and marks attendance (Shift Start) to calculate travel reimbursement and verify client visits. Tracking stops immediately upon Punch-out."*
+  > *"TruDataa is a workforce management and field sales tracking application. Location tracking in the background is only activated after the employee logs in and marks attendance (Shift Start) to calculate travel reimbursement and verify client visits. Tracking stops immediately upon Punch-out. Accounts are provisioned by the employer; end users cannot self-register, so in-app account deletion is not offered."*
 
 ### 5. App Privacy Details (Nutrition Labels)
 Under App Store Connect -> **App Privacy**:

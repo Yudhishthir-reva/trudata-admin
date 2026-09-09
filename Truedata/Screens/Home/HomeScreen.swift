@@ -60,11 +60,13 @@ enum HomeDestination: Hashable {
     case assignBeats
     case sellerReport
     case expenseApprovals
+    case myExpenses
     case riderInsights
     case b2cOrders
-    case retailerAppPayments
+    case retailerAppPayments(sellerId: Int?, sellerName: String?)
     case pendingSettleCheque
     case chequeSettlement(sellerId: Int)
+    case support(salesPhone: String, riderPhone: String)
 }
 
 struct HomeScreen: View {
@@ -231,17 +233,27 @@ struct HomeScreen: View {
                     case .sellerReport:
                         SellerReportScreen()
                     case .expenseApprovals:
-                        ExpenseListScreen()
+                        ExpenseListScreen(mode: .approvals)
+                    case .myExpenses:
+                        ExpenseListScreen(mode: .personal)
                     case .riderInsights:
                         RiderInsightsScreen()
                     case .b2cOrders:
                         B2COrdersScreen()
-                    case .retailerAppPayments:
-                        RetailerAppPaymentScreen()
+                    case .retailerAppPayments(let sellerId, let sellerName):
+                        RetailerAppPaymentScreen(
+                            lockedSellerId: sellerId,
+                            lockedSellerName: sellerName
+                        )
                     case .pendingSettleCheque:
                         PendingSettleChequeScreen()
                     case .chequeSettlement(let sellerId):
                         ChequeSettlementScreen(sellerId: sellerId)
+                    case .support(let salesPhone, let riderPhone):
+                        SupportScreen(
+                            salesPhoneNumber: salesPhone,
+                            riderPhoneNumber: riderPhone
+                        )
                     }
                 }
         }
@@ -273,7 +285,6 @@ struct HomeScreen: View {
                             },
                             onLogout: { showLogoutDialog = true }
                         )
-
                         content
                     }
                 }
@@ -376,8 +387,10 @@ struct HomeScreen: View {
             navigationPath.append(HomeDestination.staffReport)
         case "register_staff_member":
             navigationPath.append(HomeDestination.registeredStaffMembers)
-        case "expense_approval", "apply_reimbursements":
+        case "expense_approval":
             navigationPath.append(HomeDestination.expenseApprovals)
+        case "apply_reimbursements":
+            navigationPath.append(HomeDestination.myExpenses)
         case "rider_report":
             navigationPath.append(HomeDestination.riderInsights)
         case "seller_report":
@@ -393,7 +406,13 @@ struct HomeScreen: View {
         case "b2c_orders":
             navigationPath.append(HomeDestination.b2cOrders)
         case "retailer_app_payment", "app_payment", "retailer_app_payments":
-            navigationPath.append(HomeDestination.retailerAppPayments)
+            navigationPath.append(HomeDestination.retailerAppPayments(sellerId: nil, sellerName: nil))
+        case "support":
+            let supportItem = viewModel.response?.data?.allItems.first(where: { $0.route == "support" })
+                ?? viewModel.items.first(where: { $0.route == "support" })
+            let sales = supportItem?.payload?.string(for: "forSales", "for_sales") ?? "N/A"
+            let rider = supportItem?.payload?.string(for: "forRider", "for_rider") ?? "N/A"
+            navigationPath.append(HomeDestination.support(salesPhone: sales, riderPhone: rider))
         case "order_insights":
             navigationPath.append(
                 HomeDestination.orderInsights(
@@ -595,7 +614,7 @@ struct HomeScreen: View {
                                         endDate: viewModel.endDate,
                                         globalTopSellingFallback: viewModel.globalTopSellingFallback,
                                         onFetch: { viewModel.fetchDashboardData() },
-                                        onNavigate: navigate,
+                                        onNavigate: { navigate(to: $0) },
                                         onStartDateChange: { newDate in
                                             viewModel.updateDateRange(start: newDate, end: viewModel.endDate)
                                         },

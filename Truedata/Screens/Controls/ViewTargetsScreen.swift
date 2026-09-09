@@ -126,58 +126,12 @@ struct ViewTargetsScreen: View {
     }
 
     private var searchAndFilterBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search by staff name...", text: $viewModel.searchText)
-                    .font(.system(size: 15))
-                if !viewModel.searchText.isEmptyString {
-                    Button {
-                        viewModel.searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.primaryBlue.opacity(0.35), lineWidth: 1)
-            }
-
-            Button {
-                viewModel.showFilterSheet = true
-            } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                        .frame(width: 48, height: 48)
-                        .background(DashboardTheme.primaryBlue.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(DashboardTheme.primaryBlue.opacity(0.2), lineWidth: 1)
-                        }
-
-                    if viewModel.filters.isActive {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 10, height: 10)
-                            .offset(x: 2, y: -2)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        SearchAndFilterBar(
+            placeholder: "Search by staff name...",
+            searchText: $viewModel.searchText,
+            isFilterActive: viewModel.filters.isActive,
+            onFilterTap: { viewModel.showFilterSheet = true }
+        )
     }
 
     @ViewBuilder

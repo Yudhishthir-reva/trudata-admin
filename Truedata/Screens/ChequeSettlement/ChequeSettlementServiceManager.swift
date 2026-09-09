@@ -48,13 +48,18 @@ final class ChequeSettlementServiceManager {
         isDiscountApplied: Bool,
         discount: String
     ) -> AnyPublisher<StatusMessageResponse, Error> {
-        networkService.request(
+        // API expects gross amount = settlement amount + discount (same as payment-settlement).
+        let amountValue = Double(amount) ?? 0
+        let discountValue = Double(discount) ?? 0
+        let finalAmount = isDiscountApplied ? amountValue + discountValue : amountValue
+
+        return networkService.request(
             APIRouter.chequeSettlement,
             params: [
                 "seller_id": sellerId,
                 "cheque_id": chequeId,
                 "bill_id[]": billIds.map(String.init),
-                "amount": amount,
+                "amount": String(finalAmount),
                 "is_disc_apply": isDiscountApplied ? "true" : "false",
                 "discount": discount
             ],

@@ -64,3 +64,10 @@ enum AppTheme {
     static let heroBottom = Color(hex: useGreenTheme ? "1D8750" : "0E7490")
     static let heroGlow = Color(hex: useGreenTheme ? "34D399" : "22D3EE")
 }
+
+/// Public legal / support pages used in App Store Connect and in-app links.
+enum AppLegalLinks {
+    static let privacyPolicy = URL(string: "https://trudataa.com/spice_monk_privacy_policy.html")!
+    static let termsOfService = URL(string: "https://trudataa.com/spice_monk_terms_conditions.html")!
+    static let support = URL(string: "https://trudataa.com/spice_monk_support.html")!
+}

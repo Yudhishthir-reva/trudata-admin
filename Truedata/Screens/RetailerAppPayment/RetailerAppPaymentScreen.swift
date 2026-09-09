@@ -8,7 +8,7 @@ import SwiftUI
 struct RetailerAppPaymentScreen: View {
 
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = RetailerAppPaymentViewModel()
+    @StateObject private var viewModel: RetailerAppPaymentViewModel
 
     @State private var showFilterSheet: Bool = false
     @State private var itemToApprove: RetailerPaymentItem?
@@ -18,13 +18,29 @@ struct RetailerAppPaymentScreen: View {
     @State private var rejectRemark: String = ""
     @State private var showRejectSheet: Bool = false
 
+    init(lockedSellerId: Int? = nil, lockedSellerName: String? = nil) {
+        _viewModel = StateObject(
+            wrappedValue: RetailerAppPaymentViewModel(
+                lockedSellerId: lockedSellerId,
+                lockedSellerName: lockedSellerName
+            )
+        )
+    }
+
+    private var appBarTitle: String {
+        if let name = viewModel.lockedSellerName, !name.isEmptyString {
+            return "Payments · \(name)"
+        }
+        return "Retailer App Payments"
+    }
+
     var body: some View {
         ZStack {
             Color(hex: "F3F4F6").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 SellersAppBar(
-                    title: "Retailer App Payments",
+                    title: appBarTitle,
                     onBack: { dismiss() },
                     onHome: { dismiss() },
                     onRefresh: { viewModel.loadRequests(isRefresh: true) }
@@ -64,6 +80,7 @@ struct RetailerAppPaymentScreen: View {
                 currentFilters: viewModel.filters,
                 sellerList: viewModel.sellerList,
                 isLoadingSellers: viewModel.isLoadingSellers,
+                locksSellerSelection: viewModel.isSellerLocked,
                 onApply: { newFilters in
                     viewModel.applyFilters(newFilters)
                 },
@@ -142,64 +159,18 @@ struct RetailerAppPaymentScreen: View {
     // MARK: - Search & Filter Bar
 
     private var searchAndFilterBar: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color(hex: "9CA3AF"))
-
-                TextField("Search shop, name or mobile", text: $viewModel.searchText)
-                    .font(.system(size: 14))
-                    .onChange(of: viewModel.searchText) { newValue in
-                        viewModel.updateSearch(newValue)
-                    }
-
-                if !viewModel.searchText.isEmpty {
-                    Button {
-                        viewModel.searchText = ""
-                        viewModel.updateSearch("")
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color(hex: "9CA3AF"))
-                    }
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
-            )
-
-            Button {
+        SearchAndFilterBar(
+            placeholder: "Search shop, name or mobile",
+            searchText: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch($0) }
+            ),
+            isFilterActive: viewModel.filters.isFiltered,
+            onFilterTap: {
                 viewModel.loadSellersIfNeeded()
                 showFilterSheet = true
-            } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color(hex: "1D4ED8"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                    if viewModel.filters.isFiltered {
-                        Circle()
-                            .fill(Color(hex: "FACC15"))
-                            .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
-                            .offset(x: 2, y: -2)
-                    }
-                }
             }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
+        )
     }
 
     // MARK: - Date Range Banner

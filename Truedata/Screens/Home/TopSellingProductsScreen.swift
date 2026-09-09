@@ -77,64 +77,16 @@ struct TopSellingProductsScreen: View {
     }
 
     private var searchAndFilterBar: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search...", text: Binding(
-                    get: { viewModel.searchText },
-                    set: { viewModel.updateSearch($0) }
-                ))
-                .font(.system(size: 15))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-
-                if !viewModel.searchText.isEmptyString {
-                    Button { viewModel.updateSearch("") } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.neutralMedium.opacity(0.35), lineWidth: 1)
-            }
-
-            Button { showFilterSheet = true } label: {
-                ZStack(alignment: .topTrailing) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Filter")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-                    .padding(.horizontal, 16)
-                    .frame(height: 48)
-                    .background(Color.clear)
-                    .overlay {
-                        Capsule()
-                            .stroke(DashboardTheme.primaryBlue.opacity(0.55), lineWidth: 1)
-                    }
-
-                    if viewModel.isFilterActive {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 2, y: -2)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .background(Color(hex: "F3F4F6"))
+        SearchAndFilterBar(
+            placeholder: "Search...",
+            searchText: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch($0) }
+            ),
+            isFilterActive: viewModel.isFilterActive,
+            filterButtonStyle: .outlineCapsule,
+            onFilterTap: { showFilterSheet = true }
+        )
     }
 
     @ViewBuilder

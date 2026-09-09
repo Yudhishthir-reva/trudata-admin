@@ -35,14 +35,30 @@ class RetailerAppPaymentViewModel: ObservableObject {
     @Published var toastMessage: String?
     @Published var errorMessage: String?
 
+    let lockedSellerId: Int?
+    let lockedSellerName: String?
+
     private let service: RetailerAppPaymentServiceManager
     private var cancellables = Set<AnyCancellable>()
     private var searchCancellable: AnyCancellable?
     private var toastTimer: AnyCancellable?
 
-    init(service: RetailerAppPaymentServiceManager = RetailerAppPaymentServiceManager()) {
+    var isSellerLocked: Bool {
+        lockedSellerId != nil && (lockedSellerId ?? 0) > 0
+    }
+
+    init(
+        lockedSellerId: Int? = nil,
+        lockedSellerName: String? = nil,
+        service: RetailerAppPaymentServiceManager = RetailerAppPaymentServiceManager()
+    ) {
+        self.lockedSellerId = lockedSellerId
+        self.lockedSellerName = lockedSellerName
         self.service = service
         setupDefaultDates()
+        if let lockedSellerId, lockedSellerId > 0 {
+            filters.sellerId = String(lockedSellerId)
+        }
     }
 
     private func setupDefaultDates() {
@@ -195,6 +211,18 @@ class RetailerAppPaymentViewModel: ObservableObject {
 
     func applyFilters(_ newFilters: RetailerPaymentFilters) {
         filters = newFilters
+        if isSellerLocked, let lockedSellerId {
+            filters.sellerId = String(lockedSellerId)
+        }
+        loadRequests(isRefresh: true)
+    }
+
+    func resetFiltersToDefault() {
+        filters = RetailerPaymentFilters()
+        setupDefaultDates()
+        if isSellerLocked, let lockedSellerId {
+            filters.sellerId = String(lockedSellerId)
+        }
         loadRequests(isRefresh: true)
     }
 
@@ -202,12 +230,6 @@ class RetailerAppPaymentViewModel: ObservableObject {
         filters.datePreset = .allTime
         filters.startDate = ""
         filters.endDate = ""
-        loadRequests(isRefresh: true)
-    }
-
-    func resetFiltersToDefault() {
-        filters = RetailerPaymentFilters()
-        setupDefaultDates()
         loadRequests(isRefresh: true)
     }
 

@@ -183,60 +183,19 @@ struct OrderInsightsScreen: View {
     }
 
     private var searchAndFilterBar: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search...", text: Binding(
-                    get: { viewModel.searchText },
-                    set: { viewModel.updateSearch($0) }
-                ))
-                .font(.system(size: 15))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-
-                if !viewModel.searchText.isEmptyString {
-                    Button { viewModel.updateSearch("") } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                }
-
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.neutralMedium.opacity(0.35), lineWidth: 1)
-            }
-
-            Button { showFilterSheet = true } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
-                        .background(DashboardTheme.primaryBlue)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                    if viewModel.isFilterActive {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 10, height: 10)
-                            .offset(x: -4, y: 4)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
+        SearchAndFilterBar(
+            placeholder: "Search...",
+            searchText: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch($0) }
+            ),
+            isFilterActive: viewModel.isFilterActive,
+            onFilterTap: { showFilterSheet = true }
+        ) {
+            Image(systemName: "mic.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(DashboardTheme.neutralMedium)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 4)
-        .background(Color(hex: "F3F4F6"))
     }
 
     private var switchHistoryButton: some View {
@@ -413,114 +372,27 @@ struct OrderInsightsScreen: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 12) {
-            Spacer()
-
-            SadMagnifyingGlassView()
-                .padding(.bottom, 8)
-
-            Text("No orders found")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Color(hex: "111827"))
-
-            Text("Nothing matches the filters you have selected.")
-                .font(.system(size: 13))
-                .foregroundStyle(Color(hex: "6B7280"))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-
-            Spacer()
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        AppEmptyState(
+            title: "No orders found",
+            message: "Nothing matches the filters you have selected."
+        )
     }
 
     private var lastUsedFilterPopup: some View {
-        VStack(spacing: 14) {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(hex: "EFF6FF"))
-                        .frame(width: 38, height: 38)
-
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Color(hex: "2563EB"))
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Apply Last Used Filter?")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: "111827"))
-
-                    Text("Use your previous filter settings")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color(hex: "6B7280"))
-                }
-
-                Spacer()
-
-                Button {
-                    withAnimation { showLastUsedFilterPrompt = false }
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Color(hex: "6B7280"))
-                        .frame(width: 26, height: 26)
-                        .background(Color(hex: "F3F4F6"))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
+        FilterLastUsedPrompt(
+            summaryLabel: viewModel.lastUsedFilterLabel,
+            onDismiss: {
+                withAnimation { showLastUsedFilterPrompt = false }
+            },
+            onUseDefault: {
+                withAnimation { showLastUsedFilterPrompt = false }
+                viewModel.resetToDefaultFilters()
+            },
+            onApply: {
+                withAnimation { showLastUsedFilterPrompt = false }
+                viewModel.applyLastUsedFilter()
             }
-
-            Text(viewModel.lastUsedFilterLabel)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color(hex: "1E293B"))
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(Color(hex: "F1F5F9"))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            HStack(spacing: 12) {
-                Button {
-                    withAnimation { showLastUsedFilterPrompt = false }
-                    viewModel.resetToDefaultFilters()
-                } label: {
-                    Text("Use Default")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(hex: "374151"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color(hex: "D1D5DB"), lineWidth: 1)
-                        )
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    withAnimation { showLastUsedFilterPrompt = false }
-                    viewModel.applyLastUsedFilter()
-                } label: {
-                    Text("Apply Filter")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(Color(hex: "2563EB"))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: -4)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        )
     }
 }
 

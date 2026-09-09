@@ -26,6 +26,15 @@ class ExpenseServiceManager {
         networkService.request(APIRouter.allExpensesList, params: [:], headers: authHeaders)
     }
 
+    /// Staff personal expenses (`expense-list` + `staff_id`).
+    func fetchMyExpensesList() -> AnyPublisher<ExpenseListResponse, Error> {
+        networkService.request(
+            APIRouter.expenseList,
+            params: ["staff_id": userId],
+            headers: authHeaders
+        )
+    }
+
     func updateExpenseStatus(
         expenseId: Int,
         status: String,

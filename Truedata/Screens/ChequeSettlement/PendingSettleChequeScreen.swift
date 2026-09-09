@@ -99,7 +99,12 @@ struct PendingSettleChequeScreen: View {
         }
         .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear { viewModel.load(isRefresh: true) }
+        .onAppear {
+            // Refresh when returning from settle screen; skip duplicate fire if already loading.
+            if !viewModel.isLoading && !viewModel.isLoadingMore {
+                viewModel.load(isRefresh: true)
+            }
+        }
         .navigationDestination(isPresented: Binding(
             get: { selectedSellerId != nil },
             set: { if !$0 { selectedSellerId = nil } }

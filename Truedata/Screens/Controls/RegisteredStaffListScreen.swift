@@ -79,75 +79,51 @@ struct RegisteredStaffListScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search staff members...", text: $viewModel.searchText)
-                .font(.system(size: 15))
-            if !viewModel.searchText.isEmptyString {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal, 16)
+        AppSearchBar(
+            placeholder: "Search staff members...",
+            text: $viewModel.searchText,
+            verticalPadding: 0
+        )
         .padding(.bottom, 8)
     }
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading && viewModel.staffMembers.isEmpty {
-            ProgressView()
-                .tint(DashboardTheme.primaryBlue)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let error = viewModel.errorMessage, viewModel.staffMembers.isEmpty {
-            VStack(spacing: 12) {
-                Text(error)
+        AppContentState(
+            isLoading: viewModel.isLoading,
+            errorMessage: viewModel.errorMessage,
+            hasNoLoadedData: viewModel.staffMembers.isEmpty,
+            isEmpty: viewModel.filteredMembers.isEmpty,
+            onRetry: { viewModel.load() },
+            empty: {
+                Text(emptyMessage)
                     .font(.system(size: 14))
                     .foregroundStyle(DashboardTheme.neutralMedium)
                     .multilineTextAlignment(.center)
-                PrimaryActionButton(title: "Retry") {
-                    viewModel.load()
-                }
-                .padding(.horizontal, 40)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if viewModel.filteredMembers.isEmpty {
-            Text(emptyMessage)
-                .font(.system(size: 14))
-                .foregroundStyle(DashboardTheme.neutralMedium)
-                .multilineTextAlignment(.center)
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(viewModel.filteredMembers) { member in
-                        StaffMemberCard(
-                            member: member,
-                            selectedTab: viewModel.selectedTab,
-                            onToggleStatus: {
-                                viewModel.requestStatusUpdate(for: member)
-                                statusDialog = viewModel.statusDialog(for: member)
-                            },
-                            onEdit: { editTarget = member }
-                        )
+                    .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            },
+            content: {
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(viewModel.filteredMembers) { member in
+                            StaffMemberCard(
+                                member: member,
+                                selectedTab: viewModel.selectedTab,
+                                onToggleStatus: {
+                                    viewModel.requestStatusUpdate(for: member)
+                                    statusDialog = viewModel.statusDialog(for: member)
+                                },
+                                onEdit: { editTarget = member }
+                            )
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 24)
             }
-        }
+        )
     }
 
     private var emptyMessage: String {

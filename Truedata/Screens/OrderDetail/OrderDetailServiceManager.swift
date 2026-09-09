@@ -193,6 +193,14 @@ class OrderDetailServiceManager {
         return networkService.request(APIRouter.cancelOrder, params: params, headers: authHeaders)
     }
 
+    func unassignOrder(orderId: String) -> AnyPublisher<StatusMessageResponse, Error> {
+        networkService.request(
+            APIRouter.unassignOrder,
+            params: ["order_id": orderId],
+            headers: authHeaders
+        )
+    }
+
     func downloadSettlementReceipt(orderId: String) -> AnyPublisher<Data, Error> {
         downloadPDF(
             router: .paymentReceipt,

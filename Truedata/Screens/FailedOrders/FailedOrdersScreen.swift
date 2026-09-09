@@ -42,56 +42,16 @@ struct FailedOrdersScreen: View {
     }
 
     private var searchAndFilterBar: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search by Order ID...", text: Binding(
-                    get: { viewModel.searchText },
-                    set: { viewModel.updateSearch($0) }
-                ))
-                .font(.system(size: 15))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-
-                if !viewModel.searchText.isEmptyString {
-                    Button { viewModel.updateSearch("") } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.neutralMedium.opacity(0.35), lineWidth: 1)
-            }
-
-            Button { showFilterSheet = true } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
-                        .background(DashboardTheme.dangerRed)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                    if viewModel.isFilterActive {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 10, height: 10)
-                            .offset(x: -4, y: 4)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .background(Color(hex: "F3F4F6"))
+        SearchAndFilterBar(
+            placeholder: "Search by Order ID...",
+            searchText: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch($0) }
+            ),
+            isFilterActive: viewModel.isFilterActive,
+            accent: DashboardTheme.dangerRed,
+            onFilterTap: { showFilterSheet = true }
+        )
     }
 
     @ViewBuilder

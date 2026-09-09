@@ -71,27 +71,13 @@ struct BeatOrderSummaryScreen: View {
 
     private var searchAndFilterHeader: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                TextField("Search by Order ID, Staff, Beat...", text: $viewModel.searchText)
-                    .font(.system(size: 15))
-                if !viewModel.searchText.isEmptyString {
-                    Button { viewModel.searchText = "" } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
-            }
+            AppSearchBar(
+                placeholder: "Search by Order ID, Staff, Beat...",
+                text: $viewModel.searchText,
+                strokeColor: Color(hex: "E5E7EB"),
+                horizontalPadding: 0,
+                verticalPadding: 0
+            )
 
             HStack(spacing: 12) {
                 Button {

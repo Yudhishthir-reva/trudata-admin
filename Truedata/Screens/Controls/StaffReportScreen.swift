@@ -41,31 +41,14 @@ struct StaffReportScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Type to search team members...", text: $viewModel.searchText)
-                .font(.system(size: 15))
-            if !viewModel.searchText.isEmptyString {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color(hex: "F7F8FA"))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        AppSearchBar(
+            placeholder: "Type to search team members...",
+            text: $viewModel.searchText,
+            fill: Color(hex: "F7F8FA"),
+            strokeColor: Color(hex: "E5E7EB"),
+            horizontalPadding: 10,
+            verticalPadding: 6
+        )
     }
 
     @ViewBuilder

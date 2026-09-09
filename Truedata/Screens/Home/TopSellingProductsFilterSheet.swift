@@ -30,90 +30,56 @@ struct TopSellingProductsFilterSheet: View {
         _draftSellerId = State(initialValue: filters.sellerId)
     }
 
+    private var categoryItems: [FilterCategoryItem] {
+        TopSellingProductsFilterCategory.allCases.map { FilterCategoryItem(id: $0.rawValue, title: $0.rawValue) }
+    }
+
+    private var selectedCategoryID: Binding<String> {
+        Binding(
+            get: { selectedCategory.rawValue },
+            set: { if let value = TopSellingProductsFilterCategory(rawValue: $0) { selectedCategory = value } }
+        )
+    }
+
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    categorySidebar
-                    Divider()
-                    categoryContent
-                }
-                .frame(maxHeight: .infinity)
-
-                footerButtons
+        AppFilterSheetChrome(
+            title: "Filters",
+            categories: categoryItems,
+            selectedCategoryID: selectedCategoryID,
+            resetTitle: "Clear All",
+            applyTitle: "Apply",
+            showsResetIcon: false,
+            showsApplyIcon: false,
+            onReset: {
+                viewModel.resetToDefaultFilters()
+                dismiss()
+            },
+            onApply: {
+                applyDraftFilters()
+                dismiss()
             }
-            .background(Color(hex: "F3F4F6"))
-            .navigationTitle("Filters")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
+        ) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    FilterSectionTitle(title: selectedCategory.rawValue)
+                    switch selectedCategory {
+                    case .dateRange:
+                        dateRangeContent
+                    case .staff:
+                        staffContent
+                    case .seller:
+                        sellerContent
                     }
                 }
+                .padding(12)
             }
         }
-    }
-
-    private var categorySidebar: some View {
-        ScrollView {
-            VStack(spacing: 4) {
-                ForEach(TopSellingProductsFilterCategory.allCases, id: \.self) { category in
-                    Button {
-                        selectedCategory = category
-                    } label: {
-                        Text(category.rawValue)
-                            .font(.system(size: 13, weight: selectedCategory == category ? .bold : .medium))
-                            .foregroundStyle(selectedCategory == category ? .white : DashboardTheme.neutralDark)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 12)
-                            .background(
-                                selectedCategory == category
-                                ? DashboardTheme.primaryBlue
-                                : Color.clear
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(8)
-        }
-        .frame(width: 118)
-        .background(DashboardTheme.surfaceVariant.opacity(0.5))
-    }
-
-    @ViewBuilder
-    private var categoryContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(selectedCategory.rawValue.uppercased())
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-                    .padding(.bottom, 4)
-
-                switch selectedCategory {
-                case .dateRange:
-                    dateRangeContent
-                case .staff:
-                    staffContent
-                case .seller:
-                    sellerContent
-                }
-            }
-            .padding(12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white)
     }
 
     private var dateRangeContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(OrderInsightsDatePreset.allCases, id: \.self) { preset in
-                filterRadio(title: preset.rawValue, isSelected: draftDatePreset == preset) {
+                FilterRadioRow(title: preset.rawValue, isSelected: draftDatePreset == preset) {
                     draftDatePreset = preset
                     if preset != .custom, let range = OrderInsightsDatePreset.dateRange(for: preset) {
                         draftStartDate = range.start
@@ -134,12 +100,12 @@ struct TopSellingProductsFilterSheet: View {
 
     private var staffContent: some View {
         VStack(alignment: .leading, spacing: 8) {
-            searchField(placeholder: "Search staff...", text: $staffSearch)
-            filterRadio(title: "All Staff", isSelected: draftStaffId.isEmptyString) {
+            FilterSearchField(placeholder: "Search staff...", text: $staffSearch, filledBackground: true)
+            FilterRadioRow(title: "All Staff", isSelected: draftStaffId.isEmptyString) {
                 draftStaffId = ""
             }
             ForEach(filteredStaff) { staff in
-                filterRadio(title: staff.name, isSelected: draftStaffId == String(staff.id)) {
+                FilterRadioRow(title: staff.name, isSelected: draftStaffId == String(staff.id)) {
                     draftStaffId = String(staff.id)
                 }
             }
@@ -163,7 +129,7 @@ struct TopSellingProductsFilterSheet: View {
                     }
                 )
 
-                searchField(placeholder: "Search sellers...", text: $sellerSearch)
+                FilterSearchField(placeholder: "Search sellers...", text: $sellerSearch, filledBackground: true)
                     .onChange(of: sellerSearch) { _, query in
                         viewModel.loadSellers(
                             isRefresh: true,
@@ -172,12 +138,12 @@ struct TopSellingProductsFilterSheet: View {
                         )
                     }
 
-                filterRadio(title: "All Sellers", isSelected: draftSellerId.isEmptyString) {
+                FilterRadioRow(title: "All Sellers", isSelected: draftSellerId.isEmptyString) {
                     draftSellerId = ""
                 }
 
                 ForEach(viewModel.sellerList) { seller in
-                    filterRadio(title: seller.displayName, isSelected: draftSellerId == String(seller.id)) {
+                    FilterRadioRow(title: seller.displayName, isSelected: draftSellerId == String(seller.id)) {
                         draftSellerId = String(seller.id)
                     }
                 }
@@ -199,44 +165,6 @@ struct TopSellingProductsFilterSheet: View {
                 }
             }
         }
-    }
-
-    private var footerButtons: some View {
-        HStack(spacing: 12) {
-            Button {
-                viewModel.resetToDefaultFilters()
-                dismiss()
-            } label: {
-                Text("Clear All")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.white)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(DashboardTheme.primaryBlue.opacity(0.4), lineWidth: 1)
-                    }
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                applyDraftFilters()
-                dismiss()
-            } label: {
-                Text("Apply")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(DashboardTheme.primaryBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .background(Color.white)
     }
 
     private var filteredStaff: [OrderInsightsStaffMember] {
@@ -264,34 +192,6 @@ struct TopSellingProductsFilterSheet: View {
                 sellerId: draftSellerId
             )
         )
-    }
-
-    private func filterRadio(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
-                Text(title)
-                    .font(.system(size: 14))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.vertical, 8)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func searchField(placeholder: String, text: Binding<String>) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField(placeholder, text: text)
-                .font(.system(size: 14))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
-        .background(Color(hex: "F3F4F6"))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private func statePicker(

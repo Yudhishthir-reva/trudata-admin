@@ -138,29 +138,13 @@ struct CriticalInsightsScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search by seller name", text: $viewModel.searchText)
-                .font(.system(size: 15))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-
-            if !viewModel.searchText.isEmptyString {
-                Button { viewModel.searchText = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(viewModel.activeTabColor.opacity(0.35), lineWidth: 1)
-        }
-        .padding(.horizontal, 12)
+        AppSearchBar(
+            placeholder: "Search by seller name",
+            text: $viewModel.searchText,
+            strokeColor: viewModel.activeTabColor.opacity(0.35),
+            horizontalPadding: 12,
+            verticalPadding: 0
+        )
         .padding(.top, 8)
     }
 
@@ -440,6 +424,7 @@ private struct CriticalInsightsStaffFilterSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draftStaffId: String
     @State private var searchText = ""
+    @State private var selectedCategoryID = "Staff"
 
     init(
         staffList: [OrderInsightsStaffMember],
@@ -453,96 +438,50 @@ private struct CriticalInsightsStaffFilterSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            HStack(spacing: 0) {
-                VStack {
-                    Text("Staff")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 16)
-                    Spacer()
-                }
-                .frame(width: 100)
-                .background(Color(hex: "EEF2F7"))
-
-                VStack(spacing: 12) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                        TextField("Search staff...", text: $searchText)
-                            .font(.system(size: 14))
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
-                    .background(Color.white)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(DashboardTheme.neutralMedium.opacity(0.25), lineWidth: 1)
-                    }
-
-                    ScrollView {
-                        LazyVStack(spacing: 8) {
-                            staffRow(name: "All Staff", staffId: "")
-                            ForEach(filteredStaff) { staff in
-                                staffRow(name: staff.name, staffId: String(staff.id))
+        AppFilterSheetChrome(
+            title: "Select Staff",
+            categories: [FilterCategoryItem(id: "Staff", title: "Staff")],
+            selectedCategoryID: $selectedCategoryID,
+            resetTitle: "Clear",
+            applyTitle: "Done",
+            showsResetIcon: false,
+            showsApplyIcon: false,
+            onReset: {
+                draftStaffId = ""
+                onApply("", "All Staff")
+                dismiss()
+            },
+            onApply: {
+                let name = staffList.first(where: { String($0.id) == draftStaffId })?.name ?? "All Staff"
+                onApply(draftStaffId, draftStaffId.isEmpty ? "All Staff" : name)
+                dismiss()
+            }
+        ) {
+            VStack(spacing: 12) {
+                FilterSearchField(placeholder: "Search staff...", text: $searchText)
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        FilterRadioRow(title: "All Staff", isSelected: draftStaffId.isEmpty) {
+                            draftStaffId = ""
+                        }
+                        ForEach(filteredStaff) { staff in
+                            FilterRadioRow(
+                                title: staff.name,
+                                isSelected: draftStaffId == String(staff.id)
+                            ) {
+                                draftStaffId = String(staff.id)
                             }
                         }
                     }
                 }
-                .padding(16)
             }
-            .navigationTitle("Select Staff")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                }
-            }
+            .padding(16)
         }
     }
 
     private var filteredStaff: [OrderInsightsStaffMember] {
         guard !searchText.isEmptyString else { return staffList }
         return staffList.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-    }
-
-    private func staffRow(name: String, staffId: String) -> some View {
-        let isSelected = draftStaffId == staffId
-        return Button {
-            draftStaffId = staffId
-            onApply(staffId, name)
-            dismiss()
-        } label: {
-            HStack {
-                Text(name)
-                    .font(.system(size: 14, weight: isSelected ? .bold : .regular))
-                    .foregroundStyle(isSelected ? DashboardTheme.primaryBlue : DashboardTheme.neutralDark)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(isSelected ? DashboardTheme.primaryBlue.opacity(0.08) : Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(isSelected ? DashboardTheme.primaryBlue.opacity(0.5) : DashboardTheme.surfaceVariant, lineWidth: 1)
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 

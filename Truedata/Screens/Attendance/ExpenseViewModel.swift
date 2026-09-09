@@ -9,6 +9,8 @@ import Combine
 @MainActor
 final class ExpenseViewModel: ObservableObject {
 
+    let mode: ExpenseListMode
+
     @Published var items: [ExpenseItem] = []
     @Published var selectedTab: AttendanceRequestTab = .pending
     @Published var isLoading = false
@@ -19,15 +21,36 @@ final class ExpenseViewModel: ObservableObject {
     private let service = ExpenseServiceManager()
     private var cancellables = Set<AnyCancellable>()
 
+    init(mode: ExpenseListMode = .approvals) {
+        self.mode = mode
+        // Android personal expenses opens on Approved first.
+        if mode == .personal {
+            selectedTab = .approved
+        }
+    }
+
     var filteredItems: [ExpenseItem] {
         items.filter { $0.statusTab == selectedTab }
+    }
+
+    var showsApprovalActions: Bool {
+        mode == .approvals && selectedTab == .pending
     }
 
     func load() {
         isLoading = true
         errorMessage = nil
 
-        service.fetchAllExpensesList()
+        let publisher: AnyPublisher<ExpenseListResponse, Error> = {
+            switch mode {
+            case .approvals:
+                return service.fetchAllExpensesList()
+            case .personal:
+                return service.fetchMyExpensesList()
+            }
+        }()
+
+        publisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self else { return }
@@ -50,6 +73,8 @@ final class ExpenseViewModel: ObservableObject {
     }
 
     func updateStatus(_ action: ExpenseStatusAction) {
+        guard mode == .approvals else { return }
+
         isUpdating = true
         service.updateExpenseStatus(
             expenseId: action.expenseId,

@@ -107,27 +107,10 @@ struct AssignBeatScreen: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search staff or beat name...", text: $viewModel.searchText)
-                .font(.system(size: 15))
-            if !viewModel.searchText.isEmptyString {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        AppSearchBar(
+            placeholder: "Search staff or beat name...",
+            text: $viewModel.searchText
+        )
     }
 
     @ViewBuilder
