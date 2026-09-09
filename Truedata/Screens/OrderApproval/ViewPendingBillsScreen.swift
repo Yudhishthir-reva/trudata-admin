@@ -351,59 +351,50 @@ private struct PendingBillDetailsSheet: View {
     private var paymentMode: BillPaymentMode { BillPaymentMode(key: bill.paymentMode) }
     private var orderStatus: BillOrderStatus { BillOrderStatus(key: bill.orderStatus) }
 
+    private var orderIdText: String {
+        let raw = bill.displayOrderId
+        return raw.hasPrefix("#") ? raw : "#\(raw)"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             sheetHeader
+            Divider().overlay(Color(hex: "E5E7EB"))
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    detailRow(label: "Order / Bill", value: bill.displayOrderId)
-                    detailRow(label: "Date", value: bill.orderDate)
-                    detailRow(label: "Amount", value: bill.amount.priceLabel)
-                    detailRow(label: "Remaining", value: bill.remainingAmount.priceLabel)
-                    detailRow(label: "Payment Status", value: paymentStatus.label)
-                    detailRow(label: "Payment Mode", value: paymentMode.label)
-                    detailRow(label: "Order Status", value: orderStatus.label)
-                    detailRow(label: "Shop", value: bill.sellerName)
-                    detailRow(label: "Sales Person", value: bill.staffName)
+                VStack(alignment: .leading, spacing: 22) {
+                    sectionBlock(title: "General Information") {
+                        detailRow(label: "Order ID", value: orderIdText)
+                        detailRow(label: "Order Date", value: bill.orderDate.ifEmpty(default: "N/A"))
+                        detailRow(label: "Seller", value: bill.sellerName.ifEmpty(default: "N/A"))
+                        detailRow(label: "Sale Person", value: bill.staffName.ifEmpty(default: "N/A"))
+                        detailRow(label: "Order Status", value: orderStatus.label)
+                    }
 
-                    if !bill.history.isEmpty {
-                        Text("Payment History")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(DashboardTheme.neutralDark)
-                            .padding(.top, 4)
-
-                        ForEach(bill.history) { item in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text("#\(item.serialNumber)")
-                                        .font(.system(size: 12, weight: .bold))
-                                    Spacer()
-                                    Text(item.payAmount.priceLabel)
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(DashboardTheme.primaryBlue)
-                                }
-                                Text(item.date)
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(DashboardTheme.neutralMedium)
-                                if let mode = item.paymentMode, !mode.isEmptyString {
-                                    Text("Mode: \(BillPaymentMode(key: mode).label)")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(DashboardTheme.neutralDark)
-                                }
-                                if !item.staff.isEmptyString {
-                                    Text("Staff: \(item.staff)")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(DashboardTheme.neutralDark)
-                                }
-                            }
-                            .padding(12)
-                            .background(DashboardTheme.surfaceVariant)
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    sectionBlock(title: "Payment Details") {
+                        detailRow(label: "Payment Mode", value: paymentMode.label)
+                        HStack(alignment: .center) {
+                            Text("Status")
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color(hex: "6B7280"))
+                            Spacer(minLength: 12)
+                            paymentStatusBadge
                         }
                     }
+
+                    if !bill.history.isEmpty {
+                        sectionBlock(title: "Payment History") {
+                            ForEach(bill.history) { item in
+                                historyRow(item)
+                            }
+                        }
+                    }
+
+                    amountsSummary
                 }
-                .padding(16)
+                .padding(.horizontal, 20)
+                .padding(.top, 18)
+                .padding(.bottom, 28)
             }
         }
         .background(Color.white)
@@ -412,29 +403,138 @@ private struct PendingBillDetailsSheet: View {
     private var sheetHeader: some View {
         HStack {
             Text("Bill Details")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(Color(hex: "111827"))
             Spacer()
-            Button("Done") { dismiss() }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(DashboardTheme.primaryBlue)
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color(hex: "4B5563"))
+                    .frame(width: 30, height: 30)
+                    .background(Color(hex: "F3F4F6"))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .padding(.bottom, 10)
+        .padding(.horizontal, 20)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
+    }
+
+    private func sectionBlock<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Color(hex: "111827"))
+            content()
+        }
     }
 
     private func detailRow(label: String, value: String) -> some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .top, spacing: 12) {
             Text(label)
-                .font(.system(size: 13))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(hex: "6B7280"))
             Spacer(minLength: 12)
             Text(value)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: "111827"))
                 .multilineTextAlignment(.trailing)
         }
+    }
+
+    private var paymentStatusBadge: some View {
+        Text(paymentStatus.label)
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(paymentStatus.detailBadgeForeground)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(paymentStatus.detailBadgeBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private var amountsSummary: some View {
+        HStack(spacing: 0) {
+            amountColumn(title: "Total Bill", value: bill.amount.priceLabel)
+            Rectangle()
+                .fill(Color(hex: "D1D5DB"))
+                .frame(width: 1, height: 44)
+            amountColumn(title: "Amount Due", value: bill.remainingAmount.priceLabel)
+        }
+        .padding(.vertical, 16)
+        .background(Color(hex: "F3F4F6"))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func amountColumn(title: String, value: String) -> some View {
+        VStack(spacing: 6) {
+            Text(title)
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: "6B7280"))
+            Text(value)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(Color(hex: "111827"))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func historyRow(_ item: PendingPaymentBillHistory) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("#\(item.serialNumber)")
+                    .font(.system(size: 12, weight: .bold))
+                Spacer()
+                Text(item.payAmount.priceLabel)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
+            }
+            Text(item.date)
+                .font(.system(size: 12))
+                .foregroundStyle(DashboardTheme.neutralMedium)
+            if let mode = item.paymentMode, !mode.isEmptyString {
+                Text("Mode: \(BillPaymentMode(key: mode).label)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+            }
+            if !item.staff.isEmptyString {
+                Text("Staff: \(item.staff)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DashboardTheme.surfaceVariant)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
+private extension BillPaymentStatus {
+    var detailBadgeForeground: Color {
+        switch self {
+        case .pending: return Color(hex: "DC2626")
+        case .remaining: return Color(hex: "2563EB")
+        case .complete: return Color(hex: "059669")
+        case .unknown: return DashboardTheme.neutralMedium
+        }
+    }
+
+    var detailBadgeBackground: Color {
+        switch self {
+        case .pending: return Color(hex: "FEE2E2")
+        case .remaining: return Color(hex: "DBEAFE")
+        case .complete: return Color(hex: "D1FAE5")
+        case .unknown: return Color(hex: "F3F4F6")
+        }
+    }
+}
+
+private extension String {
+    func ifEmpty(default defaultValue: String) -> String {
+        isEmptyString ? defaultValue : self
     }
 }
 
