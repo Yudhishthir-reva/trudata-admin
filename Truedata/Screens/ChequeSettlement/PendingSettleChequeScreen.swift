@@ -227,8 +227,8 @@ private struct SellerChequeCard: View {
                     }
                 }
 
-                if !seller.mobile.isEmptyString {
-                    Text(seller.mobile)
+                if let mobile = SellerContactVisibility.visibleMobile(seller.mobile) {
+                    Text(mobile)
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(DashboardTheme.neutralMedium)
                         .padding(.horizontal, 8)

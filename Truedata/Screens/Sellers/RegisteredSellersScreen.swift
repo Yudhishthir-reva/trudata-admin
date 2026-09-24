@@ -276,7 +276,7 @@ private struct RegisteredSellerCard: View {
                 }
 
                 HStack {
-                    detailLabel("Mobile:", value: seller.mobile)
+                    detailLabel("Mobile:", value: SellerContactVisibility.displayMobile(seller.mobile))
                     Spacer()
                     detailLabel("City:", value: seller.cityId)
                 }

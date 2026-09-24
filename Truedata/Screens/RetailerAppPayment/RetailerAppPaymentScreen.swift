@@ -332,6 +332,8 @@ struct RetailerAppPaymentScreen: View {
                 }
             }
 
+            ViewSellerProfileButton(sellerId: item.sellerId)
+
             // Payment Description
             Text(item.paymentDescription)
                 .font(.system(size: 13))

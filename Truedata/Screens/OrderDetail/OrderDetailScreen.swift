@@ -318,43 +318,12 @@ struct OrderDetailScreen: View {
 
     @ViewBuilder
     private func remarksSection(_ order: OrderDetailData) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Remarks")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Remarks")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(DashboardTheme.neutralDark)
 
-                Spacer()
-
-                if order.hasAudioRemark || order.hasRetailerAudioRemark {
-                    Text("History")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.dangerRed)
-                }
-            }
-
-            // Salesperson Remark
-            if order.hasAudioRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Salesperson Voice Note")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                    OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
-                }
-            }
-
-            if order.hasRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    if order.hasRetailerRemark || order.hasRetailerAudioRemark {
-                        Text("Salesperson Remark")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                    OrderDetailTextRemarkView(remark: order.remark)
-                }
-            }
-
-            // Retailer Remark
+            // Retailer first (order_source = retailer often has these)
             if order.hasRetailerAudioRemark {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Retailer Voice Note")
@@ -370,6 +339,59 @@ struct OrderDetailScreen: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(DashboardTheme.primaryBlue)
                     OrderDetailTextRemarkView(remark: order.retailerRemark)
+                }
+            }
+
+            if order.hasAudioRemark {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Salesperson Voice Note")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                    OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
+                }
+            }
+
+            if order.hasRemark {
+                VStack(alignment: .leading, spacing: 4) {
+                    if order.hasRetailerRemark || order.hasRetailerAudioRemark {
+                        Text("Salesperson / Admin Remark")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+                    OrderDetailTextRemarkView(remark: order.remark)
+                }
+            }
+
+            if order.remarkHistory.count > 1 || (order.remarkHistory.count == 1 && (order.hasRetailerRemark || order.hasRetailerAudioRemark)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Remark History")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+
+                    ForEach(order.remarkHistory) { item in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text(item.createdBy.isEmptyString ? "Staff" : item.createdBy.capitalized)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(DashboardTheme.primaryBlue)
+                                Spacer()
+                                if !item.createdAt.isEmptyString {
+                                    Text(item.createdAt)
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(DashboardTheme.neutralMedium)
+                                }
+                            }
+                            if item.hasAudio {
+                                OrderDetailAudioPlayerView(audioURLString: item.audioRemark)
+                            }
+                            if item.hasText {
+                                OrderDetailTextRemarkView(remark: item.remark)
+                            }
+                        }
+                        .padding(10)
+                        .background(Color(hex: "F8FAFC"))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
                 }
             }
         }
@@ -465,6 +487,11 @@ struct OrderDetailScreen: View {
                 sellerInfoRow(icon: "person.fill", label: "Seller", value: order.sellerName)
                 sellerInfoRow(icon: "person.badge.key.fill", label: "Sale Person", value: order.staffName)
                 sellerInfoRow(icon: "bicycle", label: "Rider", value: order.riderName)
+
+                if SellerProfileLink.resolvedId(order.sellerId) != nil {
+                    ViewSellerProfileButton(sellerId: order.sellerId)
+                        .padding(.top, 4)
+                }
 
                 if !order.deliveryDate.isEmptyString {
                     sellerInfoRow(icon: "calendar", label: "Delivery Date", value: order.deliveryDate)
@@ -903,19 +930,52 @@ final class OrderDetailAudioPlayer: NSObject, ObservableObject, AVAudioPlayerDel
     }
 
     private func loadBase64(_ base64String: String) {
+        let mimeHint = base64String.lowercased()
+        let fileExtension: String
+        if mimeHint.contains("audio/mp4") || mimeHint.contains("audio/m4a") || mimeHint.contains("audio/x-m4a") {
+            fileExtension = "m4a"
+        } else if mimeHint.contains("audio/mpeg") || mimeHint.contains("audio/mp3") {
+            fileExtension = "mp3"
+        } else if mimeHint.contains("audio/wav") {
+            fileExtension = "wav"
+        } else if mimeHint.contains("audio/aac") {
+            fileExtension = "aac"
+        } else {
+            fileExtension = "m4a"
+        }
+
         let clean = base64String.components(separatedBy: ",").last ?? base64String
-        guard let data = Data(base64Encoded: clean, options: .ignoreUnknownCharacters) else { return }
+        guard let data = Data(base64Encoded: clean, options: .ignoreUnknownCharacters), !data.isEmpty else {
+            #if DEBUG
+            print("Error loading base64 audio: invalid base64")
+            #endif
+            return
+        }
+
         do {
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("order-audio-\(UUID().uuidString).m4a")
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("order-audio-\(UUID().uuidString).\(fileExtension)")
             try data.write(to: url)
             self.tempFileURL = url
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.delegate = self
-            player.prepareToPlay()
-            self.duration = player.duration
-            self.avAudioPlayer = player
+
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.delegate = self
+                player.prepareToPlay()
+                self.duration = player.duration
+                self.avAudioPlayer = player
+            } catch {
+                // Fallback for formats AVAudioPlayer rejects (some mp4 containers).
+                loadRemoteURL(url)
+            }
         } catch {
+            #if DEBUG
             print("Error loading base64 audio: \(error)")
+            #endif
         }
     }
 

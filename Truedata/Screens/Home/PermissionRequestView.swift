@@ -30,7 +30,7 @@ struct PermissionRequestView: View {
 
                     Text(isLocationPermanentlyDenied
                          ? "Please enable permissions from device settings to use TruDataa."
-                         : "TruDataa needs location and notification permissions to track your daily attendance and verify client shop visits.")
+                         : "TruDataa needs location while you use the app to record attendance and verify client shop visits.")
                         .font(.system(size: 14))
                         .foregroundStyle(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -41,7 +41,7 @@ struct PermissionRequestView: View {
                         PermissionRow(
                             systemImage: "location.fill",
                             title: "Location Access",
-                            subtitle: "Select 'Always Allow' to track field shift routes and calculate travel allowance.",
+                            subtitle: "Allow location access while using the app for attendance punch and shop visit verification.",
                             isRequired: true,
                             tint: isLocationPermanentlyDenied ? AppTheme.errorRed : DashboardTheme.primaryBlue
                         )
@@ -104,7 +104,7 @@ struct PermissionRequestView: View {
         } else if showLocationServicesDisabled {
             PermissionActionButton(title: "Enable GPS", color: Color(hex: "EAB308"), action: onEnableLocationServices)
         } else {
-            let title = showNotificationPermission ? "Grant Permissions" : "Grant Permission"
+            let title = "Continue"
             PermissionActionButton(title: title, color: DashboardTheme.primaryBlue, action: onGrantPermission)
         }
     }

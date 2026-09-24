@@ -49,7 +49,7 @@ struct SellerReportItemCard: View {
                     SellerReportDetailItem(
                         icon: "phone.fill",
                         label: "CONTACT",
-                        value: seller.mobile
+                        value: SellerContactVisibility.displayMobile(seller.mobile)
                     )
                     SellerReportDetailItem(
                         icon: "map.fill",

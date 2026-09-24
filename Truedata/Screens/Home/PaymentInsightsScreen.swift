@@ -413,7 +413,9 @@ private struct PaymentTransactionRow: View {
                 }
 
                 detailLine(icon: "storefront", label: "Seller", value: transaction.sellerName)
-                detailLine(icon: "phone", label: "Seller Mob.", value: transaction.sellerPhone)
+                if let mobile = SellerContactVisibility.visibleMobile(transaction.sellerPhone) {
+                    detailLine(icon: "phone", label: "Seller Mob.", value: mobile)
+                }
                 detailLine(icon: "person", label: "Staff", value: transaction.staffName)
 
                 if orderStatus != .unknown {
@@ -439,6 +441,8 @@ private struct PaymentTransactionRow: View {
                     }
 
                     if let sellerId = transaction.sellerIdInt {
+                        ViewSellerProfileButton(sellerId: sellerId)
+
                         NavigationLink {
                             BillSettlementScreen(sellerId: sellerId)
                                 .toolbar(.hidden, for: .navigationBar)
@@ -527,6 +531,10 @@ private struct PaymentSettlementRow: View {
             HStack(alignment: .top, spacing: 16) {
                 settlementColumn(title: "SELLER", value: item.sellerName)
                 settlementColumn(title: "STAFF", value: item.staffName)
+            }
+
+            if let mobile = SellerContactVisibility.visibleMobile(item.sellerPhone) {
+                settlementColumn(title: "MOBILE", value: mobile)
             }
 
             if !item.orderId.isEmptyString {

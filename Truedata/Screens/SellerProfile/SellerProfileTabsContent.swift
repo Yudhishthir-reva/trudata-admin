@@ -27,25 +27,28 @@ struct SellerProfileActionsTab: View {
                     BillSettlementScreen(sellerId: sellerId)
                 }
             )
-            SellerProfileOperationCard(
-                title: "Cheque Settlement",
-                description: "Settle pending bills using approved cheques...",
-                buttonTitle: "Go to Cheque Settlement",
-                destination: {
-                    ChequeSettlementScreen(sellerId: sellerId)
-                }
-            )
-            SellerProfileOperationCard(
-                title: "Payment approvals via Retailer App",
-                description: "Review payments this retailer submitted from their app...",
-                buttonTitle: "Go to Retailer App Payments",
-                destination: {
-                    RetailerAppPaymentScreen(
-                        lockedSellerId: sellerId,
-                        lockedSellerName: screenTitle
-                    )
-                }
-            )
+            // Cheque settlement + retailer-app approvals move money; sale persons don't get them.
+            if SellerContactVisibility.canManageRetailerPayments {
+                SellerProfileOperationCard(
+                    title: "Settle Approved Cheques",
+                    description: "Apply this retailer's approved cheque money to their pending bills...",
+                    buttonTitle: "Go to Cheque Settlement",
+                    destination: {
+                        ChequeSettlementScreen(sellerId: sellerId)
+                    }
+                )
+                SellerProfileOperationCard(
+                    title: "Payment approvals via Retailer App",
+                    description: "Review payments this retailer submitted from their app...",
+                    buttonTitle: "Go to Retailer App Payments",
+                    destination: {
+                        RetailerAppPaymentScreen(
+                            lockedSellerId: sellerId,
+                            lockedSellerName: screenTitle
+                        )
+                    }
+                )
+            }
         }
     }
 }

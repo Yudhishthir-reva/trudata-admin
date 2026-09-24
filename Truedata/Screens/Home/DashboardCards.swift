@@ -248,10 +248,11 @@ struct DashboardItemCard: View {
             ?? payload?.int(for: "cancelled", "cancelledOrders", "cancelled_orders")
             ?? 0
 
+        // Match Android OrderStatusData.total — sum of all statuses (not pending alone).
         let sumOfAllOrders = pendingOrders + deliveredOrders + assignedOrders + pickupOrders + toDeliverOrders + returnedOrders + cancelledOrders
-        let totalOrdersCount = today?.int(for: "total", "totalOrders", "total_orders", "totalCount", "total_count")
+        let apiTotal = today?.int(for: "total", "totalOrders", "total_orders", "totalCount", "total_count")
             ?? payload?.int(for: "total", "totalOrders", "total_orders", "totalCount", "total_count")
-            ?? (sumOfAllOrders > 0 ? sumOfAllOrders : pendingOrders)
+        let totalOrdersCount = sumOfAllOrders > 0 ? sumOfAllOrders : (apiTotal ?? pendingOrders)
 
         let explicitValid = today?.int(for: "totalWithoutCancelled", "total_without_cancelled", "totalValidOrders", "total_valid_orders", "validOrders", "valid_orders")
             ?? payload?.int(for: "totalWithoutCancelled", "total_without_cancelled", "totalValidOrders", "total_valid_orders", "validOrders", "valid_orders")
@@ -260,7 +261,8 @@ struct DashboardItemCard: View {
             if let explicit = explicitValid, explicit > 0 {
                 return explicit
             }
-            return max(pendingOrders - cancelledOrders, 0)
+            // Match Android OrderStatusData.totalWithoutCancelled = total - cancelled
+            return max(sumOfAllOrders - cancelledOrders, 0)
         }()
 
         let hasCollection = totalCollection > 0

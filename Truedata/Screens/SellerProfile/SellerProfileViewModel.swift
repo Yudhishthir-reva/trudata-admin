@@ -93,14 +93,21 @@ final class SellerProfileViewModel: ObservableObject {
         "\(profile?.displayOwnerName ?? "Seller")'s Summary"
     }
 
+    /// Match Android OrderStatusData.total — sum of all order statuses.
     var orderChartTotal: Int {
-        orderDistribution?.pending ?? 0
+        guard let distribution = orderDistribution else { return 0 }
+        return distribution.pending
+            + distribution.toDeliver
+            + distribution.delivered
+            + distribution.cancel
+            + distribution.returnCount
+            + distribution.assign
+            + distribution.pickup
     }
 
+    /// Match Android OrderStatusData.totalWithoutCancelled.
     var totalValidOrders: Int {
-        let pending = orderDistribution?.pending ?? 0
-        let cancelled = orderDistribution?.cancel ?? 0
-        return max(pending - cancelled, 0)
+        max(orderChartTotal - (orderDistribution?.cancel ?? 0), 0)
     }
 
     var totalOrderAmount: Double {

@@ -4,7 +4,6 @@
 <dict>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>location</string>
 		<string>fetch</string>
 		<string>processing</string>
 		<string>remote-notification</string>
@@ -12,7 +11,6 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.reva.trudataa.connectivity-check</string>
-		<string>com.reva.trudataa.location-refresh</string>
 	</array>
 </dict>
 </plist>

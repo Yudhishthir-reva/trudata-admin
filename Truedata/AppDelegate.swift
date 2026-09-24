@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Firebase Configuration
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
+        RemoteConfigManager.shared.configureAndFetch()
 
         IQKeyboardManager.shared.isEnabled = true
         IQKeyboardManager.shared.resignOnTouchOutside = true
@@ -33,6 +34,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             for window in UIApplication.shared.connectedWindows {
                 window.overrideUserInterfaceStyle = .light
                 window.enableTapToDismissKeyboard()
+                window.enableScreenCaptureProtection()
             }
         }
         return true
@@ -42,8 +44,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         for window in UIApplication.shared.connectedWindows {
             window.overrideUserInterfaceStyle = .light
             window.enableTapToDismissKeyboard()
+            window.enableScreenCaptureProtection()
         }
         ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
+        RemoteConfigManager.shared.fetch()
+        Task { @MainActor in
+            LocationConsentPresenter.shared.refreshHardGateIfNeeded()
+        }
         if UserDefaultManager.shared.isUserLoggedIn {
             LocationManager.shared.syncTrackingState()
         }

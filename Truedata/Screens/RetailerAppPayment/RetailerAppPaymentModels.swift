@@ -380,15 +380,14 @@ struct RetailerPaymentItem: Decodable, Identifiable, Hashable {
     }
 
     var personSubtitle: String {
-        if !sellerName.isEmpty && !mobile.isEmpty {
-            return "\(sellerName) · \(mobile)"
-        } else if !sellerName.isEmpty {
-            return sellerName
-        } else if !mobile.isEmpty {
+        if let mobile = SellerContactVisibility.visibleMobile(mobile) {
+            if !sellerName.isEmpty {
+                return "\(sellerName) · \(mobile)"
+            }
             return mobile
-        } else {
-            return "-"
         }
+        if !sellerName.isEmpty { return sellerName }
+        return "-"
     }
 
     var paymentDescription: String {

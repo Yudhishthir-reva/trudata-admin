@@ -102,12 +102,14 @@ enum AchievementHistoryDatePreset: String, CaseIterable, Identifiable {
 
 struct AchievementSellerOrderRow: Identifiable, Hashable {
     let id: String
+    let sellerId: String
     let sellerName: String
     let orderCount: Int
 }
 
 struct AchievementSellerCollectionRow: Identifiable, Hashable {
     let id: String
+    let sellerId: String
     let sellerName: String
     let totalAmount: Double
 }
@@ -143,6 +145,7 @@ struct AchievementPaymentModeSummary: Identifiable, Hashable {
 
 struct AchievementSellerPaymentGroup: Identifiable, Hashable {
     let id: String
+    let sellerId: String
     let sellerName: String
     let stats: [AchievementPaymentModeStat]
 }
@@ -195,6 +198,7 @@ struct AchievementHistoryData {
         return grouped.map { sellerName, stats in
             AchievementSellerPaymentGroup(
                 id: stats.first?.sellerId ?? sellerName,
+                sellerId: stats.first?.sellerId ?? "",
                 sellerName: sellerName,
                 stats: stats.sorted { $0.totalAmount > $1.totalAmount }
             )
@@ -325,6 +329,7 @@ extension AchievementHistoryData {
             guard !sellerId.isEmptyString || !sellerName.isEmptyString else { return nil }
             return AchievementSellerOrderRow(
                 id: sellerId.isEmptyString ? sellerName : sellerId,
+                sellerId: sellerId,
                 sellerName: sellerName.isEmptyString ? "Seller" : sellerName,
                 orderCount: orderCount
             )
@@ -341,6 +346,7 @@ extension AchievementHistoryData {
             guard !sellerId.isEmptyString || !sellerName.isEmptyString else { return nil }
             return AchievementSellerCollectionRow(
                 id: sellerId.isEmptyString ? sellerName : sellerId,
+                sellerId: sellerId,
                 sellerName: sellerName.isEmptyString ? "Seller" : sellerName,
                 totalAmount: total
             )

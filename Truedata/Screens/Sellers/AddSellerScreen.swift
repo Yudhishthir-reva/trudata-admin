@@ -151,21 +151,41 @@ struct AddSellerScreen: View {
                     }
                 }
 
-                InputField(
-                    label: "Mobile",
-                    text: $viewModel.mobile,
-                    placeholder: "Enter mobile number",
-                    isError: viewModel.validationErrors.mobile != nil,
-                    errorText: viewModel.validationErrors.mobile,
-                    keyboardType: .phonePad
-                )
+                if viewModel.isEditMode && !SellerContactVisibility.canViewSellerMobile {
+                    InputField(
+                        label: "Mobile",
+                        text: .constant("Hidden"),
+                        placeholder: "Hidden",
+                        isError: false,
+                        errorText: nil,
+                        keyboardType: .phonePad
+                    )
+                    .disabled(true)
 
-                InputField(
-                    label: "WhatsApp",
-                    text: $viewModel.whatsapp,
-                    placeholder: "Enter WhatsApp number",
-                    keyboardType: .phonePad
-                )
+                    InputField(
+                        label: "WhatsApp",
+                        text: .constant("Hidden"),
+                        placeholder: "Hidden",
+                        keyboardType: .phonePad
+                    )
+                    .disabled(true)
+                } else {
+                    InputField(
+                        label: "Mobile",
+                        text: $viewModel.mobile,
+                        placeholder: "Enter mobile number",
+                        isError: viewModel.validationErrors.mobile != nil,
+                        errorText: viewModel.validationErrors.mobile,
+                        keyboardType: .phonePad
+                    )
+
+                    InputField(
+                        label: "WhatsApp",
+                        text: $viewModel.whatsapp,
+                        placeholder: "Enter WhatsApp number",
+                        keyboardType: .phonePad
+                    )
+                }
 
                 InputField(
                     label: "Email",

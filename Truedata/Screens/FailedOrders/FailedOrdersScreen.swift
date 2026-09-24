@@ -217,10 +217,13 @@ private struct FailedOrderCard: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     detailRow(icon: "person.fill", label: "Seller", value: order.resolvedSellerName)
-                    detailRow(icon: "phone.fill", label: "Mobile", value: order.resolvedSellerPhone)
+                    if let mobile = SellerContactVisibility.visibleMobile(order.resolvedSellerPhone) {
+                        detailRow(icon: "phone.fill", label: "Mobile", value: mobile)
+                    }
                     if let riderName = order.resolvedRiderName {
                         detailRow(icon: "person.fill", label: "Rider", value: riderName)
                     }
+                    ViewSellerProfileButton(sellerId: order.seller?.id ?? order.sellerId)
                 }
 
                 if let reason = order.failureReason {

@@ -378,14 +378,18 @@ private struct QuickShareOrderRow: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(DashboardTheme.neutralDark)
 
-                    HStack(spacing: 6) {
-                        Image(systemName: "phone.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.gray)
-                        Text("Mobile: \(order.sellerPhone)")
-                            .font(.system(size: 12))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    if let mobile = SellerContactVisibility.visibleMobile(order.sellerPhone) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.gray)
+                            Text("Mobile: \(mobile)")
+                                .font(.system(size: 12))
+                                .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
                     }
+
+                    ViewSellerProfileButton(sellerId: order.sellerId)
 
                     HStack {
                         HStack(spacing: 4) {

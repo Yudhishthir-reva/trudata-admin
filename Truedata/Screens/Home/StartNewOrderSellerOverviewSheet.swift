@@ -22,8 +22,12 @@ struct StartNewOrderSellerOverviewSheet: View {
                     sellerHeader
                     pendingBillsCard
                     overviewSection(title: "Contact Info") {
-                        overviewRow(label: "Mobile", value: seller.mobile)
-                        overviewRow(label: "WhatsApp", value: seller.whatsappNo.isEmptyString ? "N/A" : seller.whatsappNo)
+                        overviewRow(label: "Mobile", value: SellerContactVisibility.displayMobile(seller.mobile, hiddenPlaceholder: "Hidden"))
+                        overviewRow(label: "WhatsApp", value: {
+                            guard SellerContactVisibility.canViewSellerMobile else { return "Hidden" }
+                            let wa = seller.whatsappNo.isEmptyString ? seller.mobile : seller.whatsappNo
+                            return wa.isEmptyString ? "N/A" : wa
+                        }())
                         overviewRow(label: "Email", value: seller.email.isEmptyString ? "N/A" : seller.email)
                     }
                     overviewSection(title: "Location") {

@@ -11,6 +11,7 @@ struct AddProductScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: AddProductViewModel
     @State private var pickerSelection: AddProductPicker?
+    @State private var showStaffPicker = false
     @State private var showCamera = false
 
     init(editProductId: Int? = nil) {
@@ -50,6 +51,9 @@ struct AddProductScreen: View {
         .onChange(of: viewModel.selectedPhotoItem) { _, _ in
             viewModel.loadSelectedImage()
         }
+        .onChange(of: viewModel.otherPhotoItems) { _, _ in
+            viewModel.loadOtherImages()
+        }
         .sheet(item: $pickerSelection) { selection in
             AddProductPickerSheet(
                 title: selection.title,
@@ -58,6 +62,11 @@ struct AddProductScreen: View {
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showStaffPicker) {
+            AddProductStaffPickerSheet(viewModel: viewModel)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraImagePicker(
@@ -103,19 +112,51 @@ struct AddProductScreen: View {
                         errorText: viewModel.validationErrors.name
                     )
 
+                    HStack(spacing: 10) {
+                        InputField(
+                            label: "HSN Code *",
+                            text: $viewModel.hsnCode,
+                            placeholder: "4–8 digits",
+                            isError: viewModel.validationErrors.hsnCode != nil,
+                            errorText: viewModel.validationErrors.hsnCode,
+                            keyboardType: .numberPad
+                        )
+
+                        InputField(
+                            label: "Shelf life",
+                            text: $viewModel.shelfLife,
+                            placeholder: "e.g. 6 months",
+                            isError: viewModel.validationErrors.shelfLife != nil,
+                            errorText: viewModel.validationErrors.shelfLife
+                        )
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(ProductFormLimits.shelfLifeSuggestions, id: \.self) { suggestion in
+                                let selected = viewModel.shelfLife.caseInsensitiveCompare(suggestion) == .orderedSame
+                                Button {
+                                    viewModel.shelfLife = suggestion
+                                } label: {
+                                    Text(suggestion)
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(selected ? .white : DashboardTheme.neutralDark)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(selected ? DashboardTheme.primaryBlue : Color(hex: "F3F4F6"))
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
                     InputField(
                         label: "Description",
                         text: $viewModel.description,
-                        placeholder: "Enter product description"
-                    )
-
-                    InputField(
-                        label: "HSN Code *",
-                        text: $viewModel.hsnCode,
-                        placeholder: "Enter HSN code",
-                        isError: viewModel.validationErrors.hsnCode != nil,
-                        errorText: viewModel.validationErrors.hsnCode,
-                        keyboardType: .numberPad
+                        placeholder: "Ingredients, pack details, usage… (optional)",
+                        isError: viewModel.validationErrors.description != nil,
+                        errorText: viewModel.validationErrors.description
                     )
                 }
 
@@ -156,7 +197,31 @@ struct AddProductScreen: View {
                     }
                 }
 
-                sectionCard(title: "Product Image (Optional)") {
+                sectionCard(
+                    title: "Returns",
+                    subtitle: viewModel.isReturnable
+                        ? "Customers can return this product"
+                        : "This product can't be returned"
+                ) {
+                    Toggle("Returnable", isOn: $viewModel.isReturnable)
+                        .tint(DashboardTheme.primaryBlue)
+
+                    InputField(
+                        label: viewModel.isReturnable ? "Return policy" : "Return note",
+                        text: $viewModel.returnableDescription,
+                        placeholder: viewModel.isReturnable
+                            ? "e.g. Return within 7 days if seal is unbroken"
+                            : "e.g. Non-returnable item",
+                        isError: viewModel.validationErrors.returnableDescription != nil,
+                        errorText: viewModel.validationErrors.returnableDescription
+                    )
+                }
+
+                sectionCard(title: "Assigned Staff (Optional)") {
+                    staffSection
+                }
+
+                sectionCard(title: "Cover & Gallery") {
                     imageSection
                 }
 
@@ -165,7 +230,7 @@ struct AddProductScreen: View {
                         variantCard(variant: variant, index: index)
                     }
 
-                    if viewModel.productVariants.count < 10 {
+                    if viewModel.productVariants.count < ProductFormLimits.maxVariants {
                         Button {
                             viewModel.addVariant()
                         } label: {
@@ -195,11 +260,22 @@ struct AddProductScreen: View {
         }
     }
 
-    private func sectionCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func sectionCard<Content: View>(
+        title: String,
+        subtitle: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                }
+            }
 
             content()
         }
@@ -256,6 +332,64 @@ struct AddProductScreen: View {
     }
 
     @ViewBuilder
+    private var staffSection: some View {
+        if viewModel.isStaffLoading {
+            ProgressView()
+                .tint(DashboardTheme.primaryBlue)
+                .frame(maxWidth: .infinity)
+        } else if let staffError = viewModel.staffError {
+            VStack(spacing: 8) {
+                Text(staffError)
+                    .font(.system(size: 13))
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+                Button("Retry") { viewModel.loadStaff() }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.primaryBlue)
+            }
+        } else {
+            if !viewModel.selectedStaffOptions.isEmpty {
+                FlowLayout(spacing: 8) {
+                    ForEach(viewModel.selectedStaffOptions) { staff in
+                        HStack(spacing: 6) {
+                            Text(staff.name)
+                                .font(.system(size: 12, weight: .semibold))
+                            Button {
+                                viewModel.toggleStaff(staff.id)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .background(DashboardTheme.primaryBlue.opacity(0.1))
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+
+            Button {
+                showStaffPicker = true
+            } label: {
+                HStack {
+                    Text(viewModel.selectedStaffIds.isEmpty ? "Assign sale persons" : "Edit assigned staff")
+                        .font(.system(size: 14, weight: .semibold))
+                    Spacer()
+                    Image(systemName: "person.badge.plus")
+                }
+                .foregroundStyle(DashboardTheme.primaryBlue)
+                .padding(.horizontal, 14)
+                .frame(height: 44)
+                .background(DashboardTheme.primaryBlue.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
     private var imageSection: some View {
         if let imageData = viewModel.imageData, let uiImage = UIImage(data: imageData) {
             Image(uiImage: uiImage)
@@ -282,19 +416,73 @@ struct AddProductScreen: View {
             .buttonStyle(.plain)
 
             PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                Label("Gallery", systemImage: "photo.on.rectangle.angled")
+                Label("Cover", systemImage: "photo.on.rectangle.angled")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(DashboardTheme.primaryBlue)
             }
             .buttonStyle(.plain)
 
             if viewModel.imageData != nil || !viewModel.existingImageURL.isEmptyString {
-                Button("Remove") {
-                    viewModel.clearImage()
+                Button("Remove cover") {
+                    viewModel.clearMainImage()
+                    if viewModel.isEditMode {
+                        viewModel.existingImageURL = ""
+                    }
                 }
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(DashboardTheme.dangerRed)
                 .buttonStyle(.plain)
+            }
+        }
+
+        Text("Gallery \(viewModel.existingOtherImageURLs.count + viewModel.otherImageData.count)/\(ProductFormLimits.maxOtherImages)")
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(DashboardTheme.neutralMedium)
+
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(viewModel.existingOtherImageURLs, id: \.self) { url in
+                    RemoteImage(url: url)
+                        .frame(width: 72, height: 72)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+
+                ForEach(Array(viewModel.otherImageData.enumerated()), id: \.offset) { index, data in
+                    ZStack(alignment: .topTrailing) {
+                        if let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                        Button {
+                            viewModel.removeOtherImage(at: index)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.white, DashboardTheme.dangerRed)
+                        }
+                        .offset(x: 4, y: -4)
+                    }
+                }
+
+                if viewModel.otherImageSlotsLeft > 0 {
+                    PhotosPicker(
+                        selection: $viewModel.otherPhotoItems,
+                        maxSelectionCount: viewModel.otherImageSlotsLeft,
+                        matching: .images
+                    ) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "plus")
+                            Text("Add")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+                        .frame(width: 72, height: 72)
+                        .background(DashboardTheme.primaryBlue.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                }
             }
         }
     }
@@ -336,37 +524,79 @@ struct AddProductScreen: View {
                 }
             }
 
-            HStack(spacing: 10) {
-                InputField(
-                    label: "MRP *",
-                    text: binding(for: variant.id, keyPath: \.mrp),
-                    placeholder: "0",
-                    isError: fieldErrors?.mrp != nil,
-                    errorText: fieldErrors?.mrp,
-                    keyboardType: .decimalPad
-                )
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Sold to")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(AppTheme.cerulean)
 
-                InputField(
-                    label: "Retailer Price *",
-                    text: binding(for: variant.id, keyPath: \.retailerPrice),
-                    placeholder: "0",
-                    isError: fieldErrors?.retailerPrice != nil,
-                    errorText: fieldErrors?.retailerPrice,
-                    keyboardType: .decimalPad
-                )
+                Picker("Sold to", selection: binding(for: variant.id, keyPath: \.variantFor)) {
+                    ForEach(VariantAudience.allCases) { audience in
+                        Text(audience.label).tag(audience)
+                    }
+                }
+                .pickerStyle(.segmented)
             }
 
             HStack(spacing: 10) {
                 InputField(
-                    label: "Available Qty *",
+                    label: variant.variantFor.needsRetailerPrice ? "Retailer Price *" : "Retailer Price",
+                    text: binding(for: variant.id, keyPath: \.retailerPrice),
+                    placeholder: variant.variantFor.needsRetailerPrice ? "0" : "Optional",
+                    isError: fieldErrors?.retailerPrice != nil,
+                    errorText: fieldErrors?.retailerPrice,
+                    keyboardType: .decimalPad
+                )
+
+                InputField(
+                    label: variant.variantFor.needsCustomerPrice ? "Customer Price *" : "Customer Price",
+                    text: binding(for: variant.id, keyPath: \.customerPrice),
+                    placeholder: variant.variantFor.needsCustomerPrice ? "0" : "Optional",
+                    isError: fieldErrors?.customerPrice != nil,
+                    errorText: fieldErrors?.customerPrice,
+                    keyboardType: .decimalPad
+                )
+            }
+
+            InputField(
+                label: "MRP *",
+                text: binding(for: variant.id, keyPath: \.mrp),
+                placeholder: "0",
+                isError: fieldErrors?.mrp != nil,
+                errorText: fieldErrors?.mrp,
+                keyboardType: .decimalPad
+            )
+
+            HStack(spacing: 10) {
+                gstPicker(for: variant, fieldErrors: fieldErrors)
+
+                InputField(
+                    label: "Stock *",
                     text: binding(for: variant.id, keyPath: \.quantity),
                     placeholder: "0",
                     isError: fieldErrors?.quantity != nil,
                     errorText: fieldErrors?.quantity,
                     keyboardType: .numberPad
                 )
+            }
 
-                gstPicker(for: variant, fieldErrors: fieldErrors)
+            HStack(spacing: 10) {
+                InputField(
+                    label: "Min qty *",
+                    text: binding(for: variant.id, keyPath: \.minOrderQty),
+                    placeholder: "1",
+                    isError: fieldErrors?.minOrderQty != nil,
+                    errorText: fieldErrors?.minOrderQty,
+                    keyboardType: .numberPad
+                )
+
+                InputField(
+                    label: "Max qty",
+                    text: binding(for: variant.id, keyPath: \.maxOrderQty),
+                    placeholder: "Optional",
+                    isError: fieldErrors?.maxOrderQty != nil,
+                    errorText: fieldErrors?.maxOrderQty,
+                    keyboardType: .numberPad
+                )
             }
         }
         .padding(12)
@@ -425,6 +655,19 @@ struct AddProductScreen: View {
         )
     }
 
+    private func binding(for variantId: UUID, keyPath: WritableKeyPath<ProductFormVariant, VariantAudience>) -> Binding<VariantAudience> {
+        Binding(
+            get: {
+                viewModel.productVariants.first(where: { $0.id == variantId })?[keyPath: keyPath] ?? .both
+            },
+            set: { newValue in
+                guard var variant = viewModel.productVariants.first(where: { $0.id == variantId }) else { return }
+                variant[keyPath: keyPath] = newValue
+                viewModel.updateVariant(variant)
+            }
+        )
+    }
+
     private func updateVariantField(
         _ variantId: UUID,
         keyPath: WritableKeyPath<ProductFormVariant, String>,
@@ -469,6 +712,56 @@ private struct AddProductPickerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+private struct AddProductStaffPickerSheet: View {
+    @ObservedObject var viewModel: AddProductViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
+
+    private var filtered: [ProductStaffOption] {
+        guard !search.isEmptyString else { return viewModel.staffOptions }
+        return viewModel.staffOptions.filter {
+            $0.name.localizedCaseInsensitiveContains(search)
+                || $0.mobile.localizedCaseInsensitiveContains(search)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List(filtered) { staff in
+                Button {
+                    viewModel.toggleStaff(staff.id)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(staff.name)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(DashboardTheme.neutralDark)
+                            if !staff.mobile.isEmptyString {
+                                Text(staff.mobile)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(DashboardTheme.neutralMedium)
+                            }
+                        }
+                        Spacer()
+                        if viewModel.selectedStaffIds.contains(staff.id) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, prompt: "Search staff")
+            .navigationTitle("Assign Staff")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
                 }
             }
         }

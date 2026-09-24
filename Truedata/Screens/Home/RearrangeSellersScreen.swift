@@ -134,8 +134,8 @@ private struct RearrangeSellerRow: View {
                         .foregroundStyle(DashboardTheme.neutralMedium)
                         .lineLimit(1)
 
-                    if !seller.mobile.isEmptyString {
-                        Text("• \(seller.mobile)")
+                    if let mobile = SellerContactVisibility.visibleMobile(seller.mobile) {
+                        Text("• \(mobile)")
                             .font(.system(size: 13))
                             .foregroundStyle(DashboardTheme.neutralMedium.opacity(0.8))
                             .lineLimit(1)

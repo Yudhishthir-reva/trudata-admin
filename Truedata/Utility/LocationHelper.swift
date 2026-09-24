@@ -21,6 +21,8 @@ final class LocationHelper: NSObject, ObservableObject {
 
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
+    /// After the user taps Continue on the consent popover, skip re-prompting for the auth callback fetch.
+    private var skipNextConsentPrompt = false
 
     override init() {
         super.init()
@@ -28,7 +30,24 @@ final class LocationHelper: NSObject, ObservableObject {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
     }
 
-    func refreshLocation() {
+    /// Fetches GPS after showing the custom Continue popover (every user-triggered call).
+    func refreshLocation(
+        reason: String = "TruDataa needs your current location to continue — for attendance, shop visits, or related updates."
+    ) {
+        Task { @MainActor in
+            LocationConsentPresenter.shared.ask(message: reason) { [weak self] in
+                self?.skipNextConsentPrompt = true
+                self?.performLocationRefresh()
+            }
+        }
+    }
+
+    /// Silent refresh (no popover) — use only after consent already given or internal auth upgrade.
+    func refreshLocationSilently() {
+        performLocationRefresh()
+    }
+
+    private func performLocationRefresh() {
         guard CLLocationManager.locationServicesEnabled() else {
             updateOnMain {
                 self.errorMessage = "Location services are disabled."
@@ -123,7 +142,13 @@ extension LocationHelper: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         if status == .authorizedAlways || status == .authorizedWhenInUse {
-            refreshLocation()
+            if skipNextConsentPrompt {
+                skipNextConsentPrompt = false
+                performLocationRefresh()
+            } else {
+                // User granted from Settings / system UI without our popover — fetch silently.
+                performLocationRefresh()
+            }
         }
     }
 

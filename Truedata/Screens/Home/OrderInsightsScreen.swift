@@ -573,7 +573,9 @@ private struct OrderInsightsOrderCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        gridItem(icon: "phone", label: "Mobile", value: order.sellerPhone.isEmptyString ? "-" : order.sellerPhone)
+                        if let mobile = SellerContactVisibility.visibleMobile(order.sellerPhone) {
+                            gridItem(icon: "phone", label: "Mobile", value: mobile)
+                        }
                         gridItem(icon: "person.crop.circle", label: "Staff", value: order.staffName.isEmptyString ? "-" : order.staffName)
                         gridItem(icon: "arrow.triangle.2.circlepath", label: "Delivered", value: order.deliveryDateTime.isEmptyString ? "Not Delivered Yet" : order.deliveryDateTime)
                     }

@@ -179,9 +179,11 @@ struct StartNewOrderSeller: Identifiable, Decodable, Hashable {
     }
 
     var contactLine: String {
-        if name.isEmptyString { return mobile }
-        if mobile.isEmptyString { return name }
-        return "\(name) • \(mobile)"
+        if let mobile = SellerContactVisibility.visibleMobile(mobile) {
+            if name.isEmptyString { return mobile }
+            return "\(name) • \(mobile)"
+        }
+        return name.isEmptyString ? "Seller" : name
     }
 
     var flagColor: Color? {

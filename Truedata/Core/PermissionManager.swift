@@ -2,6 +2,8 @@
 //  PermissionManager.swift
 //  Truedata
 //
+//  App Store: request When In Use only (no Always / background location upgrade).
+//
 
 import Combine
 import CoreLocation
@@ -68,11 +70,10 @@ final class PermissionManager: NSObject, ObservableObject {
         let status = locationManager.authorizationStatus
         if status == .notDetermined {
             locationManager.requestWhenInUseAuthorization()
-        } else if status == .authorizedWhenInUse {
-            locationManager.requestAlwaysAuthorization()
         } else if status == .denied || status == .restricted {
             openAppSettings()
         }
+        // Do not upgrade When In Use → Always (App Store 2.5.4).
 
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, _ in
             DispatchQueue.main.async {
@@ -81,11 +82,10 @@ final class PermissionManager: NSObject, ObservableObject {
         }
     }
 
+    /// Legacy API — maps to When In Use only (Always upgrade removed).
     func requestAlwaysLocationPermission() {
         let status = locationManager.authorizationStatus
-        if status == .authorizedWhenInUse {
-            locationManager.requestAlwaysAuthorization()
-        } else if status == .notDetermined {
+        if status == .notDetermined {
             locationManager.requestWhenInUseAuthorization()
         } else if status == .denied || status == .restricted {
             openAppSettings()

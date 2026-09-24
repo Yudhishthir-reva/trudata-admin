@@ -181,8 +181,8 @@ struct ChequeSettlementScreen: View {
                         .font(.system(size: 13))
                         .foregroundStyle(DashboardTheme.neutralMedium)
                         .lineLimit(1)
-                    if !viewModel.seller.mobile.isEmptyString {
-                        Text(viewModel.seller.mobile)
+                    if let mobile = SellerContactVisibility.visibleMobile(viewModel.seller.mobile) {
+                        Text(mobile)
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(DashboardTheme.neutralMedium)
                             .padding(.horizontal, 8)

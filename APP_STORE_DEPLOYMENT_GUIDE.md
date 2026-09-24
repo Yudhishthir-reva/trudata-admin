@@ -28,36 +28,30 @@ The project build settings (`INFOPLIST_KEY_*`) are configured with compliant pur
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- 1. Location Permissions (Mandatory for Attendance & Shift Tracking) -->
+    <!-- Location — While Using the App only (App Store 2.5.4: no background location) -->
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>TruDataa requires your location while using the app to record attendance, verify client shop visits, and plot field sales routes.</string>
+    <string>TruDataa needs your location while using the app to record attendance punch and verify client shop visits.</string>
 
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>TruDataa requires continuous location access in the background during active work shifts to track field attendance and calculate travel allowance.</string>
-
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>TruDataa requires background location access during your work hours to track sales routes and shop visits accurately.</string>
-
-    <!-- 2. Camera Permission (Shop visits & Payment receipts) -->
+    <!-- Camera Permission (Shop visits & Payment receipts) -->
     <key>NSCameraUsageDescription</key>
     <string>TruDataa requires camera access to capture shop visit verification photos and scan payment cheques/receipts.</string>
 
-    <!-- 3. Microphone & Speech Recognition (Voice search & Order notes) -->
+    <!-- Microphone & Speech Recognition (Voice search & Order notes) -->
     <key>NSMicrophoneUsageDescription</key>
     <string>TruDataa requires microphone access to record voice notes and search products by voice.</string>
 
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>TruDataa requires speech recognition to transcribe voice input for quick product search and order remarks.</string>
 
-    <!-- 4. Photo Library (Receipt / Document upload) -->
+    <!-- Photo Library (Receipt / Document upload) -->
     <key>NSPhotoLibraryUsageDescription</key>
     <string>TruDataa requires access to your photo library to select and upload payment receipts and business documents.</string>
 
-    <!-- 5. Background Modes Array -->
+    <!-- Background Modes — no `location` on App Store build -->
     <key>UIBackgroundModes</key>
     <array>
         <string>fetch</string>
-        <string>location</string>
+        <string>processing</string>
         <string>remote-notification</string>
     </array>
 </dict>
@@ -66,16 +60,9 @@ The project build settings (`INFOPLIST_KEY_*`) are configured with compliant pur
 
 ---
 
-## 3. Background Location Tracking Architecture (`LocationManager.swift`)
+## 3. Location usage (`LocationManager.swift`)
 
-Background tracking is implemented in [`LocationManager.swift`](file:///Users/reva/Documents/GitHub/trudata-admin/Truedata/Core/LocationManager.swift).
-
-- **Accuracy**: `kCLLocationAccuracyHundredMeters` (Optimized for battery & sales tracking)
-- **Distance Filter**: `30` meters
-- **Activity Type**: `.automotiveNavigation`
-- **Background Mode**: `allowsBackgroundLocationUpdates = true`, `showsBackgroundLocationIndicator = true`
-- **Stale Point Filter**: Coordinates older than 15s are automatically discarded
-- **Shift Lifecycle**: Automatically activated when user Punches In, and automatically stopped when user Punches Out or Logs Out.
+App Store build uses **When In Use / one-shot** location only (attendance, shop visits, order actions). Continuous shift tracking and `allowsBackgroundLocationUpdates` are disabled in [`LocationManager.swift`](Truedata/Core/LocationManager.swift). Company-only Custom App builds can re-enable background tracking later if needed.
 
 ---
 
@@ -83,26 +70,22 @@ Background tracking is implemented in [`LocationManager.swift`](file:///Users/re
 
 Before submitting your app to App Store Connect, ensure these 5 requirements are met:
 
-### 1. Mandatory Shift End Logic (Guideline 2.5.4)
-> **Compliance Confirmed**: GPS background tracking stops immediately upon:
-> - User punching out in `MarkAttendanceViewModel`
-> - User logging out in `MyProfileViewModel`
+### 1. Location (Guideline 2.5.4 + 5.1.1)
+> **App Store build**: Background location mode is **disabled**. Location is requested **While Using the App** only for attendance punch and shop-visit verification (foreground / one-shot). Continuous shift route tracking is not used on the public App Store build.
+>
+> Pre-permission CTA uses **Continue** (never “Grant permission” / “Not Now”); denied state offers **Open Settings**.
 
 ### 2. Account Deletion (Guideline 5.1.1(v))
 > **Not applicable for self-serve delete**: TruDataa is an employer-provisioned admin / workforce app. Staff accounts are created by the company — end users cannot self-register in the app. In-app **Delete Account** is intentionally omitted. Document account-removal requests via Privacy Policy / support (employer or `spicemonktech@gmail.com`). Mention this in App Review Notes.
 
-### 3. App Store Metadata Battery Disclaimer
-Copy and paste this sentence at the bottom of your **App Description** in App Store Connect:
-> *"Continued use of GPS running in the background can dramatically decrease battery life."*
-
-### 4. App Review Information (Demo Credentials)
+### 3. App Review Information (Demo Credentials)
 In App Store Connect under **App Review Information**:
 - Provide valid **Username** and **Password** for a test employee account.
 - In the **Notes** section, write:
-  > *"TruDataa is a workforce management and field sales tracking application. Location tracking in the background is only activated after the employee logs in and marks attendance (Shift Start) to calculate travel reimbursement and verify client visits. Tracking stops immediately upon Punch-out. Accounts are provisioned by the employer; end users cannot self-register, so in-app account deletion is not offered."*
+  > *"TruDataa is a workforce management and field sales application. Location is used only while the app is open to record attendance punch and verify client shop visits — not for continuous background employee tracking. Accounts are provisioned by the employer; end users cannot self-register, so in-app account deletion is not offered."*
 
-### 5. App Privacy Details (Nutrition Labels)
+### 4. App Privacy Details (Nutrition Labels)
 Under App Store Connect -> **App Privacy**:
-- **Location** (Coarse & Precise) -> Used for *App Functionality* & linked to user.
+- **Location** (Precise, while using the app) -> Used for *App Functionality* & linked to user. Do **not** claim continuous background location collection.
 - **Photos/Audio/Camera** -> Used for *App Functionality*.
 - **Contact Info** (Phone/Name) -> Used for *Account Management*.

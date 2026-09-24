@@ -17,6 +17,7 @@ struct TruedataApp: App {
                 .dynamicTypeSize(.large)
                 .handleNoInternet()
                 .preferredColorScheme(.light)
+                .preventScreenshots()
         }
     }
 }
@@ -40,6 +41,7 @@ struct RootContainerView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: rootManager.currentRoot)
+        .locationConsentPopoverHost()
         .onAppear {
             configureAppWindows()
         }
@@ -49,6 +51,7 @@ struct RootContainerView: View {
         for window in UIApplication.shared.connectedWindows {
             window.overrideUserInterfaceStyle = .light
             window.enableTapToDismissKeyboard()
+            window.enableScreenCaptureProtection()
         }
     }
 }

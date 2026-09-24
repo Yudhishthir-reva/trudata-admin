@@ -203,7 +203,11 @@ struct AchievementHistoryScreen: View {
                     pageSize: 4,
                     items: viewModel.data.sortedSellerOrders
                 ) { row in
-                    AchievementListRow(title: row.sellerName, value: "\(row.orderCount) Orders")
+                    AchievementListRow(
+                        title: row.sellerName,
+                        value: "\(row.orderCount) Orders",
+                        sellerId: row.sellerId
+                    )
                 }
             }
 
@@ -214,7 +218,11 @@ struct AchievementHistoryScreen: View {
                     pageSize: 4,
                     items: viewModel.data.sortedSellerCollections
                 ) { row in
-                    AchievementListRow(title: row.sellerName, value: row.totalAmount.currencyLabel)
+                    AchievementListRow(
+                        title: row.sellerName,
+                        value: row.totalAmount.currencyLabel,
+                        sellerId: row.sellerId
+                    )
                 }
             }
 
@@ -226,6 +234,7 @@ struct AchievementHistoryScreen: View {
                     items: viewModel.data.sellerPaymentGroups
                 ) { group in
                     AchievementPaymentBreakdownGroup(
+                        sellerId: group.sellerId,
                         sellerName: group.sellerName,
                         stats: group.stats,
                         paymentModeMap: viewModel.data.paymentModeMap
@@ -479,8 +488,36 @@ private struct AchievementPaginatedListCard<Item: Identifiable, Content: View>: 
 private struct AchievementListRow: View {
     let title: String
     let value: String
+    var sellerId: String? = nil
+    @Environment(\.openSellerProfile) private var openSellerProfile
 
     var body: some View {
+        Group {
+            if let id = SellerProfileLink.resolvedId(sellerId) {
+                if let openSellerProfile {
+                    buttonRow { openSellerProfile(id) }
+                } else {
+                    NavigationLink {
+                        SellerProfileScreen(sellerId: id, usesNavigationStack: false)
+                            .toolbar(.hidden, for: .navigationBar)
+                            .navigationBarBackButtonHidden(true)
+                    } label: {
+                        rowContent
+                    }
+                    .buttonStyle(.plain)
+                }
+            } else {
+                rowContent
+            }
+        }
+    }
+
+    private func buttonRow(action: @escaping () -> Void) -> some View {
+        Button(action: action) { rowContent }
+            .buttonStyle(.plain)
+    }
+
+    private var rowContent: some View {
         HStack(alignment: .top) {
             Text(title)
                 .font(.system(size: 13, weight: .medium))
@@ -495,20 +532,32 @@ private struct AchievementListRow: View {
 }
 
 private struct AchievementPaymentBreakdownGroup: View {
+    var sellerId: String = ""
     let sellerName: String
     let stats: [AchievementPaymentModeStat]
     let paymentModeMap: [Int: String]
+    @Environment(\.openSellerProfile) private var openSellerProfile
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "storefront")
-                    .font(.system(size: 14))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                Text(sellerName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                    .lineLimit(2)
+            Group {
+                if let id = SellerProfileLink.resolvedId(sellerId) {
+                    if let openSellerProfile {
+                        Button { openSellerProfile(id) } label: { sellerHeader }
+                            .buttonStyle(.plain)
+                    } else {
+                        NavigationLink {
+                            SellerProfileScreen(sellerId: id, usesNavigationStack: false)
+                                .toolbar(.hidden, for: .navigationBar)
+                                .navigationBarBackButtonHidden(true)
+                        } label: {
+                            sellerHeader
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    sellerHeader
+                }
             }
 
             VStack(spacing: 6) {
@@ -530,6 +579,18 @@ private struct AchievementPaymentBreakdownGroup: View {
                 }
             }
             .padding(.leading, 4)
+        }
+    }
+
+    private var sellerHeader: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "storefront")
+                .font(.system(size: 14))
+                .foregroundStyle(DashboardTheme.neutralMedium)
+            Text(sellerName)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(DashboardTheme.neutralDark)
+                .lineLimit(2)
         }
     }
 }

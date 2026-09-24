@@ -270,11 +270,12 @@ struct SellerProfileScreen: View {
     }
 
     private func actionButtonsRow(profile: SellerProfileInfo) -> some View {
-        HStack(spacing: 0) {
+        let canViewMobile = SellerContactVisibility.canViewSellerMobile
+        return HStack(spacing: 0) {
             actionButton(
                 icon: "phone.fill",
                 label: "Call",
-                isEnabled: SellerContactActions.sanitizedPhoneNumber(profile.mobile) != nil
+                isEnabled: canViewMobile && SellerContactActions.sanitizedPhoneNumber(profile.mobile) != nil
             ) {
                 SellerContactActions.call(profile.mobile) { result in
                     if case .failure(let error) = result {
@@ -286,7 +287,7 @@ struct SellerProfileScreen: View {
             actionButton(
                 icon: "message.fill",
                 label: "WhatsApp",
-                isEnabled: SellerContactActions.whatsAppNumber(
+                isEnabled: canViewMobile && SellerContactActions.whatsAppNumber(
                     from: profile.whatsappNo.isEmptyString ? profile.mobile : profile.whatsappNo
                 ) != nil
             ) {
@@ -400,7 +401,11 @@ struct SellerProfileScreen: View {
 
             if showOtherDetails {
                 VStack(spacing: 8) {
-                    detailRow(icon: "phone.fill", text: profile.mobile)
+                    if let mobile = SellerContactVisibility.visibleMobile(profile.mobile) {
+                        detailRow(icon: "phone.fill", text: mobile)
+                    } else if !profile.mobile.isEmptyString {
+                        detailRow(icon: "phone.fill", text: "Hidden")
+                    }
                     detailRow(icon: "envelope.fill", text: profile.email.isEmptyString ? "N/A" : profile.email)
                     detailRow(icon: "mappin.and.ellipse", text: profile.address.isEmptyString ? "Address not available" : profile.address)
                     detailRow(icon: "location.fill", text: "Beat: \(profile.beat.isEmptyString ? "Not Available" : profile.beat)")

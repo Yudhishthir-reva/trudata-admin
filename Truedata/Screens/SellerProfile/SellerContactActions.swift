@@ -112,11 +112,13 @@ enum SellerContactActions {
         if !profile.displayOwnerName.isEmptyString, profile.displayOwnerName != "Owner name not available" {
             parts.append("Owner: \(profile.displayOwnerName)")
         }
-        if !profile.mobile.isEmptyString {
-            parts.append("Phone: \(profile.mobile)")
-        }
-        if !profile.whatsappNo.isEmptyString {
-            parts.append("WhatsApp: \(profile.whatsappNo)")
+        if SellerContactVisibility.canViewSellerMobile {
+            if !profile.mobile.isEmptyString {
+                parts.append("Phone: \(profile.mobile)")
+            }
+            if !profile.whatsappNo.isEmptyString {
+                parts.append("WhatsApp: \(profile.whatsappNo)")
+            }
         }
         if !profile.email.isEmptyString {
             parts.append("Email: \(profile.email)")

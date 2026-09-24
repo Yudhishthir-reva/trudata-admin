@@ -73,7 +73,9 @@ class DashboardViewModel: ObservableObject {
         var operations = ["Actions", "Seller", "Activity"]
         if DashboardRole.canShowControlsOperation(role: role) {
             operations.append("Controls")
-            // Settling cheques is a back-office job — same roles as Controls (Android).
+        }
+        // Settling cheques is back-office; same rule as seller profile (Android `canManageRetailerPayments`).
+        if DashboardRole.canShowPendingChequesOperation(role: role) {
             operations.append("Pending Cheques")
         }
         return operations

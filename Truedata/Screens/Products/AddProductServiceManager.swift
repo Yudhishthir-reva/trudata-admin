@@ -26,6 +26,14 @@ class AddProductServiceManager {
         networkService.request(APIRouter.getVariant, params: [:], headers: authHeaders)
     }
 
+    func fetchStaffList() -> AnyPublisher<RegisteredStaffListResponse, Error> {
+        networkService.request(APIRouter.staffList, params: [:], headers: authHeaders)
+    }
+
+    func fetchRoles() -> AnyPublisher<StaffRoleResponse, Error> {
+        networkService.request(APIRouter.getRoles, params: [:], headers: authHeaders)
+    }
+
     func fetchProductForEdit(productId: Int) -> AnyPublisher<ProductEditResponse, Error> {
         networkService.request(
             APIRouter.productEdit,
@@ -34,24 +42,11 @@ class AddProductServiceManager {
         )
     }
 
-    func saveProduct(
-        params: [String: Any],
-        imageData: Data?
-    ) -> AnyPublisher<ProductStatusMessageResponse, Error> {
-        uploadProduct(params: params, imageData: imageData, router: .productSave)
-    }
-
-    func updateProduct(
-        params: [String: Any],
-        imageData: Data?
-    ) -> AnyPublisher<ProductStatusMessageResponse, Error> {
-        uploadProduct(params: params, imageData: imageData, router: .productUpdate)
-    }
-
-    private func uploadProduct(
+    func upsertProduct(
+        isUpdate: Bool,
         params: [String: Any],
         imageData: Data?,
-        router: APIRouter
+        otherImages: [Data]
     ) -> AnyPublisher<ProductStatusMessageResponse, Error> {
         var files: [MultipartFileUpload] = []
         if let imageData {
@@ -64,6 +59,17 @@ class AddProductServiceManager {
                 )
             )
         }
+        for (index, data) in otherImages.enumerated() {
+            files.append(
+                MultipartFileUpload(
+                    fieldName: "other_images[]",
+                    fileName: "product_gallery_\(index).jpg",
+                    mimeType: "image/jpeg",
+                    data: data
+                )
+            )
+        }
+        let router: APIRouter = isUpdate ? .productUpdate : .productSave
         return networkService.uploadMultipart(
             router,
             params: params,

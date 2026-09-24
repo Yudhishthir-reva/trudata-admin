@@ -37,17 +37,7 @@ final class ConnectivityAlertManager {
             }
             self?.handleConnectivityBGTask(refreshTask)
         }
-
-        BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: Self.locationRefreshTaskId,
-            using: nil
-        ) { [weak self] task in
-            guard let refreshTask = task as? BGAppRefreshTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-            self?.handleLocationRefreshBGTask(refreshTask)
-        }
+        // location-refresh BG task removed — App Store 2.5.4 (no background location).
     }
 
     func start() {
@@ -80,7 +70,8 @@ final class ConnectivityAlertManager {
 
     func scheduleBackgroundChecks() {
         scheduleConnectivityBGTask()
-        scheduleLocationRefreshBGTask()
+        // Do not schedule location-refresh BG uploads for App Store builds.
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.locationRefreshTaskId)
     }
 
     func checkAndNotifyIfNeeded() {
@@ -110,28 +101,6 @@ final class ConnectivityAlertManager {
         task.setTaskCompleted(success: true)
     }
 
-    private func handleLocationRefreshBGTask(_ task: BGAppRefreshTask) {
-        scheduleLocationRefreshBGTask()
-
-        task.expirationHandler = {
-            task.setTaskCompleted(success: false)
-        }
-
-        guard UserDefaultManager.shared.isUserLoggedIn else {
-            task.setTaskCompleted(success: true)
-            return
-        }
-
-        checkAndNotifyIfNeeded()
-        DispatchQueue.main.async {
-            LocationManager.shared.syncTrackingState()
-            if UserDefaultManager.shared.isLocationTrackingNeeded {
-                LocationManager.shared.triggerUploadIfTracking()
-            }
-            task.setTaskCompleted(success: true)
-        }
-    }
-
     private func scheduleConnectivityBGTask() {
         let request = BGAppRefreshTaskRequest(identifier: Self.connectivityTaskId)
         request.earliestBeginDate = Date(timeIntervalSinceNow: checkInterval)
@@ -140,25 +109,6 @@ final class ConnectivityAlertManager {
         } catch {
             #if DEBUG
             print("[ConnectivityAlert] Failed to schedule connectivity BG task: \(error)")
-            #endif
-        }
-    }
-
-    private func scheduleLocationRefreshBGTask() {
-        guard UserDefaultManager.shared.isUserLoggedIn,
-              UserDefaultManager.shared.isLocationTrackingNeeded else {
-            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.locationRefreshTaskId)
-            return
-        }
-
-        let request = BGAppRefreshTaskRequest(identifier: Self.locationRefreshTaskId)
-        let interval = max(LocationManager.shared.configuredUploadInterval, 60)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: interval)
-        do {
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            #if DEBUG
-            print("[ConnectivityAlert] Failed to schedule location BG task: \(error)")
             #endif
         }
     }

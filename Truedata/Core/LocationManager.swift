@@ -2,6 +2,9 @@
 //  LocationManager.swift
 //  Truedata
 //
+//  App Store 2.5.4: no background location mode / continuous employee tracking.
+//  Location is only captured while the app is in use (one-shot / When In Use).
+//
 
 import Combine
 import CoreLocation
@@ -16,7 +19,6 @@ final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
     private let uploadService = LocationUploadServiceManager()
-    private let trackingNotificationId = "location-tracking-active"
 
     @Published private(set) var lastLocation: CLLocation?
     @Published private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
@@ -25,24 +27,22 @@ final class LocationManager: NSObject, ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private var singleLocationCompletion: ((CLLocation?) -> Void)?
-    private var uploadWorkItem: DispatchWorkItem?
     private var captureTimeoutWorkItem: DispatchWorkItem?
     private var uploadCancellable: AnyCancellable?
-    private var alwaysUpgradeWorkItem: DispatchWorkItem?
-    private var trackingEngineRunning = false
 
-    /// Exposed for BGTask scheduling (matches `location-config` interval).
-    var configuredUploadInterval: TimeInterval { uploadInterval }
+    /// Kept for callers; background upload interval is unused on App Store builds.
+    var configuredUploadInterval: TimeInterval { 60 }
 
     override private init() {
         super.init()
         locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = kCLDistanceFilterNone
-        locationManager.activityType = .automotiveNavigation
-        locationManager.allowsBackgroundLocationUpdates = true
-        locationManager.pausesLocationUpdatesAutomatically = false
-        locationManager.showsBackgroundLocationIndicator = true
-        applyLocationConfig()
+        locationManager.activityType = .other
+        // App Store 2.5.4 — do not enable background location updates.
+        locationManager.allowsBackgroundLocationUpdates = false
+        locationManager.pausesLocationUpdatesAutomatically = true
+        locationManager.showsBackgroundLocationIndicator = false
         refreshStatus()
     }
 
@@ -58,14 +58,10 @@ final class LocationManager: NSObject, ObservableObject {
         }
     }
 
-    /// Reconcile tracking with server prefs (`service_enabled` + `is_user_working`).
+    /// Previously reconciled shift background tracking. Now only ensures tracking is stopped.
     func syncTrackingState() {
         refreshStatus()
-        if UserDefaultManager.shared.isLocationTrackingNeeded {
-            startTrackingIfPossible()
-        } else {
-            stopShiftTracking()
-        }
+        stopShiftTracking()
         ConnectivityAlertManager.shared.scheduleBackgroundChecks()
     }
 
@@ -73,38 +69,17 @@ final class LocationManager: NSObject, ObservableObject {
 
     func requestPermissions() {
         refreshStatus()
-        ensureAlwaysAuthorizationIfNeeded(openSettingsIfDenied: true)
-    }
-
-    /// Step-up flow: NotDetermined → WhenInUse → Always (Android always-location parity).
-    private func ensureAlwaysAuthorizationIfNeeded(openSettingsIfDenied: Bool) {
         let status = locationManager.authorizationStatus
         switch status {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse:
-            scheduleAlwaysUpgradeRequest()
         case .denied, .restricted:
-            if openSettingsIfDenied {
-                openAppSettings()
-            }
-        case .authorizedAlways:
+            openAppSettings()
+        case .authorizedWhenInUse, .authorizedAlways:
             break
         @unknown default:
             break
         }
-    }
-
-    private func scheduleAlwaysUpgradeRequest() {
-        alwaysUpgradeWorkItem?.cancel()
-        let work = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            guard self.locationManager.authorizationStatus == .authorizedWhenInUse else { return }
-            self.locationManager.requestAlwaysAuthorization()
-        }
-        alwaysUpgradeWorkItem = work
-        // Brief delay so the When-In-Use sheet can dismiss cleanly (Apple guidance).
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: work)
     }
 
     func openAppSettings() {
@@ -112,156 +87,55 @@ final class LocationManager: NSObject, ObservableObject {
         UIApplication.shared.open(url)
     }
 
-    // MARK: - Shift Tracking
+    // MARK: - Shift Tracking (disabled for App Store)
 
+    /// No-op: continuous / background shift tracking removed for Guideline 2.5.4.
     func startShiftTracking() {
-        startTrackingIfPossible()
+        stopShiftTracking()
+        #if DEBUG
+        print("[LocationManager] startShiftTracking ignored — background tracking disabled for App Store.")
+        #endif
     }
 
     func stopShiftTracking() {
-        uploadWorkItem?.cancel()
-        uploadWorkItem = nil
         captureTimeoutWorkItem?.cancel()
         captureTimeoutWorkItem = nil
         uploadCancellable?.cancel()
         uploadCancellable = nil
-        alwaysUpgradeWorkItem?.cancel()
-        alwaysUpgradeWorkItem = nil
-        singleLocationCompletion = nil
-
         locationManager.stopUpdatingLocation()
-        clearTrackingActiveNotification()
-        trackingEngineRunning = false
 
         DispatchQueue.main.async {
             self.isTrackingActive = false
         }
-        #if DEBUG
-        print("[LocationManager] Background tracking stopped.")
-        #endif
     }
 
-    /// Force one upload cycle while shift tracking is active (used by BGAppRefresh).
+    /// No-op: background refresh uploads removed for App Store.
     func triggerUploadIfTracking() {
-        guard trackingEngineRunning, UserDefaultManager.shared.isLocationTrackingNeeded else { return }
-        processLocationUpload()
-    }
-
-    // MARK: - Single Location Fetch
-
-    func getCurrentLocation(completion: @escaping (CLLocation?) -> Void) {
-        if let current = lastLocation, abs(current.timestamp.timeIntervalSinceNow) < 15.0 {
-            completion(current)
-            return
-        }
-
-        singleLocationCompletion = completion
-        locationManager.requestLocation()
-    }
-
-    // MARK: - Private
-
-    private func startTrackingIfPossible() {
-        guard CLLocationManager.locationServicesEnabled() else {
-            DispatchQueue.main.async {
-                self.isLocationServiceEnabled = false
-                self.errorMessage = "Location services are disabled on this device."
-            }
-            ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
-            return
-        }
-
-        let status = locationManager.authorizationStatus
-        guard status == .authorizedAlways || status == .authorizedWhenInUse else {
-            requestPermissions()
-            return
-        }
-
-        // Prefer Always for true background shift tracking.
-        if status == .authorizedWhenInUse {
-            scheduleAlwaysUpgradeRequest()
-        }
-
-        applyLocationConfig()
-        locationManager.allowsBackgroundLocationUpdates = (status == .authorizedAlways)
-        locationManager.startUpdatingLocation()
-
-        let alreadyActive = trackingEngineRunning
-        trackingEngineRunning = true
-        DispatchQueue.main.async {
-            self.isTrackingActive = true
-            self.errorMessage = nil
-        }
-
-        if !alreadyActive {
-            showTrackingActiveNotification()
-            scheduleNextUpload()
-            // Kick an immediate upload so first ping is not delayed by full interval.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                self?.processLocationUpload()
-            }
-        }
-
-        ConnectivityAlertManager.shared.scheduleBackgroundChecks()
-
         #if DEBUG
-        print("[LocationManager] Background shift tracking started (auth=\(status.rawValue)).")
+        print("[LocationManager] triggerUploadIfTracking ignored — background tracking disabled.")
         #endif
     }
 
-    private func applyLocationConfig() {
-        let priority = UserDefaultManager.shared.getUserDefaultsString(key: .locationPriority)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
+    // MARK: - Single Location Fetch (foreground / When In Use)
 
-        switch priority {
-        case "low":
-            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
-        case "high":
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        default:
-            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        }
-    }
-
-    private var uploadInterval: TimeInterval {
-        let raw = UserDefaultManager.shared.getUserDefaultsString(key: .locationUpdateInterval)
-        let seconds = Double(raw) ?? 60
-        return max(seconds, 15)
-    }
-
-    private func scheduleNextUpload() {
-        guard trackingEngineRunning else { return }
-
-        uploadWorkItem?.cancel()
-        let work = DispatchWorkItem { [weak self] in
-            self?.processLocationUpload()
-        }
-        uploadWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + uploadInterval, execute: work)
-    }
-
-    private func processLocationUpload() {
-        guard trackingEngineRunning else { return }
-
-        guard UserDefaultManager.shared.isLocationTrackingNeeded else {
-            stopShiftTracking()
+    /// One-shot GPS read. By default shows the custom Continue popover first (user-triggered APIs).
+    func getCurrentLocation(
+        requiresUserConsent: Bool = true,
+        reason: String = "TruDataa needs your current location to submit this request.",
+        completion: @escaping (CLLocation?) -> Void
+    ) {
+        if requiresUserConsent {
+            Task { @MainActor in
+                LocationConsentPresenter.shared.ask(message: reason) { [weak self] in
+                    self?.getCurrentLocation(requiresUserConsent: false, completion: completion)
+                }
+            }
             return
         }
 
-        ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
+        ensureWhenInUseAuthorizationIfNeeded()
 
-        fetchCurrentLocationForUpload { [weak self] location in
-            guard let self else { return }
-            if let location {
-                self.uploadLocationToServer(location)
-            }
-            self.scheduleNextUpload()
-        }
-    }
-
-    private func fetchCurrentLocationForUpload(completion: @escaping (CLLocation?) -> Void) {
-        if let current = lastLocation, abs(current.timestamp.timeIntervalSinceNow) < 30 {
+        if let current = lastLocation, abs(current.timestamp.timeIntervalSinceNow) < 15.0 {
             completion(current)
             return
         }
@@ -279,10 +153,19 @@ final class LocationManager: NSObject, ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 25, execute: timeout)
     }
 
-    private func uploadLocationToServer(_ location: CLLocation) {
+    private func ensureWhenInUseAuthorizationIfNeeded() {
+        let status = locationManager.authorizationStatus
+        if status == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+        }
+    }
+
+    // MARK: - Helpers (kept for potential foreground one-off uploads)
+
+    func uploadCurrentLocationOnceIfAvailable() {
+        guard let location = lastLocation else { return }
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
             guard let self else { return }
-
             let address = Self.formattedAddress(from: placemarks?.first)
             let batteryLevel = Self.batteryLevel()
             let accuracyMeter = String(format: "%.0f", location.horizontalAccuracy)
@@ -297,43 +180,10 @@ final class LocationManager: NSObject, ObservableObject {
                 accuracyStatus: accuracyStatus
             )
             .sink(
-                receiveCompletion: { completion in
-                    #if DEBUG
-                    if case .failure(let error) = completion {
-                        print("[LocationManager] add-location failed: \(error.localizedDescription)")
-                    }
-                    #endif
-                },
-                receiveValue: { _ in
-                    #if DEBUG
-                    print("[LocationManager] add-location uploaded successfully.")
-                    #endif
-                }
+                receiveCompletion: { _ in },
+                receiveValue: { _ in }
             )
         }
-    }
-
-    // MARK: - Tracking notification (Android foreground-service parity)
-
-    private func showTrackingActiveNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = "Location Tracking Active"
-        content.body = "TruDataa is tracking your location in background"
-        content.sound = nil
-        content.interruptionLevel = .passive
-        content.threadIdentifier = "location-tracking"
-
-        let request = UNNotificationRequest(
-            identifier: trackingNotificationId,
-            content: content,
-            trigger: nil
-        )
-        UNUserNotificationCenter.current().add(request)
-    }
-
-    private func clearTrackingActiveNotification() {
-        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [trackingNotificationId])
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [trackingNotificationId])
     }
 
     private static func batteryLevel() -> Int {
@@ -401,19 +251,8 @@ extension LocationManager: CLLocationManagerDelegate {
             PermissionManager.shared.refreshStatus()
 
             switch status {
-            case .authorizedWhenInUse:
-                self.scheduleAlwaysUpgradeRequest()
-                if UserDefaultManager.shared.isLocationTrackingNeeded {
-                    self.startTrackingIfPossible()
-                }
-            case .authorizedAlways:
-                if UserDefaultManager.shared.isLocationTrackingNeeded {
-                    self.startTrackingIfPossible()
-                }
             case .denied, .restricted:
-                if self.trackingEngineRunning {
-                    self.stopShiftTracking()
-                }
+                self.stopShiftTracking()
                 ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
             default:
                 break

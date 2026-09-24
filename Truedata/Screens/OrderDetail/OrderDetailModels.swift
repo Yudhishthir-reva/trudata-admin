@@ -64,6 +64,7 @@ struct OrderDetailData: Decodable {
     var audioRemark: String
     var retailerRemark: String
     var retailerAudioRemark: String
+    var remarkHistory: [OrderRemarkHistoryItem]
 
     enum CodingKeys: String, CodingKey {
         case status, discount, name, mobile, seller, remark, remarks
@@ -199,14 +200,20 @@ struct OrderDetailData: Decodable {
         showRemarkEditButton = container.decodeBoolLeniently(forKey: .showRemarkEditButton)
         orderSource = container.decodeStringLeniently(forKey: .orderSource) ?? ""
         orderDetails = (try? container.decode([OrderDetailProduct].self, forKey: .orderDetails)) ?? []
+
+        // `remarks` is often an array of history items (not a string).
+        let historyItems = (try? container.decode([OrderRemarkHistoryItem].self, forKey: .remarks)) ?? []
+        remarkHistory = historyItems
+
         remark = Self.firstNonEmpty(
             container.decodeStringLeniently(forKey: .remark),
-            container.decodeStringLeniently(forKey: .remarks),
+            historyItems.first?.remark,
             container.decodeStringLeniently(forKey: .textRemark),
             container.decodeStringLeniently(forKey: .orderRemark)
         )
         audioRemark = Self.firstNonEmpty(
             container.decodeStringLeniently(forKey: .audioRemark),
+            historyItems.first?.audioRemark,
             container.decodeStringLeniently(forKey: .audio),
             container.decodeStringLeniently(forKey: .audioUrl),
             container.decodeStringLeniently(forKey: .voiceRemark)
@@ -252,6 +259,7 @@ struct OrderDetailData: Decodable {
         audioRemark = ""
         retailerRemark = ""
         retailerAudioRemark = ""
+        remarkHistory = []
     }
 
     var hasRemark: Bool {
@@ -270,8 +278,12 @@ struct OrderDetailData: Decodable {
         !retailerAudioRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    var hasRemarkHistory: Bool {
+        !remarkHistory.isEmpty
+    }
+
     var hasAnyRemark: Bool {
-        hasRemark || hasAudioRemark || hasRetailerRemark || hasRetailerAudioRemark
+        hasRemark || hasAudioRemark || hasRetailerRemark || hasRetailerAudioRemark || hasRemarkHistory
     }
 
     var orderSourceDisplay: String {
@@ -347,10 +359,11 @@ struct OrderDetailData: Decodable {
     }
 
     var shopDisplay: String {
-        if sellerShopName.isEmptyString && sellerMobile.isEmptyString { return "N/A" }
-        if sellerMobile.isEmptyString { return sellerShopName }
-        if sellerShopName.isEmptyString { return sellerMobile }
-        return "\(sellerShopName) (\(sellerMobile))"
+        let mobile = SellerContactVisibility.visibleMobile(sellerMobile) ?? ""
+        if sellerShopName.isEmptyString && mobile.isEmpty { return sellerShopName.isEmptyString ? "N/A" : sellerShopName }
+        if mobile.isEmpty { return sellerShopName.isEmptyString ? "N/A" : sellerShopName }
+        if sellerShopName.isEmptyString { return mobile }
+        return "\(sellerShopName) (\(mobile))"
     }
 
     var changeSellerDisplayName: String {
@@ -389,6 +402,37 @@ struct OrderDetailData: Decodable {
             if let value, !value.isEmptyString { return value }
         }
         return ""
+    }
+}
+
+struct OrderRemarkHistoryItem: Decodable, Identifiable, Hashable {
+    var id: String { "\(createdAt)-\(createdBy)-\(remark)-\(audioRemark.prefix(24))" }
+    var remark: String
+    var audioRemark: String
+    var createdAt: String
+    var createdBy: String
+
+    enum CodingKeys: String, CodingKey {
+        case remark
+        case audioRemark = "audio_remark"
+        case createdAt = "created_at"
+        case createdBy = "created_by"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        remark = container.decodeStringLeniently(forKey: .remark) ?? ""
+        audioRemark = container.decodeStringLeniently(forKey: .audioRemark) ?? ""
+        createdAt = container.decodeStringLeniently(forKey: .createdAt) ?? ""
+        createdBy = container.decodeStringLeniently(forKey: .createdBy) ?? ""
+    }
+
+    var hasText: Bool {
+        !remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasAudio: Bool {
+        !audioRemark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 

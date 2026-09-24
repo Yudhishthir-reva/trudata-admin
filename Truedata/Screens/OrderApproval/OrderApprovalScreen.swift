@@ -291,6 +291,8 @@ private struct OrderApprovalRequestCard: View {
                         .buttonStyle(.plain)
                     }
                 }
+
+                ViewSellerProfileButton(sellerId: item.sellerId)
             }
             .padding(12)
         }
