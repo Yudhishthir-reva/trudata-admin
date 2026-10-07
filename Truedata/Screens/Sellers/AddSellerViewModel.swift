@@ -139,12 +139,16 @@ final class AddSellerViewModel: ObservableObject {
 
     func submit(locationSnapshot: LocationSnapshot?) {
         guard validate() else { return }
+        guard let locationSnapshot, locationSnapshot.isFresh else {
+            errorMessage = "Refresh your location before saving the seller."
+            return
+        }
         isSubmitting = true
         errorMessage = nil
 
-        let lat = locationSnapshot.map { String($0.latitude) } ?? gpsLocation.split(separator: ",").first.map(String.init) ?? "0.0"
-        let long = locationSnapshot.map { String($0.longitude) } ?? gpsLocation.split(separator: ",").dropFirst().first.map { String($0.trimmingCharacters(in: .whitespaces)) } ?? "0.0"
-        let resolvedAddress = locationSnapshot?.address ?? address
+        let lat = String(locationSnapshot.latitude)
+        let long = String(locationSnapshot.longitude)
+        let resolvedAddress = locationSnapshot.address
 
         if isEditMode {
             submitUpdate(lat: lat, long: long, address: resolvedAddress)

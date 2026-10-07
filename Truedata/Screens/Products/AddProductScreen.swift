@@ -6,13 +6,22 @@
 import SwiftUI
 import PhotosUI
 
+private enum ProductPhotoTarget {
+    case cover
+    case gallery
+}
+
 struct AddProductScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: AddProductViewModel
     @State private var pickerSelection: AddProductPicker?
     @State private var showStaffPicker = false
+    @State private var showPhotoSourceDialog = false
+    @State private var photoTarget: ProductPhotoTarget = .cover
     @State private var showCamera = false
+    @State private var showCoverLibrary = false
+    @State private var showGalleryLibrary = false
 
     init(editProductId: Int? = nil) {
         _viewModel = StateObject(wrappedValue: AddProductViewModel(editProductId: editProductId))
@@ -45,6 +54,16 @@ struct AddProductScreen: View {
                     .tint(DashboardTheme.primaryBlue)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if !viewModel.isLoading && !viewModel.isLoadingDetail {
+                PrimaryActionButton(title: viewModel.submitButtonTitle) {
+                    viewModel.submit(onSuccess: {})
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.white)
+            }
+        }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { viewModel.loadInitialData() }
@@ -53,6 +72,46 @@ struct AddProductScreen: View {
         }
         .onChange(of: viewModel.otherPhotoItems) { _, _ in
             viewModel.loadOtherImages()
+        }
+        .confirmationDialog(
+            "Choose Photo Source",
+            isPresented: $showPhotoSourceDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Camera") {
+                showCamera = true
+            }
+            Button("Gallery") {
+                if photoTarget == .cover {
+                    showCoverLibrary = true
+                } else {
+                    showGalleryLibrary = true
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showCoverLibrary, selection: $viewModel.selectedPhotoItem, matching: .images)
+        .photosPicker(
+            isPresented: $showGalleryLibrary,
+            selection: $viewModel.otherPhotoItems,
+            maxSelectionCount: max(viewModel.otherImageSlotsLeft, 1),
+            selectionBehavior: .ordered,
+            matching: .images
+        )
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImageCaptured: { image in
+                    if photoTarget == .cover {
+                        viewModel.setCoverFromCamera(image)
+                    } else {
+                        viewModel.addGalleryFromCamera(image)
+                    }
+                    showCamera = false
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
         }
         .sheet(item: $pickerSelection) { selection in
             AddProductPickerSheet(
@@ -67,17 +126,6 @@ struct AddProductScreen: View {
             AddProductStaffPickerSheet(viewModel: viewModel)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
-        }
-        .fullScreenCover(isPresented: $showCamera) {
-            CameraImagePicker(
-                sourceType: .camera,
-                onImageCaptured: { image in
-                    viewModel.imageData = image.jpegData(compressionQuality: 0.8)
-                    showCamera = false
-                },
-                onCancel: { showCamera = false }
-            )
-            .ignoresSafeArea()
         }
         .alert("Success", isPresented: $viewModel.showSuccessAlert) {
             Button("Continue") { dismiss() }
@@ -221,7 +269,10 @@ struct AddProductScreen: View {
                     staffSection
                 }
 
-                sectionCard(title: "Cover & Gallery") {
+                sectionCard(
+                    title: "Photos",
+                    subtitle: "Cover photo and up to \(ProductFormLimits.maxOtherImages) gallery images"
+                ) {
                     imageSection
                 }
 
@@ -248,11 +299,6 @@ struct AddProductScreen: View {
                         .buttonStyle(.plain)
                     }
                 }
-
-                PrimaryActionButton(title: viewModel.submitButtonTitle) {
-                    viewModel.submit(onSuccess: {})
-                }
-                .padding(.top, 4)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -389,58 +435,45 @@ struct AddProductScreen: View {
         }
     }
 
+    private var photoHint: String {
+        if viewModel.imageData != nil && viewModel.isEditMode {
+            return "The new cover replaces the current one when you save"
+        }
+        if viewModel.isEditMode && !viewModel.otherImageData.isEmpty {
+            return "New gallery images are uploaded when you save"
+        }
+        let count = viewModel.existingOtherImageURLs.count + viewModel.otherImageData.count
+        return "Tap the cover to change it · Gallery \(count)/\(ProductFormLimits.maxOtherImages)"
+    }
+
+    private var hasCoverImage: Bool {
+        viewModel.imageData != nil || !viewModel.existingImageURL.isEmptyString
+    }
+
     @ViewBuilder
     private var imageSection: some View {
-        if let imageData = viewModel.imageData, let uiImage = UIImage(data: imageData) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFill()
-                .frame(height: 160)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        } else if !viewModel.existingImageURL.isEmptyString {
-            RemoteImage(url: viewModel.existingImageURL)
-                .frame(height: 160)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ZStack(alignment: .topTrailing) {
+                    Button {
+                        photoTarget = .cover
+                        showPhotoSourceDialog = true
+                    } label: {
+                        coverTile
+                    }
+                    .buttonStyle(.plain)
 
-        HStack(spacing: 14) {
-            Button {
-                showCamera = true
-            } label: {
-                Label("Camera", systemImage: "camera.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-            }
-            .buttonStyle(.plain)
-
-            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                Label("Cover", systemImage: "photo.on.rectangle.angled")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.primaryBlue)
-            }
-            .buttonStyle(.plain)
-
-            if viewModel.imageData != nil || !viewModel.existingImageURL.isEmptyString {
-                Button("Remove cover") {
-                    viewModel.clearMainImage()
-                    if viewModel.isEditMode {
-                        viewModel.existingImageURL = ""
+                    if viewModel.imageData != nil {
+                        photoRemoveButton {
+                            viewModel.clearMainImage()
+                        }
                     }
                 }
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(DashboardTheme.dangerRed)
-                .buttonStyle(.plain)
-            }
-        }
 
-        Text("Gallery \(viewModel.existingOtherImageURLs.count + viewModel.otherImageData.count)/\(ProductFormLimits.maxOtherImages)")
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(DashboardTheme.neutralMedium)
+                Rectangle()
+                    .fill(Color(hex: "E5E7EB"))
+                    .frame(width: 1, height: 48)
 
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
                 ForEach(viewModel.existingOtherImageURLs, id: \.self) { url in
                     RemoteImage(url: url)
                         .frame(width: 72, height: 72)
@@ -456,35 +489,83 @@ struct AddProductScreen: View {
                                 .frame(width: 72, height: 72)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
-                        Button {
+                        photoRemoveButton {
                             viewModel.removeOtherImage(at: index)
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.white, DashboardTheme.dangerRed)
                         }
-                        .offset(x: 4, y: -4)
                     }
                 }
 
                 if viewModel.otherImageSlotsLeft > 0 {
-                    PhotosPicker(
-                        selection: $viewModel.otherPhotoItems,
-                        maxSelectionCount: viewModel.otherImageSlotsLeft,
-                        matching: .images
-                    ) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "plus")
-                            Text("Add")
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                        .frame(width: 72, height: 72)
-                        .background(DashboardTheme.primaryBlue.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    Button {
+                        photoTarget = .gallery
+                        showPhotoSourceDialog = true
+                    } label: {
+                        emptyPhotoTile(label: "Gallery")
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
+
+        Text(photoHint)
+            .font(.system(size: 11))
+            .foregroundStyle(DashboardTheme.neutralMedium)
+    }
+
+    @ViewBuilder
+    private var coverTile: some View {
+        ZStack(alignment: .bottom) {
+            if let imageData = viewModel.imageData, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else if !viewModel.existingImageURL.isEmptyString {
+                RemoteImage(url: viewModel.existingImageURL)
+            } else {
+                emptyPhotoTile(label: "Cover")
+            }
+
+            if hasCoverImage {
+                Text("Cover")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 2)
+                    .background(Color.black.opacity(0.45))
+            }
+        }
+        .frame(width: 72, height: 72)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func emptyPhotoTile(label: String) -> some View {
+        VStack(spacing: 2) {
+            Image(systemName: "photo.badge.plus")
+                .font(.system(size: 18))
+            Text(label)
+                .font(.system(size: 10, weight: .medium))
+        }
+        .foregroundStyle(DashboardTheme.primaryBlue)
+        .frame(width: 72, height: 72)
+        .background(DashboardTheme.primaryBlue.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(DashboardTheme.primaryBlue.opacity(0.35), lineWidth: 1)
+        }
+    }
+
+    private func photoRemoveButton(action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 18, height: 18)
+                .background(Color.black.opacity(0.6))
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .padding(3)
     }
 
     private func variantCard(variant: ProductFormVariant, index: Int) -> some View {

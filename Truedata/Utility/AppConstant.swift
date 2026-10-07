@@ -7,12 +7,20 @@ import Foundation
 
 enum APIBaseURL {
     static let production = "https://spicemonk.in/965874/api/"
-    static let staging = "https://spicemonk.in/965874/api/"
+    static let staging = "https://spicemonk.trudataa.com/api"
 }
 
-let BASE_URL = APIBaseURL.staging
-
+/// Sirf yahi line badlo: `.production` ya `.stagging`
 let currentEnvironment: RequestEnvironmentType = .stagging
+
+let BASE_URL: String = {
+    switch currentEnvironment {
+    case .stagging:
+        return APIBaseURL.staging
+    case .production:
+        return APIBaseURL.production
+    }
+}()
 
 let kDateFormatterHHMMA: DateFormatter = {
     let dateFormatter = DateFormatter()

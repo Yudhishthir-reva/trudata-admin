@@ -30,6 +30,8 @@ struct EditOrderChooseBrandScreen: View {
                 onRefresh: { viewModel.loadData() }
             )
 
+            OrderSellerBanner(shopName: editOrderViewModel.sellerShopName)
+
             ZStack {
                 Color(hex: "F3F4F6").ignoresSafeArea()
 

@@ -16,14 +16,7 @@ protocol RouterManagable {
 extension RouterManagable {
 
     var baseURL: String {
-        let url: String
-        switch currentEnvironment {
-        case .stagging:
-            url = APIBaseURL.staging
-        case .production:
-            url = BASE_URL
-        }
-        return url.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        BASE_URL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
     var urlString: String {

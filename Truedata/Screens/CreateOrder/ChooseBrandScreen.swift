@@ -32,6 +32,8 @@ struct ChooseBrandScreen: View {
                 onRefresh: { viewModel.loadData() }
             )
 
+            OrderSellerBanner(shopName: cartViewModel.sellerShopName, sellerName: cartViewModel.sellerName)
+
             ZStack {
                 Color(hex: "F3F4F6").ignoresSafeArea()
 
@@ -80,7 +82,7 @@ struct ChooseBrandScreen: View {
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear { viewModel.loadData() }
+        .onAppear { viewModel.loadData(); cartViewModel.loadSellerIdentity() }
         .navigationDestination(isPresented: $showSubmitScreen) {
             CreateOrderSubmitScreen(
                 cartViewModel: cartViewModel,
@@ -273,6 +275,36 @@ struct LabelDotText: View {
                 .font(.system(size: 11))
                 .foregroundStyle(DashboardTheme.neutralMedium)
                 .lineLimit(1)
+        }
+    }
+}
+
+struct OrderSellerBanner: View {
+    let shopName: String
+    var sellerName: String = ""
+
+    var body: some View {
+        let shop = shopName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let seller = sellerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !shop.isEmpty || !seller.isEmpty {
+            HStack(spacing: 10) {
+                Image(systemName: "storefront.fill")
+                    .font(.system(size: 18)).foregroundStyle(AppTheme.cerulean)
+                    .frame(width: 32, height: 32)
+                    .background(AppTheme.cerulean.opacity(0.14)).clipShape(Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("ORDER FOR").font(.system(size: 9, weight: .semibold)).tracking(0.8).foregroundStyle(.secondary)
+                    Text(shop.isEmpty ? seller : shop).font(.subheadline.bold()).lineLimit(1)
+                    if !shop.isEmpty && !seller.isEmpty && shop.caseInsensitiveCompare(seller) != .orderedSame {
+                        Label(seller, systemImage: "person").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(10).background(AppTheme.cerulean.opacity(0.07))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.cerulean.opacity(0.18)))
+            .padding(.horizontal, 12).padding(.vertical, 6)
         }
     }
 }

@@ -634,7 +634,7 @@ struct CreateOrderSubmitScreen: View {
     }
 
     private func submitOrder() {
-        guard let snapshot = locationHelper.snapshot else {
+        guard let snapshot = locationHelper.snapshot, snapshot.isFresh else {
             cartViewModel.errorMessage = locationHelper.errorMessage
                 ?? "Unable to fetch location. Please enable GPS and try again."
             locationHelper.refreshLocation()

@@ -51,7 +51,7 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
         self.isWaitingForPermission = false
         self.needsOpenSettings = isLocationDeniedOrRestricted
         if needsOpenSettings {
-            self.message = "Location permission is required. Enable it in Settings to continue."
+            self.message = "Enable Location Services and allow location access in Settings to continue."
         }
         self.isPresented = true
     }
@@ -60,12 +60,6 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
         guard !isProcessingContinue else { return }
         isProcessingContinue = true
         defer { isProcessingContinue = false }
-
-        guard CLLocationManager.locationServicesEnabled() else {
-            needsOpenSettings = true
-            message = "Turn on Location Services in Settings to continue."
-            return
-        }
 
         let status = locationManager.authorizationStatus
         switch status {
@@ -81,7 +75,7 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
         case .denied, .restricted:
             needsOpenSettings = true
             isWaitingForPermission = false
-            message = "Location permission is required. Enable it in Settings to continue."
+            message = "Enable Location Services and allow location access in Settings to continue."
             openSettings()
         @unknown default:
             needsOpenSettings = true
@@ -101,7 +95,7 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
 
     private var isLocationDeniedOrRestricted: Bool {
         let status = locationManager.authorizationStatus
-        return status == .denied || status == .restricted || !CLLocationManager.locationServicesEnabled()
+        return status == .denied || status == .restricted
     }
 
     private func dismissAndRunPending() {
@@ -120,7 +114,7 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
         case .denied, .restricted:
             needsOpenSettings = true
             isWaitingForPermission = false
-            message = "Location permission is required. Enable it in Settings to continue."
+            message = "Enable Location Services and allow location access in Settings to continue."
         case .notDetermined:
             needsOpenSettings = false
         @unknown default:

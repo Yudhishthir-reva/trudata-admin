@@ -48,8 +48,8 @@ final class UpdateSellerStatusViewModel: ObservableObject {
             return
         }
 
-        guard let snapshot = locationSnapshot else {
-            validationMessage = "Location is required. Please ensure GPS is enabled."
+        guard let snapshot = locationSnapshot, snapshot.isFresh else {
+            validationMessage = "Refresh your precise location before submitting this visit."
             return
         }
 

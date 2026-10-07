@@ -81,8 +81,8 @@ final class MarkAttendanceViewModel: ObservableObject {
     }
 
     func performPunch(location: LocationSnapshot?) {
-        guard let location else {
-            punchErrorMessage = "Unable to get location. Please try again."
+        guard let location, location.isFresh else {
+            punchErrorMessage = "Refresh your location before marking attendance."
             return
         }
 

@@ -441,7 +441,7 @@ private struct B2CCustomerOrderCard: View {
                     Text(order.customerAddress.isEmptyString ? "-" : order.customerAddress)
                         .font(.system(size: 12))
                         .foregroundStyle(Color(hex: "111827"))
-                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 

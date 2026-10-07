@@ -21,6 +21,7 @@ final class CreateOrderCartViewModel: ObservableObject {
     @Published private(set) var syncedCartLineIds: [Int] = []
     @Published private(set) var submitItems: [CreateOrderSubmitLineItem] = []
     @Published private(set) var sellerShopName = ""
+    @Published private(set) var sellerName = ""
     @Published private(set) var sellerAddress = ""
     @Published private(set) var apiGrandTotal: Double = 0
     @Published private(set) var isSyncing = false
@@ -34,6 +35,19 @@ final class CreateOrderCartViewModel: ObservableObject {
     init(sellerId: Int, service: CreateOrderServiceManager = CreateOrderServiceManager()) {
         self.sellerId = sellerId
         self.service = service
+    }
+
+    func loadSellerIdentity() {
+        guard sellerShopName.isEmpty && sellerName.isEmpty else { return }
+        let today = DashboardDateFormat.todayString
+        SellerProfileServiceManager().getSellerProfile(sellerId: String(sellerId), startDate: today, endDate: today)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] response in
+                guard response.status, let profile = response.data?.profile else { return }
+                self?.sellerShopName = profile.shopName
+                self?.sellerName = profile.name
+            })
+            .store(in: &cancellables)
     }
 
     var totalItems: Int {

@@ -54,6 +54,8 @@ struct BrandProductListScreen: View {
                 onRefresh: { viewModel.loadProducts() }
             )
 
+            OrderSellerBanner(shopName: editOrderViewModel?.sellerShopName ?? cartViewModel.sellerShopName, sellerName: editOrderViewModel == nil ? cartViewModel.sellerName : "")
+
             VStack(spacing: 0) {
                 searchField
                     .padding(.horizontal, 12)

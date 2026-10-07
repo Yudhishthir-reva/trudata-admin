@@ -70,8 +70,8 @@ class SellerPaymentServiceManager {
         imageData: Data?
     ) -> AnyPublisher<SellerProfileActionResponse, Error> {
         let amountValue = Double(amount) ?? 0
-        let discountValue = Double(discount) ?? 0
-        let finalAmount = isDiscountApplied ? amountValue + discountValue : amountValue
+        let discountValue = isDiscountApplied ? (Double(discount) ?? 0) : 0
+        let finalAmount = amountValue - discountValue
 
         var params: [String: Any] = [
             "amount": String(finalAmount),

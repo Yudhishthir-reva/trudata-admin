@@ -31,7 +31,7 @@ struct OrderDetailScreen: View {
             )
 
             ZStack {
-                Color(hex: "F3F4F6")
+                Color(hex: "F4F6F8")
                     .ignoresSafeArea()
 
                 content
@@ -40,13 +40,13 @@ struct OrderDetailScreen: View {
                     Color.black.opacity(0.15)
                         .ignoresSafeArea()
                     ProgressView()
-                        .tint(DashboardTheme.primaryBlue)
+                        .tint(Color(hex: "1F7A3E"))
                         .scaleEffect(1.2)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
+        .background(Color(hex: "1F7A3E").ignoresSafeArea(edges: .top))
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .onAppear { viewModel.loadOrderDetail() }
@@ -182,7 +182,7 @@ struct OrderDetailScreen: View {
             VStack {
                 Spacer()
                 ProgressView()
-                    .tint(DashboardTheme.primaryBlue)
+                    .tint(Color(hex: "1F7A3E"))
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -202,15 +202,19 @@ struct OrderDetailScreen: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let order = viewModel.order {
             ScrollView {
-                VStack(spacing: 10) {
-                    orderMainCard(order)
+                VStack(spacing: 14) {
+                    orderHeroCard(order)
+                    orderItemsCard(order)
                     paymentDetailsCard(order)
                     sellerInfoCard(order)
+                    if order.hasAnyRemark {
+                        remarksCard(order)
+                    }
                     bottomActions(order)
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 10)
-                .padding(.bottom, 24)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 28)
             }
         } else {
             Color.clear
@@ -218,300 +222,426 @@ struct OrderDetailScreen: View {
         }
     }
 
-    // MARK: - Main Card (header + items)
+    // MARK: - Top Hero Card (Forest Green)
 
-    private func orderMainCard(_ order: OrderDetailData) -> some View {
-        OrderDetailStyledCard {
-            VStack(alignment: .leading, spacing: 0) {
-                orderHeader(order)
-
-                if order.hasAnyRemark {
-                    Divider().overlay(DashboardTheme.surfaceVariant)
-                    remarksSection(order)
-                }
-
-                Divider().overlay(DashboardTheme.surfaceVariant)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Order Items (\(order.orderDetails.count))")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                        .padding(.top, 8)
-
-                    if order.orderDetails.isEmpty {
-                        Text("No items in this order.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                            .padding(.vertical, 12)
-                    } else {
-                        ForEach(order.orderDetails) { item in
-                            productRow(item)
-                            if item.id != order.orderDetails.last?.id {
-                                Divider().overlay(DashboardTheme.surfaceVariant.opacity(0.8))
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.bottom, 10)
-            }
-        }
-    }
-
-    private func orderHeader(_ order: OrderDetailData) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private func orderHeroCard(_ order: OrderDetailData) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Top Row: Order ID & Date + Grand Total
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(order.displayOrderNo)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
+                    Text("ORDER")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.75))
+                        .tracking(0.5)
 
-                    if order.orderNotDelivered {
-                        Text("Rescheduled")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.warningYellow)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(DashboardTheme.warningYellow.opacity(0.12))
-                            .clipShape(Capsule())
+                    Text(order.displayOrderNo)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    if !order.orderDate.isEmptyString {
+                        Text(order.orderDate)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.85))
                     }
                 }
 
                 Spacer(minLength: 8)
 
-                Text(order.orderDate)
-                    .font(.system(size: 12))
-                    .foregroundStyle(DashboardTheme.neutralMedium)
-                    .multilineTextAlignment(.trailing)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("GRAND TOTAL")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.75))
+                        .tracking(0.5)
+
+                    Text(order.grandTotal.priceLabel)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.white)
+                }
             }
 
+            // Chips Row: Delivery Status, Payment Status, Order Source
             FlowLayout(spacing: 8, lineSpacing: 8) {
-                statusChip(OrderDetailStatusMapper.deliveryStatus(order.status))
-                statusChip(OrderDetailStatusMapper.paymentStatus(order.transactionStatus))
+                heroStatusChip(
+                    icon: deliveryStatusIcon(order.status),
+                    text: deliveryStatusText(order.status)
+                )
+
+                heroStatusChip(
+                    icon: paymentStatusIcon(order.transactionStatus),
+                    text: paymentStatusText(order.transactionStatus)
+                )
 
                 if !order.orderSourceDisplay.isEmptyString {
-                    orderSourceChip(order)
+                    heroStatusChip(
+                        icon: order.orderSourceIcon,
+                        text: order.orderSourceDisplay
+                    )
+                }
+
+                if order.orderNotDelivered {
+                    heroStatusChip(
+                        icon: "exclamationmark.arrow.circlepath",
+                        text: "Rescheduled"
+                    )
                 }
             }
+
+            // Bottom 2 Mini Metric Cards
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Items")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.75))
+
+                    Text("\(order.orderDetails.count)")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.black.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Shop")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.75))
+
+                    Text(order.shopDisplay.isEmptyString ? (order.sellerName.isEmptyString ? "N/A" : order.sellerName) : order.shopDisplay)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.black.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: [Color(hex: "1F7A3E"), Color(hex: "1A6B36")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: Color(hex: "1F7A3E").opacity(0.2), radius: 10, y: 4)
     }
 
-    private func orderSourceChip(_ order: OrderDetailData) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: order.orderSourceIcon)
-                .font(.system(size: 10))
-            Text(order.orderSourceDisplay)
-                .font(.system(size: 11, weight: .semibold))
+    private func heroStatusChip(icon: String, text: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .bold))
+            Text(text)
+                .font(.system(size: 12, weight: .semibold))
                 .lineLimit(1)
         }
-        .foregroundStyle(order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(
-            (order.orderSourceDisplay == "By Retailer" ? Color(hex: "0D9488") : DashboardTheme.primaryBlue)
-                .opacity(0.12)
-        )
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.18))
         .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
     }
 
-    @ViewBuilder
-    private func remarksSection(_ order: OrderDetailData) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Remarks")
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+    private func deliveryStatusIcon(_ status: String) -> String {
+        switch status.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "delivered", "3": return "checkmark.circle.fill"
+        case "cancel", "4": return "xmark.circle.fill"
+        case "pending", "0": return "clock.fill"
+        case "pickup", "2": return "archivebox.fill"
+        case "to deliver", "to delivered", "1": return "shippingbox.fill"
+        default: return "checkmark.circle.fill"
+        }
+    }
 
-            // Retailer first (order_source = retailer often has these)
-            if order.hasRetailerAudioRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Retailer Voice Note")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                    OrderDetailAudioPlayerView(audioURLString: order.retailerAudioRemark)
-                }
-            }
+    private func deliveryStatusText(_ status: String) -> String {
+        let chip = OrderDetailStatusMapper.deliveryStatus(status)
+        return chip.text
+    }
 
-            if order.hasRetailerRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Retailer Remark")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
-                    OrderDetailTextRemarkView(remark: order.retailerRemark)
-                }
-            }
+    private func paymentStatusIcon(_ status: String) -> String {
+        switch status.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "complete", "completed", "2", "paid": return "checkmark.seal.fill"
+        case "remaining", "1": return "hourglass.bottomhalf.filled"
+        case "pending", "0": return "hourglass"
+        default: return "creditcard.fill"
+        }
+    }
 
-            if order.hasAudioRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Salesperson Voice Note")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                    OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
-                }
-            }
+    private func paymentStatusText(_ status: String) -> String {
+        let trimmed = status.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed == "complete" || trimmed == "completed" || trimmed == "2" || trimmed == "paid" {
+            return "Payment: Paid"
+        } else if trimmed == "pending" || trimmed == "0" {
+            return "Payment: Pending"
+        } else if trimmed == "remaining" || trimmed == "1" {
+            return "Payment: Partially Paid"
+        } else if !status.isEmptyString {
+            return "Payment: \(status.capitalized)"
+        }
+        return "Payment: Pending"
+    }
 
-            if order.hasRemark {
-                VStack(alignment: .leading, spacing: 4) {
-                    if order.hasRetailerRemark || order.hasRetailerAudioRemark {
-                        Text("Salesperson / Admin Remark")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(DashboardTheme.neutralMedium)
-                    }
-                    OrderDetailTextRemarkView(remark: order.remark)
-                }
-            }
+    // MARK: - Order Items Card
 
-            if order.remarkHistory.count > 1 || (order.remarkHistory.count == 1 && (order.hasRetailerRemark || order.hasRetailerAudioRemark)) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Remark History")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
+    private func orderItemsCard(_ order: OrderDetailData) -> some View {
+        OrderDetailCard {
+            VStack(alignment: .leading, spacing: 14) {
+                OrderDetailSectionHeader(
+                    icon: "cart.fill",
+                    title: "Order Items (\(order.orderDetails.count))"
+                )
 
-                    ForEach(order.remarkHistory) { item in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text(item.createdBy.isEmptyString ? "Staff" : item.createdBy.capitalized)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(DashboardTheme.primaryBlue)
-                                Spacer()
-                                if !item.createdAt.isEmptyString {
-                                    Text(item.createdAt)
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(DashboardTheme.neutralMedium)
-                                }
-                            }
-                            if item.hasAudio {
-                                OrderDetailAudioPlayerView(audioURLString: item.audioRemark)
-                            }
-                            if item.hasText {
-                                OrderDetailTextRemarkView(remark: item.remark)
+                if order.orderDetails.isEmpty {
+                    Text("No items in this order.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color(hex: "6B7280"))
+                        .padding(.vertical, 8)
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(Array(order.orderDetails.enumerated()), id: \.element.id) { index, item in
+                            productRow(item)
+                            if index < order.orderDetails.count - 1 {
+                                Divider().overlay(Color(hex: "F3F4F6"))
                             }
                         }
-                        .padding(10)
-                        .background(Color(hex: "F8FAFC"))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
     }
 
     private func productRow(_ item: OrderDetailProduct) -> some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 12) {
             Group {
                 if item.productImage.isEmptyString {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(DashboardTheme.surfaceVariant)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(hex: "F3F4F6"))
                         .overlay {
                             Image(systemName: "photo")
-                                .foregroundStyle(DashboardTheme.neutralMedium)
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color(hex: "9CA3AF"))
                         }
                 } else {
                     RemoteImage(url: item.productImage)
                 }
             }
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(width: 52, height: 52)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color(hex: "E5E7EB"), lineWidth: 0.8)
+            )
             .onTapGesture {
                 if !item.productImage.isEmptyString {
                     previewImageURL = item.productImage
                 }
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(item.productName)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(DashboardTheme.neutralDark)
-                    .lineLimit(1)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color(hex: "1F2937"))
+                    .lineLimit(2)
+
                 if !item.variantName.isEmptyString {
                     Text(item.variantName)
-                        .font(.system(size: 12))
-                        .foregroundStyle(DashboardTheme.neutralMedium)
-                        .lineLimit(1)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color(hex: "6B7280"))
                 }
+
                 Text(item.quantityPriceLabel)
-                    .font(.system(size: 11))
-                    .foregroundStyle(DashboardTheme.neutralMedium.opacity(0.85))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color(hex: "6B7280"))
             }
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 8)
 
             Text(item.totalPrice.priceLabel)
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+                .foregroundStyle(Color(hex: "1F2937"))
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 
-    // MARK: - Payment Details
+    // MARK: - Payment Details Card
 
     private func paymentDetailsCard(_ order: OrderDetailData) -> some View {
-        OrderDetailStyledCard {
-            VStack(alignment: .leading, spacing: 6) {
-                sectionTitle("Payment Details")
+        OrderDetailCard {
+            VStack(alignment: .leading, spacing: 14) {
+                OrderDetailSectionHeader(
+                    icon: "creditcard.fill",
+                    title: "Payment Details"
+                )
 
-                paymentRow("Subtotal", order.subtotal.priceLabel)
-                paymentRow("Discount", "- \(order.discountValue.priceLabel)", valueColor: DashboardTheme.dangerRed)
+                VStack(spacing: 10) {
+                    paymentRow("Subtotal", order.subtotal.priceLabel)
+                    paymentRow(
+                        "Discount",
+                        "- \(order.discountValue.priceLabel)",
+                        valueColor: Color(hex: "EF4444")
+                    )
 
-                Divider().overlay(DashboardTheme.surfaceVariant)
+                    Divider().overlay(Color(hex: "E5E7EB"))
 
-                HStack {
-                    Text("Grand Total")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(DashboardTheme.neutralDark)
-                    Spacer()
-                    Text(order.grandTotal.priceLabel)
-                        .font(.system(size: 16, weight: .heavy))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    HStack {
+                        Text("Grand Total")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color(hex: "1F2937"))
+                        Spacer()
+                        Text(order.grandTotal.priceLabel)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color(hex: "1F2937"))
+                    }
+                    .padding(.top, 2)
                 }
-                .padding(.top, 2)
             }
-            .padding(10)
         }
     }
 
-    // MARK: - Seller Info
+    // MARK: - Seller & Staff Information Card
 
     private func sellerInfoCard(_ order: OrderDetailData) -> some View {
-        OrderDetailStyledCard {
-            VStack(alignment: .leading, spacing: 8) {
-                sectionTitle("Seller & Staff Information")
+        OrderDetailCard {
+            VStack(alignment: .leading, spacing: 14) {
+                OrderDetailSectionHeader(
+                    icon: "storefront.fill",
+                    title: "Seller & Staff Information"
+                )
 
-                if !order.orderSourceDisplay.isEmptyString {
-                    sellerInfoRow(icon: order.orderSourceIcon, label: "Order Source", value: order.orderSourceDisplay)
-                }
-                sellerInfoRow(icon: "storefront.fill", label: "Shop", value: order.shopDisplay)
-                sellerInfoRow(icon: "person.fill", label: "Seller", value: order.sellerName)
-                sellerInfoRow(icon: "person.badge.key.fill", label: "Sale Person", value: order.staffName)
-                sellerInfoRow(icon: "bicycle", label: "Rider", value: order.riderName)
+                VStack(spacing: 12) {
+                    if !order.orderSourceDisplay.isEmptyString {
+                        infoRow(icon: order.orderSourceIcon, label: "Order Source", value: order.orderSourceDisplay)
+                    }
+                    infoRow(icon: "storefront.fill", label: "Shop", value: order.shopDisplay)
+                    infoRow(icon: "person.fill", label: "Seller", value: order.sellerName)
 
-                if SellerProfileLink.resolvedId(order.sellerId) != nil {
-                    ViewSellerProfileButton(sellerId: order.sellerId)
-                        .padding(.top, 4)
-                }
+                    if !order.sellerMobile.isEmptyString {
+                        mobileInfoRow(mobile: order.sellerMobile)
+                    }
 
-                if !order.deliveryDate.isEmptyString {
-                    sellerInfoRow(icon: "calendar", label: "Delivery Date", value: order.deliveryDate)
-                }
-                if !order.deliveryTime.isEmptyString {
-                    sellerInfoRow(icon: "clock.fill", label: "Delivery Time", value: order.deliveryTime)
-                }
+                    infoRow(icon: "person.badge.key.fill", label: "Sale Person", value: order.staffName)
+                    infoRow(icon: "bicycle", label: "Rider", value: order.riderName)
 
-                sellerInfoRow(icon: "map.fill", label: "Beat", value: order.beatName)
-                sellerInfoRow(icon: "location.fill", label: "Full Address", value: order.sellerAddress)
+                    if SellerProfileLink.resolvedId(order.sellerId) != nil {
+                        ViewSellerProfileButton(sellerId: order.sellerId)
+                            .padding(.top, 2)
+                    }
 
-                if !order.manualAddress.isEmptyString {
-                    sellerInfoRow(icon: "mappin.and.ellipse", label: "Manual Address", value: order.manualAddress)
+                    if !order.deliveryDate.isEmptyString {
+                        infoRow(icon: "calendar", label: "Delivery Date", value: order.deliveryDate)
+                    }
+                    if !order.deliveryTime.isEmptyString {
+                        infoRow(icon: "clock.fill", label: "Delivery Time", value: order.deliveryTime)
+                    }
+
+                    infoRow(icon: "map.fill", label: "Beat", value: order.beatName)
+                    infoRow(icon: "location.fill", label: "Full Address", value: order.sellerAddress)
+
+                    if !order.manualAddress.isEmptyString {
+                        infoRow(icon: "mappin.and.ellipse", label: "Manual Address", value: order.manualAddress)
+                    }
                 }
             }
-            .padding(10)
         }
     }
 
-    // MARK: - Bottom Buttons
+    // MARK: - Remarks & Voice Notes Card
+
+    private func remarksCard(_ order: OrderDetailData) -> some View {
+        OrderDetailCard {
+            VStack(alignment: .leading, spacing: 14) {
+                OrderDetailSectionHeader(
+                    icon: "text.bubble.fill",
+                    title: "Remarks & Voice Notes",
+                    iconColor: Color(hex: "F59E0B"),
+                    badgeBgColor: Color(hex: "FFFBEB")
+                )
+
+                if order.hasRetailerAudioRemark {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Retailer Voice Note")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color(hex: "1F7A3E"))
+                        OrderDetailAudioPlayerView(audioURLString: order.retailerAudioRemark)
+                    }
+                }
+
+                if order.hasRetailerRemark {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Retailer Remark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color(hex: "1F7A3E"))
+                        OrderDetailTextRemarkView(remark: order.retailerRemark)
+                    }
+                }
+
+                if order.hasAudioRemark {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Salesperson Voice Note")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color(hex: "6B7280"))
+                        OrderDetailAudioPlayerView(audioURLString: order.audioRemark)
+                    }
+                }
+
+                if order.hasRemark {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if order.hasRetailerRemark || order.hasRetailerAudioRemark {
+                            Text("Salesperson / Admin Remark")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color(hex: "6B7280"))
+                        }
+                        OrderDetailTextRemarkView(remark: order.remark)
+                    }
+                }
+
+                if order.remarkHistory.count > 1 || (order.remarkHistory.count == 1 && (order.hasRetailerRemark || order.hasRetailerAudioRemark)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Remark History")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color(hex: "1F2937"))
+
+                        ForEach(order.remarkHistory) { item in
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text(item.createdBy.isEmptyString ? "Staff" : item.createdBy.capitalized)
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(Color(hex: "1F7A3E"))
+                                    Spacer()
+                                    if !item.createdAt.isEmptyString {
+                                        Text(item.createdAt)
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(Color(hex: "6B7280"))
+                                    }
+                                }
+                                if item.hasAudio {
+                                    OrderDetailAudioPlayerView(audioURLString: item.audioRemark)
+                                }
+                                if item.hasText {
+                                    OrderDetailTextRemarkView(remark: item.remark)
+                                }
+                            }
+                            .padding(10)
+                            .background(Color(hex: "F8FAFC"))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Bottom Actions
 
     private func bottomActions(_ order: OrderDetailData) -> some View {
         VStack(spacing: 8) {
@@ -576,7 +706,7 @@ struct OrderDetailScreen: View {
                     orderActionButton(
                         title: "Download Invoice",
                         icon: "arrow.down.circle.fill",
-                        color: DashboardTheme.primaryBlue
+                        color: Color(hex: "1F7A3E")
                     )
                 }
                 .buttonStyle(.plain)
@@ -589,7 +719,7 @@ struct OrderDetailScreen: View {
                     orderActionButton(
                         title: "Download Settlement Receipt",
                         icon: "arrow.down.circle.fill",
-                        color: AppTheme.darkMidnightBlue,
+                        color: Color(hex: "1F2937"),
                         isDisabled: viewModel.isDownloadingSettlement
                     )
                 }
@@ -645,35 +775,13 @@ struct OrderDetailScreen: View {
         UIApplication.shared.open(url)
     }
 
-    // MARK: - Helpers
+    // MARK: - Helper Views & Rows
 
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 15, weight: .bold))
-            .foregroundStyle(DashboardTheme.neutralDark)
-    }
-
-    private func statusChip(_ info: OrderDetailStatusChip) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: info.icon)
-                .font(.system(size: 11, weight: .semibold))
-            Text(info.text)
-                .font(.system(size: 11, weight: .semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-        }
-        .foregroundStyle(info.color)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(info.backgroundColor)
-        .clipShape(Capsule())
-    }
-
-    private func paymentRow(_ label: String, _ value: String, valueColor: Color = DashboardTheme.neutralDark) -> some View {
+    private func paymentRow(_ label: String, _ value: String, valueColor: Color = Color(hex: "1F2937")) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 13))
-                .foregroundStyle(DashboardTheme.neutralMedium)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color(hex: "6B7280"))
             Spacer()
             Text(value)
                 .font(.system(size: 13, weight: .semibold))
@@ -681,42 +789,105 @@ struct OrderDetailScreen: View {
         }
     }
 
-    private func sellerInfoRow(icon: String, label: String, value: String) -> some View {
+    private func infoRow(icon: String, label: String, value: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(DashboardTheme.neutralMedium.opacity(0.7))
-                .frame(width: 16)
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: "1F7A3E"))
+                .frame(width: 18)
 
             Text(label)
-                .font(.system(size: 13))
-                .foregroundStyle(DashboardTheme.neutralMedium)
-                .frame(width: 98, alignment: .leading)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color(hex: "6B7280"))
+                .frame(width: 100, alignment: .leading)
 
             Text(value.isEmptyString ? "N/A" : value)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+                .foregroundStyle(Color(hex: "1F2937"))
                 .multilineTextAlignment(.trailing)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
+
+    private func mobileInfoRow(mobile: String) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "phone.fill")
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: "1F7A3E"))
+                .frame(width: 18)
+
+            Text("Mobile")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color(hex: "6B7280"))
+                .frame(width: 100, alignment: .leading)
+
+            Spacer()
+
+            if let url = URL(string: "tel://\(mobile)") {
+                Button {
+                    UIApplication.shared.open(url)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(mobile)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color(hex: "1F7A3E"))
+                        Image(systemName: "phone.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color(hex: "1F7A3E"))
+                    }
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(mobile)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(hex: "1F2937"))
+            }
+        }
+    }
 }
 
-// MARK: - Styled Card
+// MARK: - Styled Card & Section Header
 
-private struct OrderDetailStyledCard<Content: View>: View {
+struct OrderDetailCard<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
         content
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(DashboardTheme.surfaceVariant, lineWidth: 1)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color(hex: "E5E7EB"), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 6, y: 2)
+    }
+}
+
+struct OrderDetailSectionHeader: View {
+    let icon: String
+    let title: String
+    var iconColor: Color = Color(hex: "1F7A3E")
+    var badgeBgColor: Color = Color(hex: "E8F5E9")
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(badgeBgColor)
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(iconColor)
             }
-            .shadow(color: DashboardTheme.primaryBlue.opacity(0.04), radius: 6, y: 2)
+
+            Text(title)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Color(hex: "1F2937"))
+
+            Spacer(minLength: 0)
+        }
     }
 }
 
@@ -729,16 +900,18 @@ struct OrderDetailAppBar: View {
     var onRefresh: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
             Button(action: onBack) {
                 Image(systemName: "arrow.left")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 38, height: 38)
+                    .background(Color.white.opacity(0.18))
+                    .clipShape(Circle())
             }
 
             Text(title)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
 
@@ -746,23 +919,27 @@ struct OrderDetailAppBar: View {
 
             Button(action: onRefresh) {
                 Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
+                    .frame(width: 38, height: 38)
+                    .background(Color.white.opacity(0.18))
+                    .clipShape(Circle())
             }
 
             Button(action: onHome) {
                 Image(systemName: "house.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
+                    .frame(width: 38, height: 38)
+                    .background(Color.white.opacity(0.18))
+                    .clipShape(Circle())
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
         .padding(.top, 6)
-        .padding(.bottom, 14)
+        .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
-        .background(AppTheme.darkMidnightBlue)
+        .background(Color(hex: "1F7A3E"))
     }
 }
 

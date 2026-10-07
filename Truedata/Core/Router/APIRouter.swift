@@ -28,6 +28,7 @@ enum APIRouter: RouterManagable {
     case createOrder
     case orderListV2
     case orderListV3
+    case allOrderList
     case staffList
     case sellerList2
     case getAllArea
@@ -189,6 +190,8 @@ enum APIRouter: RouterManagable {
             return "V2/order-list2"
         case .orderListV3:
             return "V2/order-list3"
+        case .allOrderList:
+            return "V2/all-order-list"
         case .staffList:
             return "staff-list"
         case .sellerList2:
@@ -418,7 +421,7 @@ enum APIRouter: RouterManagable {
 
     var contentType: RequestContentType {
         switch self {
-        case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit, .addCart, .createOrder:
+        case .updateSellerColor, .addProductSpecialPrice, .addCartForEdit, .createOrderForEdit, .addCart, .createOrder, .allOrderList:
             return .json
         case .paymentSave, .paymentSettlement, .shopLocationVisited, .addSeller, .updateSeller, .productSave, .productUpdate, .addStaff, .addExpense, .addLocation, .retailerPaymentRequestList, .updateRetailerPaymentRequest, .b2cOrderList, .b2cOrderDetail, .b2cOrderStatusUpdate, .pendingSettleCheque, .chequeBillList, .chequeSettlement:
             return .multipartForm

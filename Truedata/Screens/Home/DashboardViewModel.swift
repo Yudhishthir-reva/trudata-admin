@@ -78,6 +78,7 @@ class DashboardViewModel: ObservableObject {
         if DashboardRole.canShowPendingChequesOperation(role: role) {
             operations.append("Pending Cheques")
         }
+        operations.append("Utility")
         return operations
     }
 

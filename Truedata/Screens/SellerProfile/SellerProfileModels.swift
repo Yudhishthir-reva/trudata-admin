@@ -661,7 +661,7 @@ struct SellerProfileOrderItem: Identifiable, Decodable {
 
     var amount: Double { totalPrice.parsedAmount }
     var detailOrderId: String {
-        orderId.replacingOccurrences(of: "#", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        orderId.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

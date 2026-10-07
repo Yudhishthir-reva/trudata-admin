@@ -228,9 +228,6 @@ struct BeatSummaryOrderListContext: Identifiable, Hashable {
 
 enum BeatSummaryOrderIDParser {
     static func normalizedOrderId(_ value: String) -> String {
-        if let match = value.range(of: #"#?\d+"#, options: .regularExpression) {
-            return String(value[match]).replacingOccurrences(of: "#", with: "")
-        }
-        return value.replacingOccurrences(of: "#", with: "")
+        value.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

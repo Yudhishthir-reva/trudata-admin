@@ -47,15 +47,12 @@ final class PermissionManager: NSObject, ObservableObject {
     }
 
     func refreshStatus() {
-        let servicesEnabled = CLLocationManager.locationServicesEnabled()
-        let status = locationManager.authorizationStatus
-        let granted = status == .authorizedWhenInUse || status == .authorizedAlways
-        let alwaysGranted = status == .authorizedAlways
-
-        DispatchQueue.main.async {
+        CLLocationManager.checkServicesEnabled { [weak self] servicesEnabled in
+            guard let self else { return }
+            let status = self.locationManager.authorizationStatus
             self.locationServicesEnabled = servicesEnabled
-            self.locationGranted = granted
-            self.isAlwaysLocationGranted = alwaysGranted
+            self.locationGranted = status == .authorizedWhenInUse || status == .authorizedAlways
+            self.isAlwaysLocationGranted = status == .authorizedAlways
         }
 
         UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
@@ -105,5 +102,18 @@ final class PermissionManager: NSObject, ObservableObject {
 extension PermissionManager: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         refreshStatus()
+    }
+}
+
+// Only the device-wide Settings message needs this potentially blocking query.
+// Keep queries ordered, and publish their results on the main queue.
+extension CLLocationManager {
+    private static let servicesCheckQueue = DispatchQueue(label: "com.trudataa.location-services", qos: .utility)
+
+    static func checkServicesEnabled(completion: @escaping (Bool) -> Void) {
+        servicesCheckQueue.async {
+            let enabled = CLLocationManager.locationServicesEnabled()
+            DispatchQueue.main.async { completion(enabled) }
+        }
     }
 }

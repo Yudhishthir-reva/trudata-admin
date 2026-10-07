@@ -35,6 +35,8 @@ struct DashboardItemCard: View {
             scheduledRevisitsCard
         case "manage_orders":
             manageOrdersCard
+        case "all_time_orders":
+            allSourceOrdersCard
         case "payment_history":
             paymentHistoryCard
         case "all_time_orders_summary":
@@ -480,6 +482,66 @@ struct DashboardItemCard: View {
                 }
             }
         }
+    }
+
+    // MARK: - All source orders (feed key `all_time_orders`)
+
+    private var allSourceOrdersCard: some View {
+        DashboardCardChrome {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(DashboardTheme.primaryBlue.opacity(0.12))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "point.3.connected.trianglepath.dotted")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(displayTitle("All Source Orders"))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(DashboardTheme.neutralDark)
+                        Text("Every order, one list")
+                            .font(.system(size: 11))
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                    }
+
+                    Spacer()
+
+                    DashboardCompactButton(
+                        title: "View",
+                        action: { onNavigate("all_time_orders") }
+                    )
+                }
+
+                HStack(spacing: 8) {
+                    sourceTile(title: "B2B", color: Color(hex: "2563EB"), route: "all_time_orders:b2b")
+                    sourceTile(title: "Sales Person", color: Color(hex: "7C3AED"), route: "all_time_orders:sales_person")
+                    sourceTile(title: "B2C", color: Color(hex: "EA580C"), route: "all_time_orders:b2c")
+                }
+            }
+        }
+    }
+
+    private func sourceTile(title: String, color: Color, route: String) -> some View {
+        Button {
+            onNavigate(route)
+        } label: {
+            Text(title)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(color)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(color.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(color.opacity(0.25), lineWidth: 1)
+                }
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - All time

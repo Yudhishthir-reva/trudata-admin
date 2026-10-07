@@ -28,6 +28,7 @@ final class LocationManager: NSObject, ObservableObject {
 
     private var singleLocationCompletion: ((CLLocation?) -> Void)?
     private var captureTimeoutWorkItem: DispatchWorkItem?
+    private var locationRequestedAt = Date.distantPast
     private var uploadCancellable: AnyCancellable?
 
     /// Kept for callers; background upload interval is unused on App Store builds.
@@ -49,12 +50,10 @@ final class LocationManager: NSObject, ObservableObject {
     // MARK: - Status
 
     func refreshStatus() {
-        let servicesEnabled = CLLocationManager.locationServicesEnabled()
-        let status = locationManager.authorizationStatus
-
-        DispatchQueue.main.async {
+        CLLocationManager.checkServicesEnabled { [weak self] servicesEnabled in
+            guard let self else { return }
             self.isLocationServiceEnabled = servicesEnabled
-            self.authorizationStatus = status
+            self.authorizationStatus = self.locationManager.authorizationStatus
         }
     }
 
@@ -133,21 +132,23 @@ final class LocationManager: NSObject, ObservableObject {
             return
         }
 
-        ensureWhenInUseAuthorizationIfNeeded()
-
-        if let current = lastLocation, abs(current.timestamp.timeIntervalSinceNow) < 15.0 {
-            completion(current)
+        guard [.authorizedAlways, .authorizedWhenInUse].contains(locationManager.authorizationStatus),
+              locationManager.accuracyAuthorization == .fullAccuracy else {
+            errorMessage = "Enable location access and Precise Location in Settings."
+            ensureWhenInUseAuthorizationIfNeeded()
+            completion(nil)
             return
         }
 
         singleLocationCompletion = completion
+        locationRequestedAt = Date()
         locationManager.requestLocation()
 
         captureTimeoutWorkItem?.cancel()
         let timeout = DispatchWorkItem { [weak self] in
             guard let self, let pending = self.singleLocationCompletion else { return }
             self.singleLocationCompletion = nil
-            pending(self.lastLocation)
+            pending(nil)
         }
         captureTimeoutWorkItem = timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + 25, execute: timeout)
@@ -247,12 +248,16 @@ extension LocationManager: CLLocationManagerDelegate {
         let status = manager.authorizationStatus
         DispatchQueue.main.async {
             self.authorizationStatus = status
-            self.isLocationServiceEnabled = CLLocationManager.locationServicesEnabled()
+            self.refreshStatus()
             PermissionManager.shared.refreshStatus()
 
             switch status {
             case .denied, .restricted:
+                let pending = self.singleLocationCompletion
+                self.singleLocationCompletion = nil
+                self.lastLocation = nil
                 self.stopShiftTracking()
+                pending?(nil)
                 ConnectivityAlertManager.shared.checkAndNotifyIfNeeded()
             default:
                 break
@@ -262,7 +267,9 @@ extension LocationManager: CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        if abs(location.timestamp.timeIntervalSinceNow) > 30 { return }
+        if location.timestamp < locationRequestedAt.addingTimeInterval(-1) || location.horizontalAccuracy < 0 { return }
+        guard manager.accuracyAuthorization == .fullAccuracy,
+              [.authorizedAlways, .authorizedWhenInUse].contains(manager.authorizationStatus) else { return }
 
         DispatchQueue.main.async {
             self.lastLocation = location
@@ -284,7 +291,7 @@ extension LocationManager: CLLocationManagerDelegate {
                 self.singleLocationCompletion = nil
                 self.captureTimeoutWorkItem?.cancel()
                 self.captureTimeoutWorkItem = nil
-                completion(self.lastLocation)
+                completion(nil)
             }
         }
     }

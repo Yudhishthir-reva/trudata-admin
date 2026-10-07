@@ -101,8 +101,13 @@ final class OrderReturnViewModel: ObservableObject {
 
         LocationManager.shared.getCurrentLocation { [weak self] location in
             guard let self else { return }
-            let latitude = location.map { String($0.coordinate.latitude) } ?? "0.0"
-            let longitude = location.map { String($0.coordinate.longitude) } ?? "0.0"
+            guard let location else {
+                self.isSubmitting = false
+                self.errorMessage = "Unable to get a fresh, precise location. Enable Location Services and try again."
+                return
+            }
+            let latitude = String(location.coordinate.latitude)
+            let longitude = String(location.coordinate.longitude)
             let resolvedOrderId = self.resolvedOrderId
 
             let publisher: AnyPublisher<StatusMessageResponse, Error>

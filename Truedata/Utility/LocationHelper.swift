@@ -6,11 +6,14 @@
 import Combine
 import CoreLocation
 import Foundation
+import UIKit
 
 struct LocationSnapshot {
     let latitude: Double
     let longitude: Double
     let address: String
+    var capturedAt: Date = Date()
+    var isFresh: Bool { abs(capturedAt.timeIntervalSinceNow) <= 60 }
 }
 
 final class LocationHelper: NSObject, ObservableObject {
@@ -21,6 +24,8 @@ final class LocationHelper: NSObject, ObservableObject {
 
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
+    private var requestedAt = Date.distantPast
+    private var resumeObserver: AnyCancellable?
     /// After the user taps Continue on the consent popover, skip re-prompting for the auth callback fetch.
     private var skipNextConsentPrompt = false
 
@@ -28,6 +33,11 @@ final class LocationHelper: NSObject, ObservableObject {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        resumeObserver = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                guard let self, self.snapshot != nil || self.isLoading else { return }
+                self.performLocationRefresh()
+            }
     }
 
     /// Fetches GPS after showing the custom Continue popover (every user-triggered call).
@@ -48,21 +58,16 @@ final class LocationHelper: NSObject, ObservableObject {
     }
 
     private func performLocationRefresh() {
-        guard CLLocationManager.locationServicesEnabled() else {
-            updateOnMain {
-                self.errorMessage = "Location services are disabled."
-                self.snapshot = nil
-            }
-            return
-        }
-
+        snapshot = nil
+        geocoder.cancelGeocode()
+        isLoading = false
         let status = locationManager.authorizationStatus
         switch status {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
         case .restricted, .denied:
             updateOnMain {
-                self.errorMessage = "Location permission is required."
+                self.errorMessage = "Enable Location Services and allow location access in Settings."
                 self.snapshot = nil
             }
         case .authorizedAlways, .authorizedWhenInUse:
@@ -76,11 +81,29 @@ final class LocationHelper: NSObject, ObservableObject {
     }
 
     private func fetchCurrentLocation() {
-        updateOnMain {
+        guard locationManager.accuracyAuthorization == .fullAccuracy else {
+            errorMessage = "Enable Precise Location in app Settings, then refresh location."
+            return
+        }
+        CLLocationManager.checkServicesEnabled { [weak self] enabled in
+            guard let self else { return }
+            guard enabled else {
+                self.errorMessage = "Enable device Location Services, then try again."
+                return
+            }
             self.isLoading = true
             self.errorMessage = nil
+            self.requestedAt = Date()
+            self.locationManager.requestLocation()
+            let started = self.requestedAt
+            DispatchQueue.main.asyncAfter(deadline: .now() + 25) { [weak self] in
+                guard let self, self.isLoading, self.requestedAt == started else { return }
+                self.geocoder.cancelGeocode()
+                self.isLoading = false
+                self.snapshot = nil
+                self.errorMessage = "Location timed out. Check device Location Services and refresh."
+            }
         }
-        locationManager.requestLocation()
     }
 
     private func resolveAddress(for location: CLLocation) {
@@ -89,10 +112,19 @@ final class LocationHelper: NSObject, ObservableObject {
 
             let address = Self.formattedAddress(from: placemarks?.first)
             self.updateOnMain {
+                guard location.timestamp >= self.requestedAt.addingTimeInterval(-1),
+                      self.locationManager.accuracyAuthorization == .fullAccuracy,
+                      [.authorizedAlways, .authorizedWhenInUse].contains(self.locationManager.authorizationStatus) else {
+                    self.snapshot = nil
+                    self.isLoading = false
+                    self.errorMessage = "Location requirements changed. Refresh your location."
+                    return
+                }
                 self.snapshot = LocationSnapshot(
                     latitude: location.coordinate.latitude,
                     longitude: location.coordinate.longitude,
-                    address: address
+                    address: address,
+                    capturedAt: location.timestamp
                 )
                 self.errorMessage = address.isEmpty
                     ? "Unable to get address. Please try refreshing location."
@@ -141,6 +173,8 @@ final class LocationHelper: NSObject, ObservableObject {
 extension LocationHelper: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
+        snapshot = nil
+        isLoading = false
         if status == .authorizedAlways || status == .authorizedWhenInUse {
             if skipNextConsentPrompt {
                 skipNextConsentPrompt = false
@@ -153,7 +187,13 @@ extension LocationHelper: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
+        guard let location = locations.last, location.horizontalAccuracy >= 0,
+              location.timestamp >= requestedAt.addingTimeInterval(-1) else {
+            isLoading = false
+            snapshot = nil
+            errorMessage = "Could not get a fresh location. Please refresh and try again."
+            return
+        }
         resolveAddress(for: location)
     }
 

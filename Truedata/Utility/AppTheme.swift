@@ -31,9 +31,9 @@ enum AppTheme {
     static let errorRedBg = Color(hex: "FFF1F2")
     static let errorRedText = Color(hex: "7F1D1D")
 
-    static let brandBackgroundTop = Color(hex: useGreenTheme ? "FFFFFF" : "DEE6F8")
-    static let brandBackgroundMid = Color(hex: useGreenTheme ? "F7F9F8" : "E7EBEF")
-    static let brandBackgroundBottom = Color(hex: useGreenTheme ? "F7F9F8" : "E7EBEF")
+    static let brandBackgroundTop = Color(hex: useGreenTheme ? "E3EDE7" : "DEE6F8")
+    static let brandBackgroundMid = Color(hex: useGreenTheme ? "EDF1EE" : "E7EBEF")
+    static let brandBackgroundBottom = Color(hex: useGreenTheme ? "EDF1EE" : "E7EBEF")
 
     static let brandRed = darkMidnightBlue
     static let brandRedDark = Color(hex: useGreenTheme ? "0A331C" : "001C2E")

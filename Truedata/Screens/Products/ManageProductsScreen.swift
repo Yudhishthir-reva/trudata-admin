@@ -8,10 +8,10 @@ import SwiftUI
 struct ManageProductsScreen: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Binding var navigationPath: NavigationPath
     @StateObject private var viewModel = ManageProductsViewModel()
     @State private var showFilterSheet = false
 
-    var onAddProduct: () -> Void = {}
     var onEditProduct: (Int) -> Void = { _ in }
 
     var body: some View {
@@ -29,7 +29,8 @@ struct ManageProductsScreen: View {
                 searchBar
                 content
             }
-
+        }
+        .overlay(alignment: .bottomTrailing) {
             addProductButton
         }
         .navigationBarHidden(true)
@@ -128,16 +129,18 @@ struct ManageProductsScreen: View {
 
     private var addProductButton: some View {
         Button {
-            onAddProduct()
+            navigationPath.append(HomeDestination.addProduct)
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
+                .contentShape(Circle())
                 .background(DashboardTheme.primaryBlue)
                 .clipShape(Circle())
                 .shadow(color: DashboardTheme.primaryBlue.opacity(0.35), radius: 8, y: 4)
         }
+        .buttonStyle(.plain)
         .padding(.trailing, 20)
         .padding(.bottom, 24)
     }

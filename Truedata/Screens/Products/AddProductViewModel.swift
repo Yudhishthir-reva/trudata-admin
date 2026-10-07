@@ -5,8 +5,22 @@
 
 import Foundation
 import Combine
+import CoreTransferable
 import PhotosUI
+import UIKit
+import UniformTypeIdentifiers
 import _PhotosUI_SwiftUI
+
+/// Photos library items are HEIC/JPEG files, so `Data.self` often returns nil — especially when several are picked at once.
+struct PickedProductImage: Transferable {
+    let data: Data
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .image) { data in
+            PickedProductImage(data: data)
+        }
+    }
+}
 
 @MainActor
 final class AddProductViewModel: ObservableObject {
@@ -80,10 +94,11 @@ final class AddProductViewModel: ObservableObject {
     ) {
         self.editProductId = editProductId
         self.service = service
+        loadInitialData()
     }
 
     func loadInitialData() {
-        guard !isLoading else { return }
+        guard !isLoading, !isDataLoaded else { return }
         isLoading = true
         errorMessage = nil
 
@@ -142,17 +157,23 @@ final class AddProductViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    func setCoverFromCamera(_ image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.9) else { return }
+        imageData = PaymentImageCompression.compressJPEG(data)
+    }
+
+    func addGalleryFromCamera(_ image: UIImage) {
+        guard otherImageSlotsLeft > 0, let data = image.jpegData(compressionQuality: 0.9) else { return }
+        otherImageData.append(PaymentImageCompression.compressJPEG(data))
+    }
+
     func loadSelectedImage() {
-        guard let selectedPhotoItem else {
-            imageData = nil
-            return
-        }
+        guard let selectedPhotoItem else { return }
+        let item = selectedPhotoItem
 
         Task {
-            if let data = try? await selectedPhotoItem.loadTransferable(type: Data.self) {
-                await MainActor.run {
-                    self.imageData = PaymentImageCompression.compressJPEG(data)
-                }
+            if let data = await Self.decodePickedImage(item) {
+                self.imageData = data
             }
         }
     }
@@ -166,18 +187,36 @@ final class AddProductViewModel: ObservableObject {
             return
         }
 
+        let picked = Array(items.prefix(slots))
+        otherPhotoItems = []
+
         Task {
-            var loaded: [Data] = []
-            for item in items.prefix(slots) {
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    loaded.append(PaymentImageCompression.compressJPEG(data))
-                }
-            }
-            await MainActor.run {
-                self.otherImageData.append(contentsOf: loaded)
-                self.otherPhotoItems = []
+            let loaded = await Self.decodePickedImages(picked)
+            self.otherImageData.append(contentsOf: loaded)
+            if loaded.count < picked.count {
+                self.errorMessage = "Some images couldn't be read and were skipped"
             }
         }
+    }
+
+    nonisolated private static func decodePickedImages(_ items: [PhotosPickerItem]) async -> [Data] {
+        var loaded: [Data] = []
+        for item in items {
+            if let data = await decodePickedImage(item) {
+                loaded.append(data)
+            }
+        }
+        return loaded
+    }
+
+    nonisolated private static func decodePickedImage(_ item: PhotosPickerItem) async -> Data? {
+        if let picked = try? await item.loadTransferable(type: PickedProductImage.self) {
+            return PaymentImageCompression.compressJPEG(picked.data)
+        }
+        if let data = try? await item.loadTransferable(type: Data.self) {
+            return PaymentImageCompression.compressJPEG(data)
+        }
+        return nil
     }
 
     func clearMainImage() {
@@ -242,7 +281,17 @@ final class AddProductViewModel: ObservableObject {
     }
 
     func submit(onSuccess: @escaping () -> Void) {
-        guard validateForm() else { return }
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        DispatchQueue.main.async { [weak self] in
+            self?.performSubmit(onSuccess: onSuccess)
+        }
+    }
+
+    private func performSubmit(onSuccess: @escaping () -> Void) {
+        guard validateForm() else {
+            errorMessage = validationSummary
+            return
+        }
 
         isSubmitting = true
         errorMessage = nil
@@ -418,6 +467,29 @@ final class AddProductViewModel: ObservableObject {
             && errors.brand == nil
             && errors.category == nil
             && errors.variants.isEmpty
+    }
+
+    private var validationSummary: String {
+        var messages: [String] = []
+        if let name = validationErrors.name { messages.append(name) }
+        if let description = validationErrors.description { messages.append(description) }
+        if let hsnCode = validationErrors.hsnCode { messages.append(hsnCode) }
+        if let shelfLife = validationErrors.shelfLife { messages.append(shelfLife) }
+        if let returnable = validationErrors.returnableDescription { messages.append(returnable) }
+        if let brand = validationErrors.brand { messages.append(brand) }
+        if let category = validationErrors.category { messages.append(category) }
+        for variantError in validationErrors.variants.values {
+            let fields = [
+                variantError.variant, variantError.mrp, variantError.retailerPrice,
+                variantError.customerPrice, variantError.quantity, variantError.gst,
+                variantError.minOrderQty, variantError.maxOrderQty
+            ]
+            messages.append(contentsOf: fields.compactMap { $0 })
+        }
+        if messages.isEmpty {
+            return "Please fix the highlighted fields."
+        }
+        return messages.joined(separator: "\n")
     }
 
     private func validateVariant(_ variant: ProductFormVariant) -> ProductVariantFieldErrors {

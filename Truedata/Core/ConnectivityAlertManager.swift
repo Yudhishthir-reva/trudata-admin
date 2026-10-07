@@ -116,7 +116,6 @@ final class ConnectivityAlertManager {
     // MARK: - Checks / alerts
 
     private var isLocationUsable: Bool {
-        guard CLLocationManager.locationServicesEnabled() else { return false }
         let status = LocationManager.shared.authorizationStatus
         return status == .authorizedAlways || status == .authorizedWhenInUse
     }

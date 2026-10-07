@@ -107,7 +107,7 @@ struct PartialReturnOrderScreen: View {
                 }
             }
         }
-        .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
+        .background(Color(hex: "1F7A3E").ignoresSafeArea(edges: .top))
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { viewModel.loadDetails() }
         .alert("Success", isPresented: successBinding) {

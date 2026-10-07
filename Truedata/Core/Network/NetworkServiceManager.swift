@@ -33,7 +33,7 @@ class NetworkServiceManager: NetworkServiceManagable {
         request.httpMethod = endpoint.requestType.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let hasPayload = !Self.fields(from: params).isEmpty
+        let hasPayload = endpoint.contentType == .json || !Self.fields(from: params).isEmpty
         if hasPayload {
             request.setValue(
                 endpoint.contentType.headerValue(boundary: boundary),

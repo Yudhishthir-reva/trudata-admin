@@ -123,7 +123,7 @@ struct OperationsScreen: View {
         case "registered_sellers", "view_products", "today_achievements", "attendance",
              "mark_attendance", "regularization_requests", "view_leaves", "leave", "add_new_sellers",
              "controls", "manage_employees", "staff_report", "rider_report",
-             "expense_approval", "apply_reimbursements":
+             "expense_approval", "apply_reimbursements", "leave_approval", "regularize_approval":
             onNavigate(route)
         default:
             pendingRouteMessage = "\(route.replacingOccurrences(of: "_", with: " ").capitalized) will be available in the next update."

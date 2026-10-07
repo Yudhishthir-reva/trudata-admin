@@ -7,6 +7,7 @@ import SwiftUI
 import Combine
 
 enum HomeDestination: Hashable {
+    case utility
     case assignOrder
     case approveBills
     case orderApproval
@@ -63,6 +64,7 @@ enum HomeDestination: Hashable {
     case myExpenses
     case riderInsights
     case b2cOrders
+    case allSourceOrders(source: String?)
     case retailerAppPayments(sellerId: Int?, sellerName: String?)
     case pendingSettleCheque
     case chequeSettlement(sellerId: Int)
@@ -83,6 +85,8 @@ struct HomeScreen: View {
             homeContent
                 .navigationDestination(for: HomeDestination.self) { destination in
                     switch destination {
+                    case .utility:
+                        UtilityScreen(onHome: { navigationPath = NavigationPath() })
                     case .assignOrder:
                         AssignOrderScreen()
                     case .approveBills:
@@ -171,9 +175,7 @@ struct HomeScreen: View {
                         SellerProfileScreen(sellerId: sellerId, usesNavigationStack: false)
                     case .manageProducts:
                         ManageProductsScreen(
-                            onAddProduct: {
-                                navigationPath.append(HomeDestination.addProduct)
-                            },
+                            navigationPath: $navigationPath,
                             onEditProduct: { productId in
                                 navigationPath.append(HomeDestination.editProduct(productId: productId))
                             }
@@ -240,6 +242,10 @@ struct HomeScreen: View {
                         RiderInsightsScreen()
                     case .b2cOrders:
                         B2COrdersScreen()
+                    case .allSourceOrders(let source):
+                        AllSourceOrdersScreen(
+                            initialSource: AllSourceOrderSource.fromAPI(source)
+                        )
                     case .retailerAppPayments(let sellerId, let sellerName):
                         RetailerAppPaymentScreen(
                             lockedSellerId: sellerId,
@@ -354,6 +360,16 @@ struct HomeScreen: View {
 
     private func navigate(to route: String) {
         switch route {
+        case "home":
+            navigationPath = NavigationPath()
+        case "utility":
+            navigationPath.append(HomeDestination.utility)
+        case "logged_in_user_profile":
+            navigationPath.append(HomeDestination.myProfile)
+        case "sellers":
+            navigationPath.append(HomeDestination.operations(.seller))
+        case "other_operations":
+            navigationPath.append(HomeDestination.operations(.actions))
         case "manage_orders", "all_time_orders_summary":
             navigationPath.append(
                 HomeDestination.orderInsights(
@@ -361,6 +377,11 @@ struct HomeScreen: View {
                     endDate: viewModel.endDate
                 )
             )
+        case "all_time_orders":
+            navigationPath.append(HomeDestination.allSourceOrders(source: nil))
+        case let route where route.hasPrefix("all_time_orders:"):
+            let source = String(route.dropFirst("all_time_orders:".count))
+            navigationPath.append(HomeDestination.allSourceOrders(source: source))
         case "controls", "manage_employees":
             navigationPath.append(HomeDestination.controls)
         case "add_new_staff_member":
@@ -461,7 +482,7 @@ struct HomeScreen: View {
                     endDate: viewModel.endDate
                 )
             )
-        case "payment_history_bills":
+        case "payment_history_bills", "payment_history_bills_this_year":
             navigationPath.append(
                 HomeDestination.paymentInsights(
                     startDate: "",
@@ -605,7 +626,7 @@ struct HomeScreen: View {
                                     .padding(.horizontal, 4)
                             }
 
-                            LazyVStack(spacing: 10) {
+                            LazyVStack(spacing: 16) {
                                 ForEach(section.items) { item in
                                     DashboardItemCard(
                                         item: item,
@@ -631,7 +652,9 @@ struct HomeScreen: View {
                     OperationsCard(
                         operations: viewModel.operationTitles,
                         onOperationTap: { title in
-                            if title == "Pending Cheques" {
+                            if title == "Utility" {
+                                navigationPath.append(HomeDestination.utility)
+                            } else if title == "Pending Cheques" {
                                 navigationPath.append(HomeDestination.pendingSettleCheque)
                             } else if let type = OperationsScreenType(rawValue: title) {
                                 if type == .controls {

@@ -52,6 +52,8 @@ struct ProductDetailScreen: View {
                 onHome: { dismiss() }
             )
 
+            OrderSellerBanner(shopName: editOrderViewModel?.sellerShopName ?? createOrderCartViewModel?.sellerShopName ?? "", sellerName: createOrderCartViewModel?.sellerName ?? "")
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     productHeaderCard

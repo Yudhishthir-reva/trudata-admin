@@ -318,6 +318,20 @@
 		DDB65F1630342B12005C1E91 /* ScreenCaptureProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65F1530342B12005C1E91 /* ScreenCaptureProtection.swift */; };
 		DDB65F1830342B13005C1E91 /* SellerContactVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65F1730342B13005C1E91 /* SellerContactVisibility.swift */; };
 		DDB65F1A30342B14005C1E91 /* SellerProfileLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB65F1930342B14005C1E91 /* SellerProfileLink.swift */; };
+		DDB6600130342C01005C1E91 /* AllSourceOrdersModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6600030342C01005C1E91 /* AllSourceOrdersModels.swift */; };
+		DDB6600330342C01005C1E91 /* AllSourceOrdersServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6600230342C01005C1E91 /* AllSourceOrdersServiceManager.swift */; };
+		DDB6600530342C01005C1E91 /* AllSourceOrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6600430342C01005C1E91 /* AllSourceOrdersViewModel.swift */; };
+		DDB6600730342C01005C1E91 /* AllSourceOrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6600630342C01005C1E91 /* AllSourceOrdersScreen.swift */; };
+		DDB6600930342C01005C1E91 /* AllSourceOrdersFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB6600830342C01005C1E91 /* AllSourceOrdersFilterSheet.swift */; };
+		CC2000000000000000000001 /* CashCollectionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000000000000000000001 /* CashCollectionModels.swift */; };
+		CC2000000000000000000002 /* CashCollectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000000000000000000002 /* CashCollectionViewModel.swift */; };
+		CC2000000000000000000003 /* CashCollectionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000000000000000000003 /* CashCollectionScreen.swift */; };
+		DA2000000000000000000001 /* PaymentAdvanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1000000000000000000001 /* PaymentAdvanceModels.swift */; };
+		DA2000000000000000000002 /* PaymentAdvanceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1000000000000000000002 /* PaymentAdvanceViewModel.swift */; };
+		DA2000000000000000000003 /* PaymentAdvanceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1000000000000000000003 /* PaymentAdvanceScreen.swift */; };
+		DB2000000000000000000001 /* BillRegisterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000001 /* BillRegisterModels.swift */; };
+		DB2000000000000000000002 /* BillRegisterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000002 /* BillRegisterViewModel.swift */; };
+		DB2000000000000000000003 /* BillRegisterScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000003 /* BillRegisterScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -637,6 +651,20 @@
 		DDB65F1530342B12005C1E91 /* ScreenCaptureProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureProtection.swift; sourceTree = "<group>"; };
 		DDB65F1730342B13005C1E91 /* SellerContactVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerContactVisibility.swift; sourceTree = "<group>"; };
 		DDB65F1930342B14005C1E91 /* SellerProfileLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerProfileLink.swift; sourceTree = "<group>"; };
+		DDB6600030342C01005C1E91 /* AllSourceOrdersModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSourceOrdersModels.swift; sourceTree = "<group>"; };
+		DDB6600230342C01005C1E91 /* AllSourceOrdersServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSourceOrdersServiceManager.swift; sourceTree = "<group>"; };
+		DDB6600430342C01005C1E91 /* AllSourceOrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSourceOrdersViewModel.swift; sourceTree = "<group>"; };
+		DDB6600630342C01005C1E91 /* AllSourceOrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSourceOrdersScreen.swift; sourceTree = "<group>"; };
+		DDB6600830342C01005C1E91 /* AllSourceOrdersFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSourceOrdersFilterSheet.swift; sourceTree = "<group>"; };
+		CC1000000000000000000001 /* CashCollectionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashCollectionModels.swift; sourceTree = "<group>"; };
+		CC1000000000000000000002 /* CashCollectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashCollectionViewModel.swift; sourceTree = "<group>"; };
+		CC1000000000000000000003 /* CashCollectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashCollectionScreen.swift; sourceTree = "<group>"; };
+		DA1000000000000000000001 /* PaymentAdvanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentAdvanceModels.swift; sourceTree = "<group>"; };
+		DA1000000000000000000002 /* PaymentAdvanceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentAdvanceViewModel.swift; sourceTree = "<group>"; };
+		DA1000000000000000000003 /* PaymentAdvanceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentAdvanceScreen.swift; sourceTree = "<group>"; };
+		DB1000000000000000000001 /* BillRegisterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterModels.swift; sourceTree = "<group>"; };
+		DB1000000000000000000002 /* BillRegisterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterViewModel.swift; sourceTree = "<group>"; };
+		DB1000000000000000000003 /* BillRegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -734,6 +762,11 @@
 				DDB6593130342A01005C1E91 /* DashboardModels.swift */,
 				DDB6593230342A01005C1E91 /* DashboardCards.swift */,
 				DDB65B9030342A30005C1E91 /* B2COrdersScreen.swift */,
+				DDB6600030342C01005C1E91 /* AllSourceOrdersModels.swift */,
+				DDB6600230342C01005C1E91 /* AllSourceOrdersServiceManager.swift */,
+				DDB6600430342C01005C1E91 /* AllSourceOrdersViewModel.swift */,
+				DDB6600630342C01005C1E91 /* AllSourceOrdersScreen.swift */,
+				DDB6600830342C01005C1E91 /* AllSourceOrdersFilterSheet.swift */,
 				DDB65B9230342A30005C1E91 /* B2COrdersModels.swift */,
 				DDB65B9430342A30005C1E91 /* B2COrdersServiceManager.swift */,
 				DDB65B9630342A30005C1E91 /* B2COrdersViewModel.swift */,
@@ -809,6 +842,11 @@
 		DDB65902303429F8005C1E91 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				CC1000000000000000000000 /* CashCollection */,
+				DA1000000000000000000000 /* PaymentAdvance */,
+				DB1000000000000000000001 /* BillRegisterModels.swift */,
+				DB1000000000000000000003 /* BillRegisterScreen.swift */,
+				DB1000000000000000000002 /* BillRegisterViewModel.swift */,
 				DDB658FA303429F8005C1E91 /* Home */,
 				DDB6594C30342A04005C1E91 /* AssignOrder */,
 				DDB65BAA30342A31005C1E91 /* RetailerAppPayment */,
@@ -1237,6 +1275,26 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		CC1000000000000000000000 /* CashCollection */ = {
+			isa = PBXGroup;
+			children = (
+				CC1000000000000000000001 /* CashCollectionModels.swift */,
+				CC1000000000000000000002 /* CashCollectionViewModel.swift */,
+				CC1000000000000000000003 /* CashCollectionScreen.swift */,
+			);
+			path = CashCollection;
+			sourceTree = "<group>";
+		};
+		DA1000000000000000000000 /* PaymentAdvance */ = {
+			isa = PBXGroup;
+			children = (
+				DA1000000000000000000001 /* PaymentAdvanceModels.swift */,
+				DA1000000000000000000002 /* PaymentAdvanceViewModel.swift */,
+				DA1000000000000000000003 /* PaymentAdvanceScreen.swift */,
+			);
+			path = PaymentAdvance;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1337,9 +1395,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Truedata/Pods-Truedata-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1353,6 +1415,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC2000000000000000000003 /* CashCollectionScreen.swift in Sources */,
+				DA2000000000000000000003 /* PaymentAdvanceScreen.swift in Sources */,
+				DA2000000000000000000002 /* PaymentAdvanceViewModel.swift in Sources */,
+				DA2000000000000000000001 /* PaymentAdvanceModels.swift in Sources */,
+				DB2000000000000000000001 /* BillRegisterModels.swift in Sources */,
+				DB2000000000000000000003 /* BillRegisterScreen.swift in Sources */,
+				DB2000000000000000000002 /* BillRegisterViewModel.swift in Sources */,
+				CC2000000000000000000002 /* CashCollectionViewModel.swift in Sources */,
+				CC2000000000000000000001 /* CashCollectionModels.swift in Sources */,
 				DDB65910303429F8005C1E91 /* LenientDecoding.swift in Sources */,
 				DDB65911303429F8005C1E91 /* NetworkServiceManagable.swift in Sources */,
 				DDB65912303429F8005C1E91 /* NetworkServiceManager.swift in Sources */,
@@ -1619,6 +1690,11 @@
 				DDB65F1430342B11005C1E91 /* RemoteConfigManager.swift in Sources */,
 				DDB65F1630342B12005C1E91 /* ScreenCaptureProtection.swift in Sources */,
 				DDB65F1830342B13005C1E91 /* SellerContactVisibility.swift in Sources */,
+				DDB6600130342C01005C1E91 /* AllSourceOrdersModels.swift in Sources */,
+				DDB6600330342C01005C1E91 /* AllSourceOrdersServiceManager.swift in Sources */,
+				DDB6600530342C01005C1E91 /* AllSourceOrdersViewModel.swift in Sources */,
+				DDB6600730342C01005C1E91 /* AllSourceOrdersScreen.swift in Sources */,
+				DDB6600930342C01005C1E91 /* AllSourceOrdersFilterSheet.swift in Sources */,
 				DDB65F1A30342B14005C1E91 /* SellerProfileLink.swift in Sources */,
 				DDB659DD30342A17005C1E91 /* CameraImagePicker.swift in Sources */,
 				DDB65A0130342A1E005C1E91 /* AudioRemarkRecorder.swift in Sources */,
@@ -1788,7 +1864,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1824,7 +1900,7 @@
 				);
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reva.trudataa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1850,7 +1926,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1886,7 +1962,7 @@
 				);
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reva.trudataa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
