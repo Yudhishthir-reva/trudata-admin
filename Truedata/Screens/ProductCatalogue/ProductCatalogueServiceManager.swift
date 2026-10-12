@@ -73,21 +73,39 @@ class ProductCatalogueServiceManager {
         )
     }
 
-    func downloadCatalogPDF(brandId: Int?) -> AnyPublisher<Data, Error> {
-        fetchCatalogPdfURL(brandId: brandId)
-            .flatMap { [weak self] url -> AnyPublisher<Data, Error> in
-                guard let self else {
-                    return Fail(error: RequestError.unknownError).eraseToAnyPublisher()
-                }
-                return self.downloadBinary(from: url)
+    func downloadCatalogPDF(
+        brandId: Int?,
+        hideMrp: Bool = false,
+        hideSellingPrice: Bool = false
+    ) -> AnyPublisher<Data, Error> {
+        fetchCatalogPdfURL(
+            brandId: brandId,
+            hideMrp: hideMrp,
+            hideSellingPrice: hideSellingPrice
+        )
+        .flatMap { [weak self] url -> AnyPublisher<Data, Error> in
+            guard let self else {
+                return Fail(error: RequestError.unknownError).eraseToAnyPublisher()
             }
-            .eraseToAnyPublisher()
+            return self.downloadBinary(from: url)
+        }
+        .eraseToAnyPublisher()
     }
 
-    private func fetchCatalogPdfURL(brandId: Int?) -> AnyPublisher<String, Error> {
+    private func fetchCatalogPdfURL(
+        brandId: Int?,
+        hideMrp: Bool = false,
+        hideSellingPrice: Bool = false
+    ) -> AnyPublisher<String, Error> {
         var params: [String: Any] = [:]
         if let brandId {
             params["brand_id"] = brandId
+        }
+        if hideMrp {
+            params["hide_mrp"] = "1"
+        }
+        if hideSellingPrice {
+            params["hide_selling_price"] = "1"
         }
 
         return networkService.request(

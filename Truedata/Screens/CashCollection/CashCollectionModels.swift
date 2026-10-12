@@ -20,16 +20,23 @@ extension JSONValue {
     }
 }
 
+/// Mirrors Android `CashAccess.forRole`. The server enforces the same split (403 on the admin
+/// endpoints); this only decides what Utility shows.
 struct CashAccess {
     let canReviewAll: Bool
     let canEdit: Bool
+    /// Their own bill registers. Everyone has them but Office Staff, who handles no customer bills.
+    let canViewOwnBills: Bool
     var canManageAmountTaken: Bool { canReviewAll }
     var canViewLedger: Bool { canReviewAll }
+    var canManageAdvance: Bool { canReviewAll }
+    var canManageBills: Bool { canReviewAll }
 
     init(role: String) {
         let role = role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         canReviewAll = ["admin", "accountant", "sales manager"].contains(role)
         canEdit = role == "admin"
+        canViewOwnBills = !DashboardRole.isOfficeStaff(role)
     }
 }
 
@@ -94,6 +101,9 @@ struct CashLine: Identifiable {
     let quantity: Int
     let total: Int
     var id: String { field.isEmpty ? "\(kind)-\(label)" : field }
+    var numericValue: Int {
+        Int(label.split(separator: ".").first.map(String.init)?.filter(\.isNumber) ?? "") ?? 0
+    }
     init(_ json: JSONValue) {
         field = json["field"]?.stringValue ?? ""
         label = json["label"]?.stringValue ?? ""
@@ -115,6 +125,8 @@ struct CashRecord: Identifiable {
     let reviewedBy: String
     let takenBy: String
     let denominations: [CashLine]
+    /// Running cash in hand after this line. Ledger rows carry it; other lists do not.
+    let balanceAfter: Int?
     init(_ json: JSONValue) {
         id = json["id"]?.intValue ?? 0
         amount = (json["total_amount"] ?? json["amount"])?.cashRupees ?? 0
@@ -127,6 +139,7 @@ struct CashRecord: Identifiable {
         reviewedBy = json["reviewed_by"]?["name"]?.stringValue ?? ""
         takenBy = json["taken_by"]?["name"]?.stringValue ?? ""
         denominations = json["denominations"]?.arrayValue.map(CashLine.init) ?? []
+        balanceAfter = json["balance_after"]?.cashRupees
     }
 }
 
@@ -142,6 +155,25 @@ struct CashStaffSummary: Identifiable {
         entries = json["entries"]?.intValue ?? 0
         amount = json["total_amount"]?.cashRupees ?? 0
         denominations = json["denominations"]?.arrayValue.map(CashLine.init) ?? []
+    }
+}
+
+/// The `summary` block the ledger endpoint returns. Totals here cover the whole filtered period,
+/// unlike anything derived from the rows currently paged in.
+struct CashLedgerSummary {
+    let openingBalance: Int
+    let totalCollection: Int
+    let totalTaken: Int
+    let netAmount: Int
+    let closingBalance: Int
+
+    init?(_ json: JSONValue?) {
+        guard let summary = json else { return nil }
+        openingBalance = summary["opening_balance"]?.cashRupees ?? 0
+        totalCollection = summary["total_collection"]?.cashRupees ?? 0
+        totalTaken = summary["total_taken"]?.cashRupees ?? 0
+        netAmount = summary["net_amount"]?.cashRupees ?? 0
+        closingBalance = summary["closing_balance"]?.cashRupees ?? 0
     }
 }
 

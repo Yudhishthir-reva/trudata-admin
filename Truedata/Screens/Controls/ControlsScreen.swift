@@ -9,7 +9,6 @@ struct ControlsScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ControlsViewModel()
-    @State private var pendingRouteMessage: String?
 
     var onNavigate: (String) -> Void = { _ in }
 
@@ -36,18 +35,6 @@ struct ControlsScreen: View {
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { viewModel.load() }
-        .alert("Notice", isPresented: pendingRouteBinding) {
-            Button("OK", role: .cancel) { pendingRouteMessage = nil }
-        } message: {
-            Text(pendingRouteMessage ?? "")
-        }
-    }
-
-    private var pendingRouteBinding: Binding<Bool> {
-        Binding(
-            get: { pendingRouteMessage != nil },
-            set: { if !$0 { pendingRouteMessage = nil } }
-        )
     }
 
     @ViewBuilder

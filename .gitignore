@@ -14,3 +14,7 @@ DerivedData/
 
 # CocoaPods
 Pods/
+
+# SourceKit-LSP build server binding (machine-specific)
+buildServer.json
+.compile

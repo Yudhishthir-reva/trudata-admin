@@ -25,25 +25,19 @@ private enum GSTField: CaseIterable {
 struct ProductCalculatorScreen: View {
 
     @Environment(\.dismiss) private var dismiss
+    var onBack: (() -> Void)? = nil
+    var onHome: (() -> Void)? = nil
     @State private var selectedTab: ProductCalculatorTab = .margin
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "arrow.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 36, height: 36)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 6)
-            .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
+            AppTopBar(
+                title: "Product Calculator",
+                onBack: handleBack,
+                onHome: onHome
+            )
 
             VStack(spacing: 0) {
-                header
                 tabBar
 
                 switch selectedTab {
@@ -59,45 +53,28 @@ struct ProductCalculatorScreen: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "2196F3").opacity(0.1))
-                    .frame(width: 40, height: 40)
-                Image(systemName: "function")
-                    .foregroundStyle(Color(hex: "2196F3"))
-            }
-            Text("Calculator")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(DashboardTheme.neutralDark)
+    private func handleBack() {
+        if let onBack {
+            onBack()
+        } else {
+            dismiss()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
     }
 
     private var tabBar: some View {
-        HStack(spacing: 0) {
-            ForEach(ProductCalculatorTab.allCases, id: \.self) { tab in
-                Button(action: { selectedTab = tab }) {
-                    Text(tab.rawValue)
-                        .font(.system(size: 16, weight: selectedTab == tab ? .bold : .medium))
-                        .foregroundStyle(selectedTab == tab ? Color(hex: "2196F3") : DashboardTheme.neutralMedium)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .overlay(alignment: .bottom) {
-                            if selectedTab == tab {
-                                Capsule()
-                                    .fill(Color(hex: "2196F3"))
-                                    .frame(width: 72, height: 3)
-                            }
-                        }
+        CashTabs(
+            titles: ProductCalculatorTab.allCases.map(\.rawValue),
+            selection: Binding(
+                get: { selectedTab.rawValue },
+                set: { title in
+                    if let tab = ProductCalculatorTab(rawValue: title) {
+                        selectedTab = tab
+                    }
                 }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 24)
+            )
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
 }
 
@@ -110,7 +87,7 @@ private struct MarginCalculatorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 16) {
+            VStack(spacing: 10) {
                 CalculatorInputCard(
                     label: "MRP",
                     value: mrp,
@@ -132,10 +109,10 @@ private struct MarginCalculatorView: View {
                     isCalculated: calculatedField == .margin
                 ) { focusedField = .margin; updateAnchor() }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 24)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 8)
 
             CalculatorKeypad(onKeyPress: handleKeyPress)
         }
@@ -239,7 +216,7 @@ private struct GSTCalculatorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 16) {
+            VStack(spacing: 10) {
                 CalculatorInputCard(
                     label: "GST %",
                     value: gstPercent,
@@ -261,10 +238,10 @@ private struct GSTCalculatorView: View {
                     isCalculated: calculatedField == .valueExclusive
                 ) { focusedField = .valueExclusive; updateAnchor() }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 24)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 8)
 
             CalculatorKeypad(onKeyPress: handleKeyPress)
         }
@@ -388,12 +365,13 @@ private struct CalculatorInputCard: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
-            .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity, minHeight: 85, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .stroke(
                         isActive ? Color(hex: "2196F3") : (isCalculated ? DashboardTheme.successGreen : Color.clear),
                         lineWidth: 2
@@ -444,7 +422,7 @@ private struct CalculatorKeypad: View {
                                         .foregroundStyle(DashboardTheme.neutralDark)
                                 }
                             }
-                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .frame(maxWidth: .infinity, minHeight: 48)
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay {
@@ -457,9 +435,11 @@ private struct CalculatorKeypad: View {
                 }
             }
         }
-        .padding(24)
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 16)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: Color(hex: "2196F3").opacity(0.08), radius: 16, y: -4)
     }
 }

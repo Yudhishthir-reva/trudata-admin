@@ -41,7 +41,7 @@ class DashboardViewModel: ObservableObject {
     }
 
     var isBeatSelected: Bool {
-        response?.isBeatSelected ?? true
+        DashboardRole.isOfficeStaff(role) || (response?.isBeatSelected ?? true)
     }
 
     var maintenanceMode: Bool {

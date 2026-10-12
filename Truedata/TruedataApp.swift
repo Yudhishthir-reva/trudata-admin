@@ -35,6 +35,9 @@ struct RootContainerView: View {
             case .auth:
                 AuthScreen()
                     .transition(.opacity)
+            case .sessionExpired:
+                SessionExpiredScreen()
+                    .transition(.opacity)
             case .home:
                 HomeScreen()
                     .transition(.opacity)

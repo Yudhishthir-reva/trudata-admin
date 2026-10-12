@@ -7,7 +7,7 @@ import Foundation
 
 enum APIBaseURL {
     static let production = "https://spicemonk.in/965874/api/"
-    static let staging = "https://spicemonk.trudataa.com/api"
+    static let staging = "https://spicemonk.in/staging/api/"
 }
 
 /// Sirf yahi line badlo: `.production` ya `.stagging`

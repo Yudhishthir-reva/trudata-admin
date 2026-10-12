@@ -33,6 +33,79 @@ struct PrimaryActionButton: View {
     }
 }
 
+// MARK: - Navigation Bar Component
+
+struct AppTopBar<Trailing: View>: View {
+    let title: String
+    var onBack: () -> Void
+    var onHome: (() -> Void)? = nil
+    @ViewBuilder var trailing: () -> Trailing
+
+    init(
+        title: String,
+        onBack: @escaping () -> Void,
+        onHome: (() -> Void)? = nil,
+        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
+    ) {
+        self.title = title
+        self.onBack = onBack
+        self.onHome = onHome
+        self.trailing = trailing
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button(action: onBack) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+
+            Spacer(minLength: 0)
+
+            trailing()
+
+            if let onHome {
+                Button(action: onHome) {
+                    Image(systemName: "house.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(height: 36)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 14)
+        .fixedSize(horizontal: false, vertical: true)
+        .background(
+            AppTheme.darkMidnightBlue
+                .ignoresSafeArea(edges: .top)
+        )
+    }
+}
+
+extension AppTopBar where Trailing == EmptyView {
+    init(
+        title: String,
+        onBack: @escaping () -> Void,
+        onHome: (() -> Void)? = nil
+    ) {
+        self.init(title: title, onBack: onBack, onHome: onHome, trailing: { EmptyView() })
+    }
+}
+
 // MARK: - Search (no filter button)
 
 struct AppSearchBar<Trailing: View>: View {

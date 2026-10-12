@@ -28,6 +28,9 @@ final class BillRegisterViewModel: ObservableObject {
     private var generation = UUID()
 
     private func request<T: Decodable>(_ request: BillRegisterRequest, as type: T.Type) async throws -> T {
+        guard !DashboardRole.isOfficeStaff(UserDefaultManager.shared.getUserDefaultsString(key: .userRole)) else {
+            throw RequestError.apiMessage("Bill Register is not available for your role.")
+        }
         let params = try request.parameters(access: access)
         let publisher: AnyPublisher<T, Error> = NetworkServiceManager.shared.request(BillRegisterEndpoint(endPointUrl: request.path), params: params, headers: UserDefaultManager.shared.authHeader)
         for try await response in publisher.values { return response }
@@ -76,7 +79,7 @@ final class BillRegisterViewModel: ObservableObject {
         do {
             for try await response in HomePrefetchServiceManager().fetchStaffList().values {
                 guard response.status else { throw RequestError.invalidResponse }
-                staff = response.data.filter { $0.id > 0 }; break
+                staff = response.data.filter { $0.id > 0 && !DashboardRole.isOfficeStaff($0.role) }; break
             }
             if includeBeats {
                 var next = 1

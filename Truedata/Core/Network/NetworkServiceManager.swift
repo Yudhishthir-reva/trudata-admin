@@ -47,7 +47,7 @@ class NetworkServiceManager: NetworkServiceManagable {
         print("===================================================================")
         print("Parameter:\n", params)
         print("===================================================================")
-        print("Header:\n", headers)
+        print("Header:\n", headers.mapValues { _ in "<redacted>" })
         print("===================================================================")
         #endif
 
@@ -96,6 +96,8 @@ class NetworkServiceManager: NetworkServiceManagable {
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw RequestError.invalidResponse
                 }
+
+                try Self.rejectInvalidSession(data: data, response: httpResponse, headers: headers)
 
                 switch httpResponse.statusCode {
                 case 200...299:
@@ -165,6 +167,8 @@ class NetworkServiceManager: NetworkServiceManagable {
                     throw RequestError.invalidResponse
                 }
 
+                try Self.rejectInvalidSession(data: data, response: httpResponse, headers: headers)
+
                 switch httpResponse.statusCode {
                 case 200...299:
                     return data
@@ -178,6 +182,53 @@ class NetworkServiceManager: NetworkServiceManagable {
             }
             .decode(type: T.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
+    }
+
+    private static func rejectInvalidSession(
+        data: Data,
+        response: HTTPURLResponse,
+        headers: RequestConstants.Header
+    ) throws {
+        let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        let message = Self.normalizedMessage(from: json)
+
+        // Android `LogoutManager.checkTokenExpiry`: any message naming an expired or invalid
+        // token ends the session. Matching only the exact phrase "invalid token" left the user
+        // holding a dead token whenever the server worded it differently without a 401.
+        let isRejectedToken = message.contains("token")
+            && (message.contains("expired") || message.contains("invalid"))
+
+        guard response.statusCode == 401 || isRejectedToken else { return }
+
+        if let authorization = headers.first(where: { $0.key.lowercased() == "authorization" })?.value,
+           !authorization.isEmpty {
+            Task { @MainActor in
+                let defaults = UserDefaultManager.shared
+                // A delayed response from an old login must not log out a newer session.
+                guard defaults.isUserLoggedIn,
+                      defaults.authHeader["Authorization"] == authorization else { return }
+                LocationManager.shared.stopShiftTracking()
+                ConnectivityAlertManager.shared.stop()
+                HomePrefetchManager.shared.reset()
+                defaults.resetUserData()
+                AppRootManager.shared.switchToSessionExpired()
+            }
+        }
+        throw RequestError.apiMessage("Your session has expired. Please log in again.")
+    }
+
+    /// `message` arrives as a string on most endpoints and as an array of strings on a few,
+    /// so both shapes are flattened before matching.
+    private static func normalizedMessage(from json: [String: Any]?) -> String {
+        let raw: String
+        if let text = json?["message"] as? String {
+            raw = text
+        } else if let list = json?["message"] as? [Any] {
+            raw = list.compactMap { $0 as? String }.joined(separator: " ")
+        } else {
+            raw = ""
+        }
+        return raw.split(whereSeparator: \.isWhitespace).joined(separator: " ").lowercased()
     }
 
     private static func multipartBody(

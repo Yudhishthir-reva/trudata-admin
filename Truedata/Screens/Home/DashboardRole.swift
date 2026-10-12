@@ -11,6 +11,17 @@ enum DashboardRole {
         role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
+    static func isOfficeStaff(_ role: String) -> Bool {
+        let value = normalized(role).split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        return ["office boy", "officeboy", "office staff", "officestaff", "6"].contains(value)
+    }
+
+    static func canOpen(role: String, route: String) -> Bool {
+        !isOfficeStaff(role) || ["home", "attendance", "mark_attendance", "view_leaves", "leave",
+            "apply_reimbursements", "regularization_requests", "logged_in_user_profile", "support",
+            "other_operations", "utility", "cash_collection", "advance_payment"].contains(route)
+    }
+
     /// Admin + Sales Manager see staff sales/collection columns (Android home + staff activities).
     static func canShowStaffAmountDetails(role: String) -> Bool {
         let value = normalized(role)

@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git remote*)",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(head*)",
+      "Bash(tail*)",
+      "Bash(wc*)",
+      "Bash(grep*)",
+      "Bash(rg*)",
+      "Bash(find*)",
+      "Bash(sed -n*)",
+      "Bash(du -sh*)",
+      "Bash(which*)",
+      "Bash(plutil -lint*)",
+      "Bash(xcodebuild -list*)",
+      "Bash(xcrun simctl list*)",
+      "Bash(~/.claude/scripts/ios-build.sh*)",
+      "Bash(python3 ~/.claude/skills/ios-mvvm-feature/scripts/add_to_xcodeproj.py*)"
+    ],
+    "deny": [
+      "Read(./Pods/**)",
+      "Edit(./Pods/**)"
+    ]
+  }
+}

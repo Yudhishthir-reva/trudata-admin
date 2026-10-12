@@ -196,50 +196,24 @@ struct SellersAppBar: View {
     let title: String
     var onBack: () -> Void
     var onHome: () -> Void
-    var onRefresh: (() -> Void)?
+    var onRefresh: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: 8) {
-            Button(action: onBack) {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-            }
-
-            Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-
-            Spacer(minLength: 0)
-
+        AppTopBar(
+            title: title,
+            onBack: onBack,
+            onHome: onHome
+        ) {
             if let onRefresh {
                 Button(action: onRefresh) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 34, height: 34)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
-
-            Button(action: onHome) {
-                Image(systemName: "house.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 14)
-        .background {
-            LinearGradient(
-                colors: [AppTheme.homeHeaderBottom, AppTheme.darkMidnightBlue],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea(edges: .top)
         }
     }
 }

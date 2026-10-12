@@ -13,30 +13,18 @@ final class ProductCatalogueViewModel: ObservableObject {
     @Published var selectedBrandId: Int?
     @Published var selectedBrandName = "All Brands"
     @Published var products: [ActiveProductItem] = []
-    @Published var searchQuery = ""
     @Published var selectedProductIds: Set<Int> = []
     @Published var isLoading = false
     @Published var isDownloading = false
+    @Published var hideMrp = false
+    @Published var hideSellingPrice = false
+    @Published var showDownloadDialog = false
     @Published var errorMessage: String?
     @Published var exportShareURL: URL?
     @Published var exportAlertMessage: String?
 
     private let service = ProductCatalogueServiceManager()
     private var cancellables = Set<AnyCancellable>()
-
-    var showSearchField: Bool {
-        selectedBrandId != nil
-    }
-
-    var filteredProducts: [ActiveProductItem] {
-        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return products }
-        return products.filter { product in
-            product.name.localizedCaseInsensitiveContains(query)
-                || product.category.localizedCaseInsensitiveContains(query)
-                || (product.brand?.localizedCaseInsensitiveContains(query) ?? false)
-        }
-    }
 
     func loadInitial() {
         loadBrands()
@@ -51,7 +39,6 @@ final class ProductCatalogueViewModel: ObservableObject {
     func selectBrand(id: Int?, name: String) {
         selectedBrandId = id
         selectedBrandName = name
-        searchQuery = ""
         selectedProductIds.removeAll()
         loadProducts()
     }
@@ -68,7 +55,11 @@ final class ProductCatalogueViewModel: ObservableObject {
         isDownloading = true
         exportAlertMessage = nil
 
-        service.downloadCatalogPDF(brandId: selectedBrandId)
+        service.downloadCatalogPDF(
+            brandId: selectedBrandId,
+            hideMrp: hideMrp,
+            hideSellingPrice: hideSellingPrice
+        )
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self else { return }

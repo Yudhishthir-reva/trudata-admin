@@ -41,7 +41,7 @@ final class OperationsViewModel: ObservableObject {
         } receiveValue: { [weak self] response in
             guard let self else { return }
             if response.status, let data = response.data {
-                self.items = Self.filteredItems(from: data.allItems, screenType: self.screenType)
+                self.items = Self.filteredItems(from: data.allItems, screenType: self.screenType).filter { DashboardRole.canOpen(role: response.role, route: $0.route) }
                 self.errorMessage = nil
             } else {
                 self.errorMessage = response.message.isEmptyString

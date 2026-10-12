@@ -332,6 +332,11 @@
 		DB2000000000000000000001 /* BillRegisterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000001 /* BillRegisterModels.swift */; };
 		DB2000000000000000000002 /* BillRegisterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000002 /* BillRegisterViewModel.swift */; };
 		DB2000000000000000000003 /* BillRegisterScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000003 /* BillRegisterScreen.swift */; };
+		EC2000000000000000000001 /* SellerMergeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1000000000000000000001 /* SellerMergeModels.swift */; };
+		EC2000000000000000000002 /* SellerMergeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1000000000000000000002 /* SellerMergeViewModel.swift */; };
+		EC2000000000000000000003 /* SellerMergeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1000000000000000000003 /* SellerMergeScreen.swift */; };
+		EC2000000000000000000004 /* OfficeStaffHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1000000000000000000004 /* OfficeStaffHome.swift */; };
+		C795180610C6C03D7B3F06A5 /* SessionExpiredScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F589C38ECD48BBAA953A97 /* SessionExpiredScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -665,6 +670,11 @@
 		DB1000000000000000000001 /* BillRegisterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterModels.swift; sourceTree = "<group>"; };
 		DB1000000000000000000002 /* BillRegisterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterViewModel.swift; sourceTree = "<group>"; };
 		DB1000000000000000000003 /* BillRegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterScreen.swift; sourceTree = "<group>"; };
+		EC1000000000000000000001 /* SellerMergeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerMerge/SellerMergeModels.swift; sourceTree = "<group>"; };
+		EC1000000000000000000002 /* SellerMergeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerMerge/SellerMergeViewModel.swift; sourceTree = "<group>"; };
+		EC1000000000000000000003 /* SellerMergeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerMerge/SellerMergeScreen.swift; sourceTree = "<group>"; };
+		EC1000000000000000000004 /* OfficeStaffHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home/OfficeStaffHome.swift; sourceTree = "<group>"; };
+		68F589C38ECD48BBAA953A97 /* SessionExpiredScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login/SessionExpiredScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -842,9 +852,14 @@
 		DDB65902303429F8005C1E91 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				68F589C38ECD48BBAA953A97 /* SessionExpiredScreen.swift */,
 				CC1000000000000000000000 /* CashCollection */,
 				DA1000000000000000000000 /* PaymentAdvance */,
 				DB1000000000000000000001 /* BillRegisterModels.swift */,
+				EC1000000000000000000001 /* SellerMergeModels.swift */,
+				EC1000000000000000000002 /* SellerMergeViewModel.swift */,
+				EC1000000000000000000003 /* SellerMergeScreen.swift */,
+				EC1000000000000000000004 /* OfficeStaffHome.swift */,
 				DB1000000000000000000003 /* BillRegisterScreen.swift */,
 				DB1000000000000000000002 /* BillRegisterViewModel.swift */,
 				DDB658FA303429F8005C1E91 /* Home */,
@@ -1415,11 +1430,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C795180610C6C03D7B3F06A5 /* SessionExpiredScreen.swift in Sources */,
 				CC2000000000000000000003 /* CashCollectionScreen.swift in Sources */,
 				DA2000000000000000000003 /* PaymentAdvanceScreen.swift in Sources */,
 				DA2000000000000000000002 /* PaymentAdvanceViewModel.swift in Sources */,
 				DA2000000000000000000001 /* PaymentAdvanceModels.swift in Sources */,
 				DB2000000000000000000001 /* BillRegisterModels.swift in Sources */,
+				EC2000000000000000000001 /* SellerMergeModels.swift in Sources */,
+				EC2000000000000000000002 /* SellerMergeViewModel.swift in Sources */,
+				EC2000000000000000000003 /* SellerMergeScreen.swift in Sources */,
+				EC2000000000000000000004 /* OfficeStaffHome.swift in Sources */,
 				DB2000000000000000000003 /* BillRegisterScreen.swift in Sources */,
 				DB2000000000000000000002 /* BillRegisterViewModel.swift in Sources */,
 				CC2000000000000000000002 /* CashCollectionViewModel.swift in Sources */,

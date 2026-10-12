@@ -10,19 +10,14 @@ struct PaymentAdvanceScreen: View {
 
     var body: some View {
         AdvancePage(title: model.access.canManage ? "Payment Advance" : "My Payment Advance", onHome: onHome) {
-            HStack(spacing: 5) {
-                ForEach([("all", "All"), ("advance", model.access.canManage ? "Advance Given" : "Received"), ("returned", model.access.canManage ? "Payment Received" : "Returned")], id: \.0) { value, title in
-                    Button { model.filter.type = value } label: {
-                        Text(title).font(.subheadline.weight(model.filter.type == value ? .semibold : .regular))
-                            .lineLimit(1).minimumScaleFactor(0.75)
-                            .foregroundStyle(model.filter.type == value ? .white : AppTheme.textSecondary)
-                            .frame(maxWidth: .infinity).padding(.vertical, 11)
-                            .background {
-                                if model.filter.type == value { Capsule().fill(AppTheme.ctaGradient) }
-                            }
-                    }.buttonStyle(.plain)
+            CashTabs(titles: recordTabs.map { $0.title }, selection: Binding(
+                get: { recordTabs.first { $0.value == model.filter.type }?.title ?? "All" },
+                set: { title in
+                    if let tab = recordTabs.first(where: { $0.title == title }) {
+                        model.filter.type = tab.value
+                    }
                 }
-            }.padding(4).background(.white, in: Capsule())
+            ))
             if model.access.canManage {
                 HStack(spacing: 9) {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
@@ -79,8 +74,11 @@ struct PaymentAdvanceScreen: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.access.canManage {
                 Button { giving = true } label: {
-                    Label("Give Advance", systemImage: "plus.circle.fill").frame(maxWidth: .infinity).padding(14)
-                }.buttonStyle(.borderedProminent).padding(.horizontal, 14).padding(.vertical, 8)
+                    Label("Give Advance", systemImage: "plus.circle.fill")
+                        .font(.headline).frame(maxWidth: .infinity).padding(.vertical, 16)
+                        .foregroundStyle(.white)
+                        .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 14))
+                }.buttonStyle(.plain).padding(.horizontal, 14).padding(.vertical, 8)
                     .background(.regularMaterial)
             }
         }
@@ -91,6 +89,12 @@ struct PaymentAdvanceScreen: View {
             AdvanceStaffFilterSheet(people: model.people, selectedIDs: $model.filter.staffIDs)
                 .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
+    }
+
+    private var recordTabs: [(value: String, title: String)] {
+        [("all", "All"),
+         ("advance", model.access.canManage ? "Advance Given" : "Received"),
+         ("returned", model.access.canManage ? "Payment Received" : "Returned")]
     }
 
     private var summary: some View {
@@ -277,6 +281,12 @@ private struct PaymentAdvanceDetailScreen: View {
     }
 }
 
+/// The outstanding balance rendered the way the amount field expects it (plain digits, no symbol
+/// or grouping), so tapping the chip produces a value that passes validation.
+private func advanceOutstandingText(_ amount: Decimal) -> String {
+    NSDecimalNumber(decimal: amount).stringValue
+}
+
 private struct PaymentAdvanceFormScreen: View {
     let advance: PaymentAdvanceRecord?
     @Environment(\.dismiss) private var dismiss
@@ -308,6 +318,21 @@ private struct PaymentAdvanceFormScreen: View {
                 }
                 Section(advance == nil ? "Advance details" : "Payment details") {
                     TextField(advance == nil ? "Advance amount (₹)" : "Receive amount (₹)", text: $form.amount).keyboardType(.numberPad)
+                    // Android `FillOutstanding`: settling the whole balance is the common case, so
+                    // offer it as one tap instead of retyping the figure shown above.
+                    if let advance, advance.outstanding > 0 {
+                        let full = advanceOutstandingText(advance.outstanding)
+                        Button {
+                            form.amount = form.amount == full ? "" : full
+                        } label: {
+                            Label(
+                                "Full \(advanceMoney(advance.outstanding))",
+                                systemImage: form.amount == full ? "checkmark.circle.fill" : "circle"
+                            )
+                            .font(.subheadline)
+                        }
+                        .buttonStyle(.plain)
+                    }
                     DatePicker("Date", selection: $form.date, in: ...Date(), displayedComponents: .date)
                     HStack(alignment: .bottom) {
                         TextField(advance == nil ? "Purpose / Remark" : "Remark", text: $form.text, axis: .vertical).lineLimit(3...6)
@@ -335,7 +360,7 @@ private struct PaymentAdvanceFormScreen: View {
                 }
             }
             .disabled(model.saving)
-            .tint(AppTheme.cerulean)
+            .tint(CashStyle.green)
             .navigationTitle(advance == nil ? "Give Advance" : "Receive Payment")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.saving) } }
@@ -521,7 +546,7 @@ private struct AdvancePage<Content: View>: View {
             }.foregroundStyle(.white).padding(18)
                 .background(AppTheme.ctaGradient.ignoresSafeArea(edges: .top))
             ScrollView { VStack(alignment: .leading, spacing: 14, content: content).padding(12) }
-        }.background(AppTheme.whiteSmoke).tint(AppTheme.cerulean)
+        }.background(AppTheme.whiteSmoke).tint(CashStyle.green)
             .toolbar(.hidden, for: .navigationBar)
     }
 }

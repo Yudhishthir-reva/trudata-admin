@@ -39,6 +39,8 @@ final class CashCollectionViewModel: ObservableObject {
     @Published var filter = CashFilter()
     @Published var records: [CashRecord] = []
     @Published var summary: CashSummary?
+    /// Period totals straight from the ledger endpoint — see `CashLedgerSummary`.
+    @Published var ledgerSummary: CashLedgerSummary?
     @Published var people: [OrderInsightsStaffMember] = []
     @Published var isLoading = false
     @Published var isSaving = false
@@ -121,6 +123,9 @@ final class CashCollectionViewModel: ObservableObject {
                 let existing = Set(records.map(\.id))
                 records += incoming.filter { !existing.contains($0.id) }
             } else { records = incoming }
+            if kind == .ledger, let parsed = CashLedgerSummary(response["summary"]) {
+                ledgerSummary = parsed
+            }
             page = response["meta"]?["current_page"]?.intValue ?? nextPage
             hasMore = page < (response["meta"]?["last_page"]?.intValue ?? page)
             totalRecords = response["meta"]?["total"]?.intValue ?? records.count

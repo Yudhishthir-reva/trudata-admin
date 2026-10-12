@@ -19,9 +19,7 @@ struct ProductCatalogueScreen: View {
                 VStack(spacing: 12) {
                     brandSelectionSection
 
-                    if viewModel.showSearchField {
-                        searchField
-                    }
+                    pdfOptionsBar
 
                     if !viewModel.selectedProductIds.isEmpty {
                         Text("\(viewModel.selectedProductIds.count) products selected for PDF")
@@ -45,6 +43,26 @@ struct ProductCatalogueScreen: View {
                 selectedProductsFAB
                     .padding(.trailing, 20)
                     .padding(.bottom, 24)
+            }
+        }
+        .overlay {
+            if viewModel.showDownloadDialog {
+                DownloadCatalogDialog(
+                    brandName: viewModel.selectedBrandName,
+                    hideMrp: $viewModel.hideMrp,
+                    hideSellingPrice: $viewModel.hideSellingPrice,
+                    onDownload: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            viewModel.showDownloadDialog = false
+                        }
+                        viewModel.downloadCatalogPDF()
+                    },
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            viewModel.showDownloadDialog = false
+                        }
+                    }
+                )
             }
         }
         .onAppear { viewModel.loadInitial() }
@@ -74,29 +92,24 @@ struct ProductCatalogueScreen: View {
     }
 
     private var catalogueAppBar: some View {
-        HStack(spacing: 8) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-            }
-
-            Text("Product Catalogue")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-
-            Spacer(minLength: 0)
-
+        AppTopBar(
+            title: "Product Catalogue",
+            onBack: { dismiss() }
+        ) {
             Button(action: onOpenCalculator) {
                 Image(systemName: "function")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 34, height: 34)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
-            Button(action: { viewModel.downloadCatalogPDF() }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    viewModel.showDownloadDialog = true
+                }
+            }) {
                 Group {
                     if viewModel.isDownloading {
                         ProgressView()
@@ -109,13 +122,50 @@ struct ProductCatalogueScreen: View {
                     }
                 }
                 .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .disabled(viewModel.isDownloading)
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 14)
-        .background(AppTheme.darkMidnightBlue.ignoresSafeArea(edges: .top))
+    }
+
+    private var pdfOptionsBar: some View {
+        HStack {
+            Button {
+                viewModel.hideMrp.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: viewModel.hideMrp ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 16))
+                        .foregroundStyle(viewModel.hideMrp ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                    Text("Hide MRP")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Button {
+                viewModel.hideSellingPrice.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: viewModel.hideSellingPrice ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 16))
+                        .foregroundStyle(viewModel.hideSellingPrice ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                    Text("Hide Selling Price")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(DashboardTheme.neutralDark)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var brandSelectionSection: some View {
@@ -157,25 +207,6 @@ struct ProductCatalogueScreen: View {
         .buttonStyle(.plain)
     }
 
-    private var searchField: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(DashboardTheme.neutralMedium)
-            TextField("Search products...", text: $viewModel.searchQuery)
-                .font(.system(size: 14))
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(DashboardTheme.neutralMedium.opacity(0.2), lineWidth: 1)
-        }
-    }
-
     @ViewBuilder
     private var content: some View {
         if viewModel.isLoading && viewModel.products.isEmpty {
@@ -195,15 +226,15 @@ struct ProductCatalogueScreen: View {
                 .padding(.horizontal, 40)
             }
             .padding(.vertical, 24)
-        } else if viewModel.filteredProducts.isEmpty {
-            Text(viewModel.searchQuery.isEmpty ? "No products found." : "No products match your search.")
+        } else if viewModel.products.isEmpty {
+            Text("No products found.")
                 .font(.system(size: 14))
                 .foregroundStyle(DashboardTheme.neutralMedium)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 24)
         } else {
             LazyVStack(spacing: 12) {
-                ForEach(viewModel.filteredProducts) { product in
+                ForEach(viewModel.products) { product in
                     ProductCatalogueItemCard(
                         product: product,
                         isSelected: viewModel.selectedProductIds.contains(product.id),
@@ -388,3 +419,108 @@ private struct CatalogueVariantRow: View {
         }
     }
 }
+
+// MARK: - Download Catalog Dialog
+
+private struct DownloadCatalogDialog: View {
+    let brandName: String
+    @Binding var hideMrp: Bool
+    @Binding var hideSellingPrice: Bool
+    var onDownload: () -> Void
+    var onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Download Catalog PDF")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Brand: \(brandName)")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(DashboardTheme.primaryBlue)
+
+                    Text("PDF Display Options:")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                        .padding(.top, 4)
+
+                    Button {
+                        hideMrp.toggle()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: hideMrp ? "checkmark.square.fill" : "square")
+                                .font(.system(size: 18))
+                                .foregroundStyle(hideMrp ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                            Text("Hide MRP")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(DashboardTheme.neutralDark)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        hideSellingPrice.toggle()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: hideSellingPrice ? "checkmark.square.fill" : "square")
+                                .font(.system(size: 18))
+                                .foregroundStyle(hideSellingPrice ? DashboardTheme.primaryBlue : DashboardTheme.neutralMedium)
+                            Text("Hide Selling Price")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(DashboardTheme.neutralDark)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                HStack(spacing: 12) {
+                    Spacer()
+
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color.gray)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        onDownload()
+                    } label: {
+                        Text("Download")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(DashboardTheme.primaryBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 6)
+            }
+            .padding(20)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: Color.black.opacity(0.15), radius: 16, x: 0, y: 8)
+            .padding(.horizontal, 32)
+        }
+        .transition(.opacity)
+    }
+}
+

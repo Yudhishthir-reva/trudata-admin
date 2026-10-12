@@ -3,7 +3,7 @@ import AVFoundation
 import Speech
 import Combine
 
-private enum CashStyle {
+enum CashStyle {
     static let deep = Color(red: 14/255, green: 74/255, blue: 40/255)
     static let green = Color(red: 22/255, green: 116/255, blue: 68/255)
     static let bright = Color(red: 29/255, green: 135/255, blue: 80/255)
@@ -206,7 +206,7 @@ private struct CashMultiDropdownSheet: View {
     }
 }
 
-private struct CashTabs: View {
+struct CashTabs: View {
     let titles: [String]
     @Binding var selection: String
     var body: some View {
@@ -225,69 +225,155 @@ private struct CashTabs: View {
         }.padding(.vertical, 4)
     }
 }
-
+/// Mirrors Android `UtilityScreen`: one card per tool the signed-in role may use, grouped into
+/// DAILY CASH / PAYMENTS / REPORTS / SELLERS with the same copy, ordering and per-tile accents.
 struct UtilityScreen: View {
     var onHome: () -> Void
-    private var access: CashAccess { CashAccess(role: UserDefaultManager.shared.getUserDefaultsString(key: .userRole)) }
+
+    private var role: String { UserDefaultManager.shared.getUserDefaultsString(key: .userRole) }
+    private var access: CashAccess { CashAccess(role: role) }
+
+    private enum Accent {
+        static let amountTaken = Color(hex: "B45309")
+        static let advance = Color(hex: "1D4ED8")
+        static let bills = Color(hex: "7C3AED")
+        static let ledger = Color(hex: "475569")
+        static let merge = Color(hex: "0F766E")
+    }
 
     var body: some View {
         CashPage(title: "Utility", onHome: onHome) {
-            VStack(alignment: .leading, spacing: 20) {
-                utilityGroup("DAILY CASH") {
-                NavigationLink {
-                    CashCollectionScreen(onHome: onHome)
-                } label: {
-                    tile("Cash Collection", description: access.canReviewAll ? "Submit cash by denomination, and review everyone's submissions." : "Hand over the day's cash, counted note by note, and track its approval.", icon: "banknote", filled: true)
+            VStack(alignment: .leading, spacing: 10) {
+                header
+
+                section("DAILY CASH")
+                NavigationLink { CashCollectionScreen(onHome: onHome) } label: {
+                    tile(
+                        "Cash Collection",
+                        access.canReviewAll ? "Submit cash · Review collections" : "Submit cash · Track approval",
+                        icon: "banknote",
+                        accent: CashStyle.green,
+                        filled: true
+                    )
                 }
                 if access.canManageAmountTaken {
                     NavigationLink { AmountTakenScreen(onHome: onHome) } label: {
-                        tile("Amount Taken", description: "Record cash out for expenses", icon: "wallet.pass", filled: false)
+                        tile("Amount Taken", "Record cash out for expenses",
+                             icon: "wallet.pass", accent: Accent.amountTaken)
                     }
                 }
-                }
-                utilityGroup("PAYMENTS") {
-                NavigationLink { BillRegisterScreen(onHome: onHome) } label: {
-                    tile("Bill Register", description: "View assigned bills and track register clearance.", icon: "doc.text", filled: false)
-                }
+
+                section("PAYMENTS")
                 NavigationLink { PaymentAdvanceScreen(onHome: onHome) } label: {
-                    tile(access.canReviewAll ? "Payment Advance" : "My Payment Advance", description: access.canReviewAll ? "Give advances, receive payments and track outstanding balances." : "View your advances and returned payments.", icon: "indianrupeesign.circle", filled: false)
+                    tile(
+                        access.canManageAdvance ? "Payment Advance" : "My Payment Advance",
+                        access.canManageAdvance ? "Staff advances & repayments" : "Your advances & repayments",
+                        icon: "indianrupeesign.circle",
+                        accent: Accent.advance
+                    )
                 }
+                if access.canManageBills || access.canViewOwnBills {
+                    NavigationLink { BillRegisterScreen(onHome: onHome) } label: {
+                        tile(
+                            access.canManageBills ? "Bill Register" : "My Bill Register",
+                            access.canManageBills ? "Assign & track customer bills" : "Customer bills assigned to you",
+                            icon: "doc.text",
+                            accent: Accent.bills
+                        )
+                    }
                 }
+
                 if access.canViewLedger {
-                    utilityGroup("REPORTS") {
+                    section("REPORTS")
                     NavigationLink { CashLedgerScreen(onHome: onHome) } label: {
-                        tile("Ledger", description: "View cash history and staff totals", icon: "book.closed", filled: false)
-                    }
+                        tile("Ledger", "View cash history & staff totals",
+                             icon: "book.closed", accent: Accent.ledger)
                     }
                 }
-            }.buttonStyle(.plain)
-        }
-    }
 
-    private func utilityGroup<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.caption.weight(.semibold)).tracking(1.2).foregroundStyle(CashStyle.muted)
-            content()
-        }
-    }
-
-    private func tile(_ title: String, description: String, icon: String, filled: Bool) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon).font(.title2.weight(.semibold)).frame(width: 52, height: 52)
-                .background(filled ? .white.opacity(0.14) : .white.opacity(0.8)).clipShape(RoundedRectangle(cornerRadius: 14))
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(.title3.weight(.semibold))
-                Text(description).font(.subheadline).opacity(0.85).fixedSize(horizontal: false, vertical: true)
+                if SellerMergeAccess.allowed {
+                    section("SELLERS")
+                    NavigationLink { SellerMergeScreen(onHome: onHome) } label: {
+                        tile("Seller Merge", "Combine duplicate sellers and their records",
+                             icon: "arrow.triangle.merge", accent: Accent.merge)
+                    }
+                }
             }
-            Spacer(minLength: 0)
-            Image(systemName: "arrow.right").font(.title3.weight(.semibold))
+            .buttonStyle(.plain)
+            .padding(.horizontal, 4)
         }
-        .foregroundStyle(filled ? .white : CashStyle.ink)
-        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Utility tools")
+                .font(.system(size: 23, weight: .bold))
+                .foregroundStyle(CashStyle.ink)
+            Text("Choose the task you need")
+                .font(.system(size: 13))
+                .foregroundStyle(CashStyle.muted)
+        }
+        .padding(.bottom, 6)
+    }
+
+    private func section(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 10, weight: .bold))
+            .tracking(1.2)
+            .foregroundStyle(CashStyle.muted)
+            .padding(.leading, 2)
+            .padding(.top, 6)
+    }
+
+    private func tile(
+        _ title: String,
+        _ body: String,
+        icon: String,
+        accent: Color,
+        filled: Bool = false
+    ) -> some View {
+        let foreground = filled ? Color.white : accent
+
+        return HStack(spacing: 0) {
+            Image(systemName: icon)
+                .font(.system(size: 23, weight: .semibold))
+                .foregroundStyle(foreground)
+                .frame(width: 42, height: 42)
+                .background(
+                    filled ? Color.white.opacity(0.16) : accent.opacity(0.10),
+                    in: RoundedRectangle(cornerRadius: 14)
+                )
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(filled ? .white : CashStyle.ink)
+                Text(body)
+                    .font(.system(size: 12))
+                    .foregroundStyle(filled ? Color.white.opacity(0.85) : CashStyle.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(foreground.opacity(0.7))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, filled ? 17 : 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            RoundedRectangle(cornerRadius: 18).fill(filled ? CashStyle.gradient : LinearGradient(colors: [CashStyle.pale, Color(red: 0.94, green: 0.97, blue: 0.95)], startPoint: .leading, endPoint: .trailing))
+            if filled {
+                RoundedRectangle(cornerRadius: 16).fill(CashStyle.gradient)
+            } else {
+                RoundedRectangle(cornerRadius: 16).fill(.white)
+            }
         }
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(filled ? .clear : CashStyle.green.opacity(0.16)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(filled ? .clear : accent.opacity(0.14), lineWidth: 1)
+        )
     }
 }
 
@@ -299,14 +385,18 @@ struct CashCollectionScreen: View {
     @State private var form = CashCountForm()
     @State private var confirm = false
 
+    /// Android `listTitle`: a sale person only ever sees their own submissions, so the tab must not
+    /// promise "All".
+    private var listTitle: String { model.access.canReviewAll ? "All Collection" : "My Collection" }
+
     var body: some View {
         CashPage(title: "Cash Collection", onHome: onHome, onRefresh: { refresh() }) {
-            CashTabs(titles: ["Submit", "All Collection", "Summary"], selection: $tab)
+            CashTabs(titles: ["Submit", listTitle, "Summary"], selection: $tab)
             CashFeedback(model: model)
             if tab == "Submit" {
                 CashDenominationForm(form: $form).disabled(model.isSaving)
             } else {
-                if tab == "All Collection" {
+                if tab == listTitle {
                     CashFilterView(filter: $model.filter, people: model.people, showsStaff: model.access.canReviewAll, showsStatus: model.access.canReviewAll)
                     if let error = model.peopleError { CashRetry(message: error) { Task { await model.loadPeople() } } }
                     Text(model.access.canReviewAll ? "All submissions" : "My submissions").font(.headline)
@@ -355,7 +445,7 @@ struct CashCollectionDetailScreen: View {
     @State private var confirmEdit = false
 
     var body: some View {
-        CashPage(title: "Collection Detail", onHome: onHome, onRefresh: { Task { await model.loadDetail(id) } }) {
+        CashPage(title: "Review Collection", onHome: onHome, onRefresh: { Task { await model.loadDetail(id) } }) {
             CashFeedback(model: model)
             if model.isLoading { ProgressView() }
             if let record = model.detail {
@@ -364,7 +454,8 @@ struct CashCollectionDetailScreen: View {
                         Text("COLLECTION #\(record.id)").font(.caption.weight(.medium))
                         Spacer()
                         Text(record.status.capitalized).font(.caption.weight(.medium))
-                            .foregroundStyle(CashStyle.green).padding(8).background(CashStyle.pale, in: Capsule())
+                            .foregroundStyle(record.status == "pending" ? Color.orange : CashStyle.green).padding(8)
+                            .background(record.status == "pending" ? Color.yellow.opacity(0.85) : CashStyle.pale, in: Capsule())
                     }
                     Text(cashMoney(record.amount)).font(.largeTitle.bold())
                     Text("Submitted by \(record.name)").font(.headline)
@@ -386,26 +477,52 @@ struct CashCollectionDetailScreen: View {
                             }
                         }
                     }
-                    if model.access.canEdit && record.status != "approved" {
-                        Button("Edit Counts") { form = CashCountForm(record: record); editing = true }
-                            .buttonStyle(.bordered).disabled(model.isSaving)
-                    }
                     if model.access.canReviewAll && record.status == "pending" {
-                        HStack(alignment: .bottom) {
-                            TextField("Review remark (required to reject)", text: $remark, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .onChange(of: remark) { value in remark = String(value.prefix(250)) }
-                            SpeechRemarkButton(text: $remark)
-                        }
-                        HStack {
-                            Button("Approve") { reviewAction = true }.buttonStyle(.borderedProminent)
-                            Button("Reject", role: .destructive) { reviewAction = false }
-                                .buttonStyle(.bordered).disabled(remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        CashCard {
+                            VStack(alignment: .leading, spacing: 16) {
+                                CashSummaryHeading(title: "Review remark", subtitle: "Required when rejecting", icon: "square.and.pencil")
+                                HStack(alignment: .top) {
+                                    TextField("e.g. Verified with the cash in hand", text: $remark, axis: .vertical)
+                                        .lineLimit(3...5)
+                                        .onChange(of: remark) { value in remark = String(value.prefix(250)) }
+                                    SpeechRemarkButton(text: $remark)
+                                }.padding(14).background(CashStyle.pale.opacity(0.2), in: RoundedRectangle(cornerRadius: 12))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                            }
                         }.disabled(model.isSaving)
                     }
                 }
             } else if !model.isLoading {
                 Button("Retry") { Task { await model.loadDetail(id) } }
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if let record = model.detail, !editing,
+               (model.access.canEdit && record.status != "approved") || (model.access.canReviewAll && record.status == "pending") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Capsule().fill(CashStyle.border).frame(width: 36, height: 4).frame(maxWidth: .infinity)
+                    Text("From \(record.name)").font(.caption).foregroundStyle(CashStyle.muted)
+                    Text(cashMoney(record.amount)).font(.title2.weight(.semibold))
+                    HStack(spacing: 10) {
+                        if model.access.canEdit && record.status != "approved" {
+                            Button { form = CashCountForm(record: record); editing = true } label: {
+                                Image(systemName: "pencil").frame(width: 48, height: 48)
+                                    .foregroundStyle(CashStyle.ink).background(CashStyle.border.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+                            }.accessibilityLabel("Edit counts")
+                        }
+                        if model.access.canReviewAll && record.status == "pending" {
+                            Button { reviewAction = false } label: {
+                                Label("Reject", systemImage: "xmark").frame(maxWidth: .infinity).padding(.vertical, 15)
+                                    .foregroundStyle(.red).background(Color.red.opacity(0.09), in: RoundedRectangle(cornerRadius: 12))
+                            }.disabled(remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            Button { reviewAction = true } label: {
+                                Label("Approve", systemImage: "checkmark").frame(maxWidth: .infinity).padding(.vertical, 15)
+                                    .foregroundStyle(.white).background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                    }.font(.subheadline.weight(.semibold)).buttonStyle(.plain).disabled(model.isSaving)
+                }.padding(14).background(.white, in: UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
+                    .overlay(alignment: .top) { CashStyle.border.frame(height: 1) }
             }
         }
         .task { await model.loadDetail(id) }
@@ -450,40 +567,21 @@ struct AmountTakenScreen: View {
                 CashTabs(titles: ["Add", "List"], selection: $tab)
                 CashFeedback(model: model)
                 if tab == "Add" {
-                    DatePicker("Date", selection: $date, in: ...Date(), displayedComponents: .date)
-                    Text("Person").font(.subheadline.bold())
-                    Picker("Person", selection: $personId) {
-                        Text("Choose a person").tag(0)
-                        ForEach(model.people) { Text($0.name).tag($0.id) }
-                    }
-                    if let error = model.peopleError { CashRetry(message: error) { Task { await model.loadPeople() } } }
-                    TextField("Amount (₹)", text: $amount).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
-                    TextField("Reason (optional)", text: $reason).textFieldStyle(.roundedBorder)
-                        .onChange(of: reason) { reason = String($0.prefix(100)) }
-                    HStack(alignment: .bottom) {
-                        TextField("Remark (optional)", text: $remark, axis: .vertical).textFieldStyle(.roundedBorder)
-                            .onChange(of: remark) { remark = String($0.prefix(250)) }
-                        SpeechRemarkButton(text: $remark)
-                    }
-                    if model.isLoadingLinks { ProgressView("Loading collections…") }
-                    if let error = model.linksError { Text("Optional collection link unavailable: \(error)").font(.caption).foregroundStyle(.secondary) }
-                    Text("Link collection (optional)").font(.subheadline.bold())
-                    Picker("Link collection (optional)", selection: $collectionId) {
-                        Text("None").tag(0)
-                        ForEach(model.linkedCollections) { record in
-                            Text("#\(record.id) · \(cashMoney(record.amount)) · \(record.date)").tag(record.id)
-                        }
-                    }
-                    Button("Record Amount") { confirmAdd = true }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(personId == 0 || (Int(amount) ?? 0) <= 0 || model.isSaving || model.isLoadingLinks)
+                    takenForm
                 } else {
                     CashFilterView(filter: $model.filter, people: model.people, showsStaff: true)
                     if model.isLoading { ProgressView() }
-                    if model.records.isEmpty && !model.isLoading { Text("No amounts taken for this period.").foregroundStyle(.secondary) }
+                    if model.records.isEmpty && !model.isLoading && model.error == nil {
+                        VStack(spacing: 12) {
+                            Image(systemName: "wallet.pass").font(.largeTitle).foregroundStyle(CashStyle.green)
+                            Text("No amounts taken").font(.headline)
+                            Text("Recorded cash out will appear here. Try another date range or add a new record.")
+                                .font(.subheadline).foregroundStyle(CashStyle.muted).multilineTextAlignment(.center)
+                        }.frame(maxWidth: .infinity).padding(.vertical, 32)
+                    }
                     ForEach(model.records) { record in
                         VStack(alignment: .leading, spacing: 10) {
-                            Button { detailRecord = record } label: { CashRecordCard(record: record) }.buttonStyle(.plain)
+                            Button { detailRecord = record } label: { takenRecordCard(record) }.buttonStyle(.plain)
                             if record.status == "pending" {
                                 Button("Review") { selected = record }.buttonStyle(.bordered)
                             }
@@ -492,6 +590,9 @@ struct AmountTakenScreen: View {
                     CashLoadMore(model: model)
                 }
             } else { Text("You don't have access to this.") }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if tab == "Add" && model.access.canManageAmountTaken { takenFooter }
         }
         .task { await model.loadPeople() }
         .onChange(of: tab) { if $0 == "List" { Task { await model.reload() } } }
@@ -516,39 +617,174 @@ struct AmountTakenScreen: View {
             }
         }
         .sheet(item: $detailRecord) { record in
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Amount taken").foregroundStyle(CashStyle.muted)
-                        Text("−\(cashMoney(record.amount))").font(.largeTitle.bold()).foregroundStyle(.red)
-                    }
-                    Spacer()
-                    Text(record.status.capitalized).foregroundStyle(CashStyle.green)
-                        .padding(8).background(CashStyle.pale, in: Capsule())
-                }
-                detailLine("From", record.name)
-                detailLine("Taken by", record.takenBy)
-                detailLine("Reason", record.reason)
-                detailLine("When", record.date)
-                detailLine("Reference", "#\(record.id)")
-                Spacer()
-                Button("Close") { detailRecord = nil }
-                    .font(.headline).frame(maxWidth: .infinity).padding(16)
-                    .foregroundStyle(CashStyle.green).background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 12))
-            }.padding(20).presentationDetents([.medium, .large])
+            CashTakenDetailSheet(record: record)
         }
     }
 
-    private func detailLine(_ title: String, _ value: String) -> some View {
-        HStack(alignment: .top) {
-            Text(title).foregroundStyle(CashStyle.muted)
-            Spacer()
-            Text(value.isEmpty ? "—" : value).multilineTextAlignment(.trailing)
+    private var canSubmit: Bool {
+        personId > 0 && (Int(amount) ?? 0) > 0 && !model.isSaving && !model.isLoadingLinks
+    }
+
+    private var takenForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 10) {
+                Label("CASH OUT", systemImage: "wallet.pass.fill").font(.caption.weight(.semibold)).opacity(0.8)
+                Text("Record amount taken").font(.title2.bold())
+                Text("Choose the person and record cash taken for expenses.").font(.subheadline).opacity(0.85)
+            }.foregroundStyle(.white).padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 20))
+            CashCard {
+                VStack(alignment: .leading, spacing: 18) {
+                    Label("Payment details", systemImage: "banknote").font(.headline).foregroundStyle(CashStyle.green)
+                    CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map {
+                        CashDropdownOption(id: String($0.id), title: $0.name, icon: "person.fill")
+                    }, selection: Binding(get: { String(personId) }, set: { personId = Int($0) ?? 0 }))
+                    if let error = model.peopleError { CashRetry(message: error) { Task { await model.loadPeople() } } }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Amount *").font(.subheadline.weight(.medium))
+                        HStack(spacing: 10) {
+                            Text("₹").font(.title2.weight(.semibold)).foregroundStyle(CashStyle.green)
+                            TextField("Enter amount", text: $amount).keyboardType(.numberPad).font(.title3.weight(.medium))
+                                .onChange(of: amount) { _, value in amount = value.filter { $0.isASCII && $0.isNumber } }
+                        }.padding(14).background(CashStyle.pale.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                    }
+                    DatePicker(selection: $date, in: ...Date(), displayedComponents: .date) {
+                        Label("Date", systemImage: "calendar").font(.subheadline.weight(.medium))
+                    }.tint(CashStyle.green)
+                }
+            }
+            CashCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    Label("Reason & remark", systemImage: "square.and.pencil").font(.headline).foregroundStyle(CashStyle.green)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Reason (optional)").font(.subheadline.weight(.medium))
+                        // Android `quickReasons`: the same five cover almost every entry, so offer
+                        // them as chips instead of making the user type one out each time.
+                        CashQuickReasons(selection: $reason)
+                        TextField("Or type a reason", text: $reason).padding(14)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                            .onChange(of: reason) { _, value in reason = String(value.prefix(100)) }
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Remark (optional)").font(.subheadline.weight(.medium))
+                        HStack(alignment: .top, spacing: 8) {
+                            TextField("Add any extra details", text: $remark, axis: .vertical).lineLimit(3...5)
+                                .onChange(of: remark) { _, value in remark = String(value.prefix(250)) }
+                            SpeechRemarkButton(text: $remark)
+                        }.padding(14).overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                        Text("\(remark.count)/250").font(.caption).foregroundStyle(CashStyle.muted).frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                }
+            }
+            CashCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Collection reference", systemImage: "link").font(.headline).foregroundStyle(CashStyle.green)
+                    Text("Optionally link this amount to a cash collection for the selected person and date.").font(.subheadline).foregroundStyle(CashStyle.muted)
+                    CashDropdown(title: "Link collection (optional)", placeholder: "No collection linked", options:
+                        [CashDropdownOption(id: "0", title: "No collection linked", icon: "link")] + model.linkedCollections.map {
+                            CashDropdownOption(id: String($0.id), title: "#\($0.id) · \(cashMoney($0.amount))", detail: $0.date, icon: "banknote")
+                        }, selection: Binding(get: { String(collectionId) }, set: { collectionId = Int($0) ?? 0 }))
+                        .disabled(personId == 0 || model.isLoadingLinks)
+                    if model.isLoadingLinks { ProgressView("Loading collections…").font(.caption) }
+                    if let error = model.linksError {
+                        Text("Collection link unavailable: \(error)").font(.caption).foregroundStyle(CashStyle.muted)
+                    } else if personId == 0 {
+                        Text("Choose a person first.").font(.caption).foregroundStyle(CashStyle.muted)
+                    } else if !model.isLoadingLinks && model.linkedCollections.isEmpty {
+                        Text("No collections for this person and date. You can record the amount without a link.").font(.caption).foregroundStyle(CashStyle.muted)
+                    }
+                }
+            }
+        }.disabled(model.isSaving)
+    }
+
+    private var takenFooter: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Amount taken").font(.caption).foregroundStyle(CashStyle.muted)
+                    Text(cashMoney(Int(amount) ?? 0)).font(.title2.bold()).foregroundStyle(CashStyle.ink)
+                }
+                Spacer()
+                if let person = model.people.first(where: { $0.id == personId }) {
+                    Text(person.name).font(.subheadline).foregroundStyle(CashStyle.muted).multilineTextAlignment(.trailing)
+                }
+            }
+            Button { confirmAdd = true } label: {
+                HStack(spacing: 10) {
+                    if model.isSaving { ProgressView().tint(.white) }
+                    else { Image(systemName: "checkmark.circle.fill") }
+                    Text(model.isSaving ? "Recording…" : "Record Amount").font(.headline)
+                }.frame(maxWidth: .infinity).padding(.vertical, 16).foregroundStyle(.white)
+                    .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 14))
+                    .opacity(canSubmit ? 1 : 0.45)
+            }.buttonStyle(.plain).disabled(!canSubmit)
+        }.padding(16).background(.regularMaterial, in: UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22))
+    }
+
+    private func takenRecordCard(_ record: CashRecord) -> some View {
+        CashCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "wallet.pass.fill").foregroundStyle(CashStyle.green)
+                        .padding(10).background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 12))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(record.name.isEmpty ? "Amount taken #\(record.id)" : record.name).font(.headline)
+                        Text(record.date).font(.caption).foregroundStyle(CashStyle.muted)
+                    }
+                    Spacer(minLength: 4)
+                    Text("−\(cashMoney(record.amount))").font(.headline).foregroundStyle(.red)
+                }
+                if !record.reason.isEmpty { Text(record.reason).font(.subheadline).foregroundStyle(CashStyle.ink) }
+                if !record.remark.isEmpty { Text(record.remark).font(.subheadline).foregroundStyle(CashStyle.muted).lineLimit(2) }
+                HStack {
+                    Text(record.status.capitalized).font(.caption.weight(.semibold))
+                        .foregroundStyle(record.status == "approved" ? CashStyle.green : record.status == "rejected" ? .red : .orange)
+                        .padding(.horizontal, 10).padding(.vertical, 6).background(CashStyle.pale, in: Capsule())
+                    Spacer()
+                    Text("View details").font(.caption).foregroundStyle(CashStyle.green)
+                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(CashStyle.green)
+                }
+            }
         }
     }
 
     private func update(_ record: CashRecord, approve: Bool) {
         Task { if await model.reviewTaken(record, approve: approve) { await model.reload() } }
+    }
+}
+
+/// Android `quickReasons` chip row on Amount Taken.
+struct CashQuickReasons: View {
+    @Binding var selection: String
+
+    private static let reasons = ["Petrol", "Office Expense", "Food", "Vehicle Repair", "Advance"]
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Self.reasons, id: \.self) { reason in
+                    let isSelected = selection.caseInsensitiveCompare(reason) == .orderedSame
+                    Button {
+                        // Tapping the active chip clears it, so a typed reason stays reachable.
+                        selection = isSelected ? "" : reason
+                    } label: {
+                        Text(reason)
+                            .font(.subheadline.weight(.medium))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                isSelected ? CashStyle.green : CashStyle.pale,
+                                in: Capsule()
+                            )
+                            .foregroundStyle(isSelected ? .white : CashStyle.ink)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 1)
+        }
     }
 }
 
@@ -562,34 +798,46 @@ struct CashLedgerScreen: View {
          + takenModel.records.filter { $0.status == "approved" }.map { LedgerDisplayEntry(record: $0, isTaken: true) })
             .sorted { $0.record.date > $1.record.date }
     }
+    private func ledgerMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(title).font(.caption)
+            Text(value).font(.headline).minimumScaleFactor(0.7).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     var body: some View {
         CashPage(title: "Ledger", onHome: onHome, onRefresh: { Task { await model.reload(); await takenModel.reload() } }) {
             if model.access.canViewLedger {
                 CashFilterView(filter: $model.filter, people: model.people, showsStaff: true)
                 CashFeedback(model: model)
                 if let error = model.peopleError { CashRetry(message: error) { Task { await model.loadPeople() } } }
-                if let summary = model.summary {
+                // The ledger endpoint returns period totals of its own. Deriving them from the
+                // rows paged in so far understated every figure once a period ran past one page.
+                if let ledger = model.ledgerSummary {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("CLOSING BALANCE").font(.caption.weight(.semibold))
+                        Text(cashMoney(ledger.closingBalance)).font(.largeTitle.bold())
+                        Text(model.filter.period == .all ? "All time" : model.filter.period.rawValue)
+                            .font(.subheadline.weight(.medium))
+                        HStack(spacing: 7) {
+                            ledgerMetric("Opening", cashMoney(ledger.openingBalance))
+                            ledgerMetric("Collected", cashMoney(ledger.totalCollection))
+                            ledgerMetric("Taken", cashMoney(ledger.totalTaken))
+                            ledgerMetric("Net", cashMoney(ledger.netAmount))
+                        }.padding(14).background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                    }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 18))
+                } else if let summary = model.summary {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("COLLECTED CASH").font(.caption.weight(.semibold))
                         Text(cashMoney(summary.amount)).font(.largeTitle.bold())
                         Text(model.filter.period == .all ? "All time" : model.filter.period.rawValue)
                             .font(.subheadline.weight(.medium))
                         HStack(spacing: 7) {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("Collected").font(.caption)
-                                Text(cashMoney(summary.amount)).font(.headline)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("Taken shown").font(.caption)
-                                Text(cashMoney(takenModel.records.filter { $0.status == "approved" }.reduce(0) { $0 + $1.amount })).font(.headline)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("Entries shown").font(.caption)
-                                Text("\(entries.count)").font(.headline)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            ledgerMetric("Collected", cashMoney(summary.amount))
+                            ledgerMetric("Taken shown", cashMoney(takenModel.records.filter { $0.status == "approved" }.reduce(0) { $0 + $1.amount }))
+                            ledgerMetric("Entries shown", "\(entries.count)")
                         }.padding(14).background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                     }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
                         .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 18))
@@ -667,9 +915,16 @@ private struct LedgerEntryCard: View {
                 if !record.remark.isEmpty { Text("“\(record.remark)”").font(.caption.italic()).foregroundStyle(CashStyle.muted).lineLimit(1) }
             }
             Spacer(minLength: 4)
-            Text("\(entry.isTaken ? "−" : "+")\(cashMoney(record.amount))")
-                .font(.subheadline.weight(.semibold)).foregroundStyle(entry.isTaken ? .red : CashStyle.ink)
-                .lineLimit(1).minimumScaleFactor(0.8)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(entry.isTaken ? "−" : "+")\(cashMoney(record.amount))")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(entry.isTaken ? .red : CashStyle.ink)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                // Android shows the running cash in hand the server computed for this line.
+                if let balance = record.balanceAfter {
+                    Text(cashMoney(balance)).font(.caption).foregroundStyle(CashStyle.muted)
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                }
+            }
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(CashStyle.muted)
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
             .background(.white, in: RoundedRectangle(cornerRadius: 15))
@@ -714,12 +969,13 @@ private struct CashTakenDetailSheet: View {
                 row("From", record.name)
                 row("Taken by", record.takenBy)
                 row("Reason", record.reason)
+                if !record.remark.isEmpty { row("Remark", record.remark) }
                 row("When", record.date)
                 row("Reference", "#\(record.id)")
             }.padding(16).background(Color(red: 0.98, green: 0.99, blue: 0.98), in: RoundedRectangle(cornerRadius: 14))
             Button("Close") { dismiss() }.font(.headline).foregroundStyle(CashStyle.green)
                 .frame(maxWidth: .infinity).padding(14).background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 12))
-        }.padding(20).presentationDetents([.height(390), .medium])
+        }.padding(20).presentationDetents([.large]).presentationDragIndicator(.visible)
     }
     private func row(_ label: String, _ value: String) -> some View {
         HStack(alignment: .top) {
@@ -856,12 +1112,28 @@ private struct CashDenominationSection: View {
     }
 }
 
-private struct CashDenominationRow: View {
-    let denomination: CashDenomination
-    @Binding var count: String
-    private var tint: Color {
-        if denomination.kind == "coin" { return denomination.value >= 5 ? Color(red: 0.79, green: 0.64, blue: 0.23) : .gray }
-        switch denomination.value {
+private struct CashStepperButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? CashStyle.green.opacity(0.18) : Color.clear)
+            .contentShape(Rectangle())
+    }
+}
+
+struct CashDenominationBadge: View {
+    let value: Int
+    var label: String? = nil
+    var kind: String = "note"
+
+    private var isCoin: Bool {
+        kind.lowercased().contains("coin")
+    }
+
+    var tint: Color {
+        if isCoin {
+            return value >= 5 ? Color(red: 0.79, green: 0.64, blue: 0.23) : .gray
+        }
+        switch value {
         case 500: return Color(red: 0.55, green: 0.54, blue: 0.48)
         case 200: return .orange
         case 100: return .purple
@@ -871,21 +1143,71 @@ private struct CashDenominationRow: View {
         default: return CashStyle.green
         }
     }
+
+    private var displayText: String {
+        if value > 0 {
+            return "₹\(value)"
+        }
+        if let label, !label.isEmpty {
+            return label.hasPrefix("₹") ? label : "₹\(label)"
+        }
+        return "₹0"
+    }
+
+    var body: some View {
+        Text(displayText)
+            .font(.subheadline.weight(.medium))
+            .frame(width: 60, height: 35)
+            .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: isCoin ? 18 : 6))
+            .overlay(RoundedRectangle(cornerRadius: isCoin ? 18 : 6).stroke(tint.opacity(0.55)))
+    }
+}
+
+private struct CashDenominationRow: View {
+    let denomination: CashDenomination
+    @Binding var count: String
     var body: some View {
         let lineTotal = denomination.value.multipliedReportingOverflow(by: Int(count) ?? 0)
         HStack(spacing: 8) {
-            Text("₹\(denomination.value)")
-                .font(.subheadline.weight(.medium)).frame(width: 60, height: 35)
-                .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: denomination.kind == "coin" ? 18 : 6))
-                .overlay(RoundedRectangle(cornerRadius: denomination.kind == "coin" ? 18 : 6).stroke(tint.opacity(0.55)))
+            CashDenominationBadge(value: denomination.value, kind: denomination.kind)
             HStack(spacing: 0) {
-                Button { count = String(max(0, (Int(count) ?? 0) - 1)) } label: { Image(systemName: "minus").frame(width: 35, height: 38) }
-                TextField("0", text: $count).keyboardType(.numberPad).multilineTextAlignment(.center)
+                Button {
+                    let current = Int(count.filter(\.isNumber)) ?? 0
+                    let next = max(0, current - 1)
+                    count = next == 0 ? "" : String(next)
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(width: 40, height: 38)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(CashStepperButtonStyle())
+
+                TextField("0", text: $count)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 38)
                     .accessibilityLabel("\(denomination.label) quantity")
-                Button { count = String((Int(count) ?? 0) + 1) } label: { Image(systemName: "plus").frame(width: 35, height: 38) }
-            }.foregroundStyle(CashStyle.green)
-                .background(Color(red: 0.96, green: 0.97, blue: 0.97), in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(CashStyle.border))
+                    .onChange(of: count) { _, newValue in
+                        let digits = newValue.filter(\.isNumber)
+                        if digits != newValue { count = digits }
+                    }
+
+                Button {
+                    let current = Int(count.filter(\.isNumber)) ?? 0
+                    count = String(current + 1)
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(width: 40, height: 38)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(CashStepperButtonStyle())
+            }
+            .foregroundStyle(CashStyle.green)
+            .background(Color(red: 0.96, green: 0.97, blue: 0.97), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(CashStyle.border))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
             Text(lineTotal.overflow ? "—" : cashMoney(lineTotal.partialValue))
                 .font(.subheadline).foregroundStyle(CashStyle.muted)
                 .frame(width: 67, alignment: .trailing).lineLimit(1).minimumScaleFactor(0.75)
@@ -929,60 +1251,255 @@ private struct CashSubmitFooter: View {
 
 private struct CashSummaryView: View {
     @ObservedObject var model: CashCollectionViewModel
+    @State private var expandedStaff: Set<Int> = []
+
+    private var periodTitle: String {
+        switch model.filter.period {
+        case .today: return "Today"
+        case .all: return "All time"
+        case .month: return model.filter.month.formatted(.dateTime.month(.wide).year())
+        case .range: return "\(model.filter.from.formatted(date: .abbreviated, time: .omitted)) – \(model.filter.to.formatted(date: .abbreviated, time: .omitted))"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let error = model.summaryError {
                 CashRetry(message: error) { Task { await model.loadSummary() } }
             } else if let summary = model.summary {
-                CashTotals(summary: summary)
-                CashDenominationLines(lines: summary.denominations)
-                ForEach(summary.staff) { staff in
-                    DisclosureGroup {
-                        CashDenominationLines(lines: staff.denominations)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(staff.name).font(.headline)
-                            Text("\(staff.entries) entries · \(cashMoney(staff.amount))").font(.subheadline)
+                CashSummaryTotals(summary: summary, period: periodTitle)
+                CashNotesChart(lines: summary.denominations)
+                CashCard {
+                    VStack(alignment: .leading, spacing: 20) {
+                        CashSummaryHeading(title: "By denomination", subtitle: "\(summary.denominations.filter { $0.quantity > 0 }.count) of \(summary.denominations.count) used · bar = amount", icon: "banknote")
+                        ForEach(summary.denominations) { line in
+                            CashSummaryDenomination(line: line, total: summary.amount)
                         }
-                    }.padding(14).background(.white).clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                }
+                CashCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        CashSummaryHeading(title: "By staff", subtitle: "\(summary.staff.count) people · tap one to see their notes", icon: "person.3.fill")
+                        ForEach(summary.staff) { staff in
+                            staffCard(staff, total: summary.amount)
+                        }
+                        if summary.staff.isEmpty { Text("No staff collections for this period.").font(.subheadline).foregroundStyle(CashStyle.muted) }
+                    }
                 }
                 if summary.entries == 0 { Text("No approved collections for this period.").foregroundStyle(.secondary) }
             } else { ProgressView("Loading summary…") }
         }
     }
+
+    private func staffCard(_ staff: CashStaffSummary, total: Int) -> some View {
+        let expanded = expandedStaff.contains(staff.id)
+        return VStack(alignment: .leading, spacing: 12) {
+            Button {
+                if expanded { expandedStaff.remove(staff.id) } else { expandedStaff.insert(staff.id) }
+            } label: {
+                HStack(spacing: 10) {
+                    Text(staff.name.split(separator: " ").prefix(2).compactMap { $0.first }.map(String.init).joined())
+                        .font(.subheadline.weight(.medium)).foregroundStyle(CashStyle.green)
+                        .frame(width: 40, height: 40).background(CashStyle.pale, in: Circle())
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(staff.name).font(.headline).foregroundStyle(CashStyle.ink)
+                        Text("\(staff.entries) entries · \(cashShare(staff.amount, of: total)) of total")
+                            .font(.caption).foregroundStyle(CashStyle.muted)
+                    }
+                    Spacer(minLength: 0)
+                    Text(cashMoney(staff.amount)).font(.subheadline.weight(.semibold)).foregroundStyle(CashStyle.ink)
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down").font(.caption).foregroundStyle(CashStyle.muted)
+                }
+            }.buttonStyle(.plain).accessibilityValue(expanded ? "Expanded" : "Collapsed")
+            CashShareBar(amount: staff.amount, total: total, color: .init(red: 0.05, green: 0.48, blue: 0.65))
+            if expanded {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), alignment: .leading)], alignment: .leading, spacing: 8) {
+                    ForEach(staff.denominations.filter { $0.quantity > 0 }) { line in
+                        HStack(spacing: 5) {
+                            Image(systemName: line.kind.lowercased().contains("coin") ? "circle.fill" : "rectangle.fill")
+                                .font(.caption2).foregroundStyle(cashLineColor(line))
+                            Text("₹\(line.numericValue) × \(line.quantity)").font(.caption)
+                        }.padding(8).frame(maxWidth: .infinity, alignment: .leading)
+                            .background(cashLineColor(line).opacity(0.12), in: RoundedRectangle(cornerRadius: 9))
+                    }
+                }
+                if model.access.canReviewAll && staff.id > 0 {
+                    Button("Show only this person") { model.filter.staffIds = [staff.id] }
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(CashStyle.green).padding(.top, 4)
+                }
+            }
+        }.padding(12).background(expanded ? CashStyle.pale.opacity(0.3) : Color.white, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(expanded ? CashStyle.green.opacity(0.4) : CashStyle.border))
+    }
 }
 
-private struct CashTotals: View {
-    let summary: CashSummary
+private func cashShare(_ amount: Int, of total: Int) -> String {
+    let percent = total > 0 ? Double(amount) / Double(total) * 100 : 0
+    return percent > 0 && percent < 0.1 ? "<0.1%" : String(format: "%.1f%%", percent)
+}
+
+private func cashLineColor(_ line: CashLine) -> Color {
+    CashDenominationBadge(value: line.numericValue, kind: line.kind).tint
+}
+
+private struct CashSummaryHeading: View {
+    let title: String
+    let subtitle: String
+    let icon: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Approved cash").font(.subheadline)
-            Text(cashMoney(summary.amount)).font(.largeTitle.bold())
-            Text("\(summary.entries) entries · \(summary.staff.count) staff").font(.subheadline)
+        HStack(spacing: 10) {
+            Image(systemName: icon).foregroundStyle(CashStyle.green).frame(width: 34, height: 34)
+                .background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(.headline)
+                Text(subtitle).font(.caption).foregroundStyle(CashStyle.muted)
+            }
+        }
+    }
+}
+
+private struct CashSummaryTotals: View {
+    let summary: CashSummary
+    let period: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("APPROVED CASH COUNTED").font(.caption.weight(.semibold))
+            Text(cashMoney(summary.amount)).font(.largeTitle.bold()).minimumScaleFactor(0.7).lineLimit(1)
+            Text(period).font(.subheadline.weight(.medium))
+            HStack(spacing: 8) {
+                metric("Entries", "\(summary.entries)")
+                metric("Notes", "\(summary.denominations.filter { !$0.kind.lowercased().contains("coin") }.reduce(0) { $0 + $1.quantity }) pcs")
+                metric("Coins", "\(summary.denominations.filter { $0.kind.lowercased().contains("coin") }.reduce(0) { $0 + $1.quantity }) pcs")
+            }
         }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.ctaGradient).clipShape(RoundedRectangle(cornerRadius: 18))
+            .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 18))
+    }
+    private func metric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title).font(.caption).foregroundStyle(.white.opacity(0.8))
+            Text(value).font(.subheadline.bold())
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
+            .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+private struct CashNotesChart: View {
+    let lines: [CashLine]
+    private var notes: [CashLine] { lines.filter { !$0.kind.lowercased().contains("coin") } }
+    private var coins: [CashLine] { lines.filter { $0.kind.lowercased().contains("coin") } }
+    private var noteAmount: Int { notes.reduce(0) { $0 + $1.total } }
+    private var coinAmount: Int { coins.reduce(0) { $0 + $1.total } }
+    private var fraction: CGFloat { noteAmount + coinAmount > 0 ? CGFloat(noteAmount) / CGFloat(noteAmount + coinAmount) : 0 }
+    private let gold = Color(red: 0.79, green: 0.64, blue: 0.23)
+    var body: some View {
+        CashCard {
+            VStack(alignment: .leading, spacing: 20) {
+                CashSummaryHeading(title: "Notes vs coins", subtitle: "Share of the amount", icon: "chart.donut")
+                HStack(spacing: 20) {
+                    ZStack {
+                        Circle().stroke(noteAmount + coinAmount > 0 ? gold : CashStyle.border, lineWidth: 16)
+                        Circle().trim(from: 0, to: min(1, max(0, fraction))).stroke(CashStyle.green, lineWidth: 16).rotationEffect(.degrees(-90))
+                        VStack(spacing: 5) {
+                            Text(cashShare(noteAmount, of: noteAmount + coinAmount)).font(.title3.bold())
+                            Text("in notes").font(.caption).foregroundStyle(CashStyle.muted)
+                        }
+                    }.frame(width: 112, height: 112).padding(8).accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(cashShare(noteAmount, of: noteAmount + coinAmount)) in notes")
+                    VStack(alignment: .leading, spacing: 18) {
+                        legend("Notes", amount: noteAmount, count: notes.reduce(0) { $0 + $1.quantity }, color: CashStyle.green)
+                        legend("Coins", amount: coinAmount, count: coins.reduce(0) { $0 + $1.quantity }, color: gold)
+                    }
+                }
+            }
+        }
+    }
+    private func legend(_ title: String, amount: Int, count: Int, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) { Circle().fill(color).frame(width: 8, height: 8); Text(title).font(.caption).foregroundStyle(CashStyle.muted) }
+            Text(cashMoney(amount)).font(.headline)
+            Text("\(count) pcs").font(.caption).foregroundStyle(CashStyle.muted)
+        }
+    }
+}
+
+private struct CashShareBar: View {
+    let amount: Int
+    let total: Int
+    let color: Color
+    var body: some View {
+        GeometryReader { geometry in
+            Capsule().fill(CashStyle.border)
+                .overlay(alignment: .leading) {
+                    Capsule().fill(color).frame(width: amount > 0 && total > 0 ? max(3, geometry.size.width * min(1, CGFloat(amount) / CGFloat(total))) : 0)
+                }
+        }.frame(height: 6).accessibilityHidden(true)
+    }
+}
+
+private struct CashSummaryDenomination: View {
+    let line: CashLine
+    let total: Int
+    var body: some View {
+        HStack(spacing: 12) {
+            CashDenominationBadge(value: line.numericValue, label: line.label, kind: line.kind)
+            VStack(alignment: .leading, spacing: 9) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("× \(line.quantity)").font(.subheadline.weight(.medium))
+                    Spacer(minLength: 4)
+                    Text(cashMoney(line.total)).font(.subheadline.weight(.semibold))
+                }
+                if !line.kind.lowercased().contains("coin") && line.quantity >= 100 {
+                    Text("\(line.quantity / 100) \(line.quantity / 100 == 1 ? "bundle" : "bundles") + \(line.quantity % 100)")
+                        .font(.caption2).foregroundStyle(CashStyle.muted)
+                }
+                HStack(spacing: 8) {
+                    CashShareBar(amount: line.total, total: total, color: cashLineColor(line))
+                    Text(cashShare(line.total, of: total)).font(.caption2).foregroundStyle(CashStyle.muted).frame(width: 42, alignment: .trailing)
+                }
+            }
+        }
     }
 }
 
 private struct CashDenominationLines: View {
     let lines: [CashLine]
+    private var nonZeroLines: [CashLine] {
+        lines.filter { $0.quantity > 0 }
+    }
     var body: some View {
         CashCard {
-        VStack(spacing: 12) {
-            Label("Denomination details", systemImage: "banknote").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
-            HStack { Text("Currency"); Spacer(); Text("Quantity"); Spacer(); Text("Total") }
-                .font(.caption).foregroundStyle(CashStyle.muted)
-            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                HStack {
-                    Text(line.label)
-                    Spacer()
-                    Text("\(line.quantity)").foregroundStyle(.secondary)
-                    Text(cashMoney(line.total)).fontWeight(.semibold)
-                }.font(.subheadline)
+            VStack(spacing: 12) {
+                Label("Denomination details", systemImage: "banknote").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+                if nonZeroLines.isEmpty {
+                    Text("No denominations recorded")
+                        .font(.subheadline)
+                        .foregroundStyle(CashStyle.muted)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 8)
+                } else {
+                    HStack {
+                        Text("Currency").frame(width: 60, alignment: .leading)
+                        Spacer()
+                        Text("Quantity")
+                        Spacer()
+                        Text("Total").frame(width: 75, alignment: .trailing)
+                    }
+                    .font(.caption).foregroundStyle(CashStyle.muted)
+                    ForEach(Array(nonZeroLines.enumerated()), id: \.offset) { _, line in
+                        HStack(spacing: 8) {
+                            CashDenominationBadge(value: line.numericValue, label: line.label, kind: line.kind)
+                            Spacer()
+                            Text("\(line.quantity)").foregroundStyle(.secondary)
+                            Spacer()
+                            Text(cashMoney(line.total))
+                                .fontWeight(.semibold)
+                                .frame(width: 75, alignment: .trailing)
+                        }.font(.subheadline)
+                    }
+                }
+                Divider()
+                HStack { Text("Total"); Spacer(); Text(cashMoney(lines.reduce(0) { $0 + $1.total })).foregroundStyle(CashStyle.green) }.font(.headline)
             }
-            Divider()
-            HStack { Text("Total"); Spacer(); Text(cashMoney(lines.reduce(0) { $0 + $1.total })).foregroundStyle(CashStyle.green) }.font(.headline)
-        }
         }
     }
 }

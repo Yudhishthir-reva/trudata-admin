@@ -11,6 +11,8 @@ import UIKit
 enum AppRootScreen: Equatable {
     case splash
     case auth
+    /// Android `AccountBlockedActivity` — the server rejected the stored token.
+    case sessionExpired
     case home
 }
 
@@ -41,6 +43,16 @@ final class AppRootManager: ObservableObject {
             }
         } else {
             self.currentRoot = .auth
+        }
+    }
+
+    func switchToSessionExpired(animated: Bool = true) {
+        if animated {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                self.currentRoot = .sessionExpired
+            }
+        } else {
+            self.currentRoot = .sessionExpired
         }
     }
 

@@ -39,7 +39,7 @@ final class ViewTargetsViewModel: ObservableObject {
 
     var eligibleStaff: [RegisteredStaffMember] {
         staffMembers.filter {
-            $0.roleId.caseInsensitiveCompare("Sale Person") == .orderedSame
+            DashboardRole.isOfficeStaff($0.roleId) || $0.roleId.caseInsensitiveCompare("Sale Person") == .orderedSame
                 || $0.roleId.caseInsensitiveCompare("Sales Manager") == .orderedSame
         }
     }

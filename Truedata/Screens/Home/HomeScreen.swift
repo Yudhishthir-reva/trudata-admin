@@ -8,6 +8,8 @@ import Combine
 
 enum HomeDestination: Hashable {
     case utility
+    case cashCollection
+    case paymentAdvance
     case assignOrder
     case approveBills
     case orderApproval
@@ -84,182 +86,199 @@ struct HomeScreen: View {
         NavigationStack(path: $navigationPath) {
             homeContent
                 .navigationDestination(for: HomeDestination.self) { destination in
-                    switch destination {
-                    case .utility:
-                        UtilityScreen(onHome: { navigationPath = NavigationPath() })
-                    case .assignOrder:
-                        AssignOrderScreen()
-                    case .approveBills:
-                        ApproveBillsScreen()
-                    case .orderApproval:
-                        OrderApprovalScreen { item in
-                            navigationPath.append(
-                                HomeDestination.viewPendingBills(
-                                    sellerId: item.sellerId,
-                                    staffId: item.staffId,
-                                    sellerName: item.shopName
-                                )
-                            )
-                        }
-                    case .viewPendingBills(let sellerId, let staffId, let sellerName):
-                        ViewPendingBillsScreen(
-                            sellerId: sellerId,
-                            staffId: staffId,
-                            sellerName: sellerName
-                        )
-                    case .orderInsights(let startDate, let endDate, let datePreset, let orderStatus):
-                        OrderInsightsScreen(
-                            startDate: startDate,
-                            endDate: endDate,
-                            datePreset: datePreset,
-                            orderStatus: orderStatus
-                        )
-                    case .topSellingProducts(let startDate, let endDate, let sellerId):
-                        TopSellingProductsScreen(
-                            startDate: startDate,
-                            endDate: endDate,
-                            sellerId: sellerId
-                        )
-                    case .paymentInsights(let startDate, let endDate, let initialTab, let datePreset, let paymentStatus):
-                        PaymentInsightsScreen(
-                            startDate: startDate,
-                            endDate: endDate,
-                            initialTab: initialTab,
-                            datePreset: datePreset,
-                            paymentStatus: paymentStatus
-                        )
-                    case .startNewOrder:
-                        StartNewOrderScreen(
-                            onCreateOrder: { sellerId in
-                                navigationPath.append(HomeDestination.createOrder(sellerId: sellerId))
-                            },
-                            onAddSeller: {
-                                navigationPath.append(HomeDestination.addSeller(sellerId: nil))
-                            },
-                            onViewPendingBills: { seller in
-                                let staffId = Int(UserDefaultManager.shared.getUserDefaultsString(key: .userId)) ?? 0
+                    if DashboardRole.isOfficeStaff(viewModel.role) && !destination.officeStaffAllowed {
+                        Text("This screen is not available for your role.")
+                    } else {
+                        switch destination {
+                        case .cashCollection:
+                            CashCollectionScreen(onHome: { navigationPath = NavigationPath() })
+                        case .paymentAdvance:
+                            PaymentAdvanceScreen(onHome: { navigationPath = NavigationPath() })
+                        case .utility:
+                            UtilityScreen(onHome: { navigationPath = NavigationPath() })
+                        case .assignOrder:
+                            AssignOrderScreen()
+                        case .approveBills:
+                            ApproveBillsScreen()
+                        case .orderApproval:
+                            OrderApprovalScreen { item in
                                 navigationPath.append(
                                     HomeDestination.viewPendingBills(
-                                        sellerId: seller.id,
-                                        staffId: staffId,
-                                        sellerName: seller.displayName
+                                        sellerId: item.sellerId,
+                                        staffId: item.staffId,
+                                        sellerName: item.shopName
                                     )
                                 )
-                            },
-                            onViewProfile: { sellerId in
-                                navigationPath.append(HomeDestination.sellerProfile(sellerId: sellerId))
                             }
-                        )
-                    case .createOrder(let sellerId):
-                        ChooseBrandScreen(sellerId: sellerId) { action in
-                            handleCreateOrderFinish(action, sellerId: sellerId)
+                        case .viewPendingBills(let sellerId, let staffId, let sellerName):
+                            ViewPendingBillsScreen(
+                                sellerId: sellerId,
+                                staffId: staffId,
+                                sellerName: sellerName
+                            )
+                        case .orderInsights(let startDate, let endDate, let datePreset, let orderStatus):
+                            OrderInsightsScreen(
+                                startDate: startDate,
+                                endDate: endDate,
+                                datePreset: datePreset,
+                                orderStatus: orderStatus
+                            )
+                        case .topSellingProducts(let startDate, let endDate, let sellerId):
+                            TopSellingProductsScreen(
+                                startDate: startDate,
+                                endDate: endDate,
+                                sellerId: sellerId
+                            )
+                        case .paymentInsights(let startDate, let endDate, let initialTab, let datePreset, let paymentStatus):
+                            PaymentInsightsScreen(
+                                startDate: startDate,
+                                endDate: endDate,
+                                initialTab: initialTab,
+                                datePreset: datePreset,
+                                paymentStatus: paymentStatus
+                            )
+                        case .startNewOrder:
+                            StartNewOrderScreen(
+                                onCreateOrder: { sellerId in
+                                    navigationPath.append(HomeDestination.createOrder(sellerId: sellerId))
+                                },
+                                onAddSeller: {
+                                    navigationPath.append(HomeDestination.addSeller(sellerId: nil))
+                                },
+                                onViewPendingBills: { seller in
+                                    let staffId = Int(UserDefaultManager.shared.getUserDefaultsString(key: .userId)) ?? 0
+                                    navigationPath.append(
+                                        HomeDestination.viewPendingBills(
+                                            sellerId: seller.id,
+                                            staffId: staffId,
+                                            sellerName: seller.displayName
+                                        )
+                                    )
+                                },
+                                onViewProfile: { sellerId in
+                                    navigationPath.append(HomeDestination.sellerProfile(sellerId: sellerId))
+                                }
+                            )
+                        case .createOrder(let sellerId):
+                            ChooseBrandScreen(sellerId: sellerId) { action in
+                                handleCreateOrderFinish(action, sellerId: sellerId)
+                            }
+                        case .criticalInsights:
+                            CriticalInsightsScreen()
+                        case .loginRequests:
+                            LoginRequestsScreen()
+                        case .myProfile:
+                            MyProfileScreen()
+                        case .registeredSellers:
+                            RegisteredSellersScreen(
+                                onEditSeller: { sellerId in
+                                    navigationPath.append(HomeDestination.addSeller(sellerId: sellerId))
+                                },
+                                onProfileSeller: { sellerId in
+                                    navigationPath.append(HomeDestination.sellerProfile(sellerId: sellerId))
+                                }
+                            )
+                        case .addSeller(let sellerId):
+                            AddSellerScreen(editSellerId: sellerId)
+                        case .sellerProfile(let sellerId):
+                            SellerProfileScreen(sellerId: sellerId, usesNavigationStack: false)
+                        case .manageProducts:
+                            ManageProductsScreen(
+                                navigationPath: $navigationPath,
+                                onEditProduct: { productId in
+                                    navigationPath.append(HomeDestination.editProduct(productId: productId))
+                                }
+                            )
+                        case .addProduct:
+                            AddProductScreen()
+                        case .editProduct(let productId):
+                            AddProductScreen(editProductId: productId)
+                        case .quickShare:
+                            QuickShareScreen()
+                        case .operations(let screenType):
+                            OperationsScreen(screenType: screenType, onNavigate: navigate)
+                        case .controls:
+                            ControlsScreen(onNavigate: navigate)
+                        case .markAttendance:
+                            MarkAttendanceScreen()
+                        case .regularizationRequests:
+                            RegularizationListScreen()
+                        case .regularizeApproval:
+                            RegularizeApprovalScreen()
+                        case .viewLeaves:
+                            LeaveListScreen()
+                        case .leaveApproval:
+                            LeaveApprovalScreen()
+                        case .achievementHistory(let startDate, let endDate):
+                            AchievementHistoryScreen(startDate: startDate, endDate: endDate)
+                        case .productCatalogue:
+                            ProductCatalogueScreen(
+                                onOpenCalculator: {
+                                    navigationPath.append(HomeDestination.productCalculator)
+                                }
+                            )
+                        case .productCalculator:
+                            ProductCalculatorScreen(
+                                onBack: {
+                                    if !navigationPath.isEmpty {
+                                        navigationPath.removeLast()
+                                    }
+                                },
+                                onHome: {
+                                    navigationPath = NavigationPath()
+                                }
+                            )
+                        case .failedOrders:
+                            FailedOrdersScreen()
+                        case .salesmanActivities:
+                            SalesmanActivitiesScreen()
+                        case .staffActivities(let role):
+                            StaffActivitiesScreen(role: role)
+                        case .registeredStaffMembers:
+                            RegisteredStaffListScreen()
+                        case .staffReport:
+                            StaffReportScreen()
+                        case .addStaffMember(let staffId):
+                            AddStaffScreen(editStaffId: staffId)
+                        case .viewVehicles:
+                            ViewVehiclesScreen()
+                        case .viewBeats:
+                            ViewBeatsScreen()
+                        case .viewTargets:
+                            ViewTargetsScreen()
+                        case .viewBeatSummary:
+                            BeatOrderSummaryScreen()
+                        case .assignBeats:
+                            AssignBeatScreen()
+                        case .sellerReport:
+                            SellerReportScreen()
+                        case .expenseApprovals:
+                            ExpenseListScreen(mode: .approvals)
+                        case .myExpenses:
+                            ExpenseListScreen(mode: .personal)
+                        case .riderInsights:
+                            RiderInsightsScreen()
+                        case .b2cOrders:
+                            B2COrdersScreen()
+                        case .allSourceOrders(let source):
+                            AllSourceOrdersScreen(
+                                initialSource: AllSourceOrderSource.fromAPI(source)
+                            )
+                        case .retailerAppPayments(let sellerId, let sellerName):
+                            RetailerAppPaymentScreen(
+                                lockedSellerId: sellerId,
+                                lockedSellerName: sellerName
+                            )
+                        case .pendingSettleCheque:
+                            PendingSettleChequeScreen()
+                        case .chequeSettlement(let sellerId):
+                            ChequeSettlementScreen(sellerId: sellerId)
+                        case .support(let salesPhone, let riderPhone):
+                            SupportScreen(
+                                salesPhoneNumber: salesPhone,
+                                riderPhoneNumber: riderPhone
+                            )
                         }
-                    case .criticalInsights:
-                        CriticalInsightsScreen()
-                    case .loginRequests:
-                        LoginRequestsScreen()
-                    case .myProfile:
-                        MyProfileScreen()
-                    case .registeredSellers:
-                        RegisteredSellersScreen(
-                            onEditSeller: { sellerId in
-                                navigationPath.append(HomeDestination.addSeller(sellerId: sellerId))
-                            },
-                            onProfileSeller: { sellerId in
-                                navigationPath.append(HomeDestination.sellerProfile(sellerId: sellerId))
-                            }
-                        )
-                    case .addSeller(let sellerId):
-                        AddSellerScreen(editSellerId: sellerId)
-                    case .sellerProfile(let sellerId):
-                        SellerProfileScreen(sellerId: sellerId, usesNavigationStack: false)
-                    case .manageProducts:
-                        ManageProductsScreen(
-                            navigationPath: $navigationPath,
-                            onEditProduct: { productId in
-                                navigationPath.append(HomeDestination.editProduct(productId: productId))
-                            }
-                        )
-                    case .addProduct:
-                        AddProductScreen()
-                    case .editProduct(let productId):
-                        AddProductScreen(editProductId: productId)
-                    case .quickShare:
-                        QuickShareScreen()
-                    case .operations(let screenType):
-                        OperationsScreen(screenType: screenType, onNavigate: navigate)
-                    case .controls:
-                        ControlsScreen(onNavigate: navigate)
-                    case .markAttendance:
-                        MarkAttendanceScreen()
-                    case .regularizationRequests:
-                        RegularizationListScreen()
-                    case .regularizeApproval:
-                        RegularizeApprovalScreen()
-                    case .viewLeaves:
-                        LeaveListScreen()
-                    case .leaveApproval:
-                        LeaveApprovalScreen()
-                    case .achievementHistory(let startDate, let endDate):
-                        AchievementHistoryScreen(startDate: startDate, endDate: endDate)
-                    case .productCatalogue:
-                        ProductCatalogueScreen(
-                            onOpenCalculator: {
-                                navigationPath.append(HomeDestination.productCalculator)
-                            }
-                        )
-                    case .productCalculator:
-                        ProductCalculatorScreen()
-                    case .failedOrders:
-                        FailedOrdersScreen()
-                    case .salesmanActivities:
-                        SalesmanActivitiesScreen()
-                    case .staffActivities(let role):
-                        StaffActivitiesScreen(role: role)
-                    case .registeredStaffMembers:
-                        RegisteredStaffListScreen()
-                    case .staffReport:
-                        StaffReportScreen()
-                    case .addStaffMember(let staffId):
-                        AddStaffScreen(editStaffId: staffId)
-                    case .viewVehicles:
-                        ViewVehiclesScreen()
-                    case .viewBeats:
-                        ViewBeatsScreen()
-                    case .viewTargets:
-                        ViewTargetsScreen()
-                    case .viewBeatSummary:
-                        BeatOrderSummaryScreen()
-                    case .assignBeats:
-                        AssignBeatScreen()
-                    case .sellerReport:
-                        SellerReportScreen()
-                    case .expenseApprovals:
-                        ExpenseListScreen(mode: .approvals)
-                    case .myExpenses:
-                        ExpenseListScreen(mode: .personal)
-                    case .riderInsights:
-                        RiderInsightsScreen()
-                    case .b2cOrders:
-                        B2COrdersScreen()
-                    case .allSourceOrders(let source):
-                        AllSourceOrdersScreen(
-                            initialSource: AllSourceOrderSource.fromAPI(source)
-                        )
-                    case .retailerAppPayments(let sellerId, let sellerName):
-                        RetailerAppPaymentScreen(
-                            lockedSellerId: sellerId,
-                            lockedSellerName: sellerName
-                        )
-                    case .pendingSettleCheque:
-                        PendingSettleChequeScreen()
-                    case .chequeSettlement(let sellerId):
-                        ChequeSettlementScreen(sellerId: sellerId)
-                    case .support(let salesPhone, let riderPhone):
-                        SupportScreen(
-                            salesPhoneNumber: salesPhone,
-                            riderPhoneNumber: riderPhone
-                        )
                     }
                 }
         }
@@ -359,7 +378,12 @@ struct HomeScreen: View {
     }
 
     private func navigate(to route: String) {
+        guard DashboardRole.canOpen(role: viewModel.role, route: route) else { return }
         switch route {
+        case "cash_collection":
+            navigationPath.append(HomeDestination.cashCollection)
+        case "advance_payment":
+            navigationPath.append(HomeDestination.paymentAdvance)
         case "home":
             navigationPath = NavigationPath()
         case "utility":
@@ -529,8 +553,11 @@ struct HomeScreen: View {
                 if let sellerId = Int(idPart), sellerId > 0 {
                     navigationPath.append(HomeDestination.createOrder(sellerId: sellerId))
                 }
+            } else {
+                // The dashboard is server-driven, so a card can name a route this build does not
+                // handle yet. Say so instead of leaving the tap silently dead.
+                pendingRouteMessage = "\(route.replacingOccurrences(of: "_", with: " ").capitalized) will be available in the next update."
             }
-            break
         }
     }
 
@@ -607,6 +634,9 @@ struct HomeScreen: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if DashboardRole.isOfficeStaff(viewModel.role) {
+            OfficeStaffHome(items: viewModel.response?.data?.allItems ?? [], onNavigate: navigate)
+                .refreshable { viewModel.loadHome(isRefresh: true) }
         } else if viewModel.response != nil && !viewModel.isBeatSelected {
             StartNewOrderScreen(
                 presentation: .dashboardBeatSelection,
@@ -683,4 +713,16 @@ struct HomeScreen: View {
 
 #Preview {
     HomeScreen()
+}
+
+private extension HomeDestination {
+    var officeStaffAllowed: Bool {
+        switch self {
+        case .utility, .cashCollection, .paymentAdvance, .myProfile, .markAttendance,
+             .regularizationRequests, .viewLeaves, .myExpenses, .support:
+            return true
+        case .operations(let type): return type == .actions
+        default: return false
+        }
+    }
 }

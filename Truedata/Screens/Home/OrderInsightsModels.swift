@@ -413,15 +413,18 @@ struct OrderInsightsStaffMember: Identifiable, Decodable {
     var id: Int
     var name: String
     var mobile: String
+    var role: String
 
     enum CodingKeys: String, CodingKey {
         case id, name, mobile
+        case role = "role_id"
     }
 
-    init(id: Int = 0, name: String = "", mobile: String = "") {
+    init(id: Int = 0, name: String = "", mobile: String = "", role: String = "") {
         self.id = id
         self.name = name
         self.mobile = mobile
+        self.role = role
     }
 
     init(from decoder: Decoder) throws {
@@ -429,6 +432,7 @@ struct OrderInsightsStaffMember: Identifiable, Decodable {
         id = container.decodeIntLeniently(forKey: .id) ?? 0
         name = container.decodeStringLeniently(forKey: .name) ?? ""
         mobile = container.decodeStringLeniently(forKey: .mobile) ?? ""
+        role = container.decodeStringLeniently(forKey: .role) ?? ""
     }
 }
 

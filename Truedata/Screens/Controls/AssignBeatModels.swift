@@ -100,7 +100,7 @@ struct AssignBeatFormState: Equatable {
 enum AssignBeatStaffFilter {
     static func isEligible(_ staff: RegisteredStaffMember) -> Bool {
         let role = staff.roleId.trimmingCharacters(in: .whitespacesAndNewlines)
-        return role.caseInsensitiveCompare("Sale Person") == .orderedSame
+        return DashboardRole.isOfficeStaff(role) || role.caseInsensitiveCompare("Sale Person") == .orderedSame
             || role == "5"
             || role.caseInsensitiveCompare("Accountant") == .orderedSame
     }

@@ -19,6 +19,10 @@ final class HomePrefetchManager {
     func prefetchBaseApisIfNeeded() {
         guard !hasPrefetchedBaseApis else { return }
         hasPrefetchedBaseApis = true
+        if DashboardRole.isOfficeStaff(UserDefaultManager.shared.getUserDefaultsString(key: .userRole)) {
+            prefetch(service.fetchLeaveTypes()) { _ in }
+            return
+        }
 
         let today = DashboardDateFormat.todayString
 

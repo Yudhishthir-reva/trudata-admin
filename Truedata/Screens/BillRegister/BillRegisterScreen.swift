@@ -78,15 +78,22 @@ struct BillRegisterScreen: View {
                     }
                 }.buttonStyle(.plain)
             }
-            if model.hasMore && !model.loading { Button("Load more") { Task { await model.load(more: true) } } }
+            if model.hasMore && !model.loading {
+                Button("Load more") { Task { await model.load(more: true) } }
+                    .tint(AppTheme.cerulean)
+            }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.access.canManage {
                 Button { creating = true } label: {
                     Label("New Bill Register", systemImage: "plus.circle.fill").frame(maxWidth: .infinity).padding(14)
-                }.buttonStyle(.borderedProminent).padding(.horizontal, 14).padding(.vertical, 8).background(.regularMaterial)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.cerulean)
+                .padding(.horizontal, 14).padding(.vertical, 8).background(.regularMaterial)
             }
         }
+        .tint(AppTheme.cerulean)
         .task(id: "\(model.status)-\(model.assignedTo)-\(model.orderID)") {
             do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
             await model.load()
@@ -160,8 +167,10 @@ private struct BillRegisterCreateScreen: View {
                     Text(billMoney(selectedAmount)).font(.title3.bold())
                     Button { confirm = true } label: {
                         Label("Create & Assign", systemImage: "checkmark").frame(maxWidth: .infinity).padding(13)
-                    }.buttonStyle(.borderedProminent)
-                        .disabled(beats.isEmpty || orders.isEmpty || person == 0 || model.loading || model.saving)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.cerulean)
+                    .disabled(beats.isEmpty || orders.isEmpty || person == 0 || model.loading || model.saving)
                 }.padding(14).background(.regularMaterial)
             }
             .task { await model.loadOptions(includeBeats: true) }
@@ -264,14 +273,22 @@ private struct BillRegisterDetailScreen: View {
                 HStack(spacing: 10) {
                     Button { action = .assign(id: id, assignedTo: person) } label: {
                         Label("Reassign", systemImage: "arrow.left.arrow.right").frame(maxWidth: .infinity).padding(12)
-                    }.buttonStyle(.bordered).disabled(person == 0 || model.saving)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(AppTheme.cerulean)
+                    .disabled(person == 0 || model.saving)
+
                     Button { action = .clear(id: id, orderIds: selected.isEmpty ? nil : selected.sorted()) } label: {
                         Label(selected.isEmpty ? "Clear All" : "Clear (\(selected.count))", systemImage: "checkmark.double")
                             .frame(maxWidth: .infinity).padding(12)
-                    }.buttonStyle(.borderedProminent).disabled(model.saving || (entry.orders ?? []).allSatisfy(\.isCleared))
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.cerulean)
+                    .disabled(model.saving || (entry.orders ?? []).allSatisfy(\.isCleared))
                 }.padding(.horizontal, 14).padding(.vertical, 8).background(.regularMaterial)
             }
         }
+        .tint(AppTheme.cerulean)
         .task { await reload(); await model.loadOptions() }
         .confirmationDialog("Confirm register update?", isPresented: Binding(get: { action != nil }, set: { if !$0 { action = nil } }), titleVisibility: .visible) {
             if let operation = action {
@@ -297,7 +314,7 @@ private struct BillRegisterDetailScreen: View {
 private struct BillRegisterFeedback: View {
     @ObservedObject var model: BillRegisterViewModel
     var body: some View {
-        if model.loading || model.saving { ProgressView(model.saving ? "Saving…" : "Loading…") }
+        if model.loading || model.saving { ProgressView(model.saving ? "Saving…" : "Loading…").tint(AppTheme.cerulean) }
         if let error = model.error { Text(error).foregroundStyle(.red).font(.subheadline) }
         if let message = model.message { Text(message).foregroundStyle(AppTheme.cerulean).font(.subheadline) }
     }
