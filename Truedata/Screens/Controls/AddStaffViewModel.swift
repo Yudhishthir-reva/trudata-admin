@@ -22,6 +22,7 @@ final class AddStaffViewModel: ObservableObject {
     @Published var roleId: Int?
     @Published var roleName = ""
     @Published var joiningDate = ""
+    @Published var salary = ""
     @Published var profileImage: UIImage?
     @Published var aadharFrontImage: UIImage?
     @Published var aadharBackImage: UIImage?
@@ -39,6 +40,10 @@ final class AddStaffViewModel: ObservableObject {
     private var pendingEditMember: RegisteredStaffMember?
 
     var isEditMode: Bool { editStaffId != nil }
+
+    /// Only admin and sales manager see the Salary field — and only they send it, so another role
+    /// saving the form never blanks out a stored salary.
+    let canViewSalary = DashboardRole.currentUserCanViewStaffSalary
 
     var screenTitle: String {
         isEditMode ? "Edit Staff Member" : "Add New Staff Member"
@@ -139,6 +144,8 @@ final class AddStaffViewModel: ObservableObject {
             "role": roleId ?? -1,
             "joining_date": joiningDate
         ]
+        // Sent (even blank, so clearing the field clears it) only by roles that see the field.
+        if canViewSalary { params["salary"] = salary }
 
         var files: [MultipartFileUpload] = []
         if let data = profileImage?.compressedJPEGData() {
@@ -172,8 +179,10 @@ final class AddStaffViewModel: ObservableObject {
 
     private func submitUpdate() {
         guard let editStaffId else { return }
-        let params: [String: Any] = [
-            "staff_id": pendingEditMember?.staffId.nilIfEmpty ?? String(editStaffId),
+        // The numeric user id. `RegisteredStaffMember.staffId` is the display code ("TD-029") and
+        // the server rejects it with "The staff id field must be an integer."
+        var params: [String: Any] = [
+            "staff_id": editStaffId,
             "name": name,
             "mobile": mobile,
             "email": email,
@@ -182,6 +191,7 @@ final class AddStaffViewModel: ObservableObject {
             "role": roleId ?? -1,
             "joining_date": joiningDate
         ]
+        if canViewSalary { params["salary"] = salary }
 
         service.updateStaff(params: params)
             .receive(on: DispatchQueue.main)
@@ -219,6 +229,7 @@ final class AddStaffViewModel: ObservableObject {
         mobile = member.mobile
         email = member.email
         joiningDate = member.joiningDate
+        salary = Self.displaySalary(member.salary)
         roleName = member.roleId
         roleId = roles.first(where: { $0.name.caseInsensitiveCompare(member.roleId) == .orderedSame })?.id
 
@@ -234,6 +245,13 @@ final class AddStaffViewModel: ObservableObject {
                 selectCity(city)
             }
         }
+    }
+
+    /// "15000.00" from the API reads better as "15000" in the field; anything unparseable is kept as-is.
+    private static func displaySalary(_ raw: String?) -> String {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return "" }
+        guard let value = Decimal(string: raw) else { return raw }
+        return "\(value)"
     }
 
     private func applyDefaultAreaSelection() {

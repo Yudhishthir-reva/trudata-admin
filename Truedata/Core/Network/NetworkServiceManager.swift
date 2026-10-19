@@ -103,8 +103,7 @@ class NetworkServiceManager: NetworkServiceManagable {
                 case 200...299:
                     return data
                 default:
-                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let message = json["message"] as? String, !message.isEmpty {
+                    if let message = Self.displayMessage(from: data) {
                         throw RequestError.apiMessage(message)
                     }
                     throw RequestError.unknownError
@@ -163,6 +162,13 @@ class NetworkServiceManager: NetworkServiceManagable {
                 return error
             }
             .tryMap { data, response -> Data in
+                #if DEBUG
+                print(response)
+                print("==================================================================")
+                print("Response (multipart):\n", String(data: data, encoding: .utf8) ?? "<\(data.count) bytes, not UTF-8>")
+                print("==================================================================")
+                #endif
+
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw RequestError.invalidResponse
                 }
@@ -173,8 +179,7 @@ class NetworkServiceManager: NetworkServiceManagable {
                 case 200...299:
                     return data
                 default:
-                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let message = json["message"] as? String, !message.isEmpty {
+                    if let message = Self.displayMessage(from: data) {
                         throw RequestError.apiMessage(message)
                     }
                     throw RequestError.unknownError
@@ -182,6 +187,26 @@ class NetworkServiceManager: NetworkServiceManagable {
             }
             .decode(type: T.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
+    }
+
+    /// The server's own words for a failed call, for the alert. `message` is a string on most
+    /// endpoints and an array of strings on others; Laravel validation also puts the useful text
+    /// under `errors`. Nil when the body carries nothing readable (an HTML 500, say).
+    private static func displayMessage(from data: Data) -> String? {
+        guard let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }
+        if let errors = json["errors"] as? [String: Any] {
+            let first = errors.values.lazy.compactMap { value -> String? in
+                if let list = value as? [Any] { return list.compactMap { $0 as? String }.first }
+                return value as? String
+            }.first
+            if let first, !first.isEmpty { return first }
+        }
+        if let text = json["message"] as? String, !text.isEmpty { return text }
+        if let list = json["message"] as? [Any] {
+            let text = list.compactMap { $0 as? String }.joined(separator: "\n")
+            if !text.isEmpty { return text }
+        }
+        return nil
     }
 
     private static func rejectInvalidSession(

@@ -34,11 +34,6 @@ final class LocationConsentPresenter: NSObject, ObservableObject {
         locationManager.delegate = self
     }
 
-    /// Kept for Remote Config compatibility; App Store flow always proceeds (hard).
-    func updateMode(_ mode: LocationConsentMode) {
-        _ = mode
-    }
-
     /// Shows the custom popover; Continue always leads to system permission / Settings.
     func ask(
         title: String = "Location Access",

@@ -6,6 +6,44 @@
 import SwiftUI
 
 struct DashboardItemCard: View {
+    /// The routes this view can draw. Home filters on it so an unhandled key leaves no gap,
+    /// matching Android, where an unknown key simply renders nothing.
+    static let handledRoutes: Set<String> = [
+        "assign_order",
+        "approve_bills",
+        "order_approval",
+        "approve_orders",
+        "approve_sellers_to_make_order",
+        "b2c_orders",
+        "new_device_login_requests",
+        "scheduled_revisits",
+        "manage_orders",
+        "all_time_orders",
+        "payment_history",
+        "all_time_orders_summary",
+        "last_10_day_summery",
+        "today_staff_activities",
+        "salesman_activities",
+        "order_not_delivered_history",
+        "quick_share",
+        "catalogue",
+        "registered_sellers",
+        "view_products",
+        "your_targets",
+        "attendance",
+        "mark_attendance",
+        "staff_report",
+        "view_leaves",
+        "leave_approval",
+        "regularization_requests",
+        "regularize_approval",
+        "today_achievements",
+        "rider_report",
+        "manage_employees",
+        "controls",
+        "support"
+    ]
+
     let item: DashboardItem
     var role: String = ""
     var startDate: String = ""
@@ -78,7 +116,9 @@ struct DashboardItemCard: View {
         case "support":
             supportCard
         default:
-            genericCard
+            // Android's `when` has no else branch: a key it doesn't know draws no card. iOS used
+            // to fall back to a guessed generic card, so Home showed widgets Android hides.
+            EmptyView()
         }
     }
 
@@ -1478,39 +1518,6 @@ struct DashboardItemCard: View {
                 .buttonStyle(.plain)
             }
         }
-    }
-
-    private var genericCard: some View {
-        Button(action: {
-            if !item.route.isEmptyString {
-                onNavigate(item.route)
-            }
-        }) {
-            DashboardCardChrome {
-                VStack(alignment: .leading, spacing: 8) {
-                    DashboardBulletTitle(title: displayTitle(item.route.replacingOccurrences(of: "_", with: " ").capitalized))
-                    if payload?["in_time"] != nil {
-                        DashboardStatRow(label: "In", value: payload?.string(for: "in_time") ?? "-")
-                        DashboardStatRow(label: "Out", value: payload?.string(for: "out_time") ?? "-")
-                    } else if let totalStaff = payload?.int(for: "totalStaff"), totalStaff > 0 {
-                        DashboardStatRow(label: "Present", value: "\(payload?.int(for: "presentStaff") ?? 0)/\(totalStaff)")
-                    } else if let totalRider = payload?.int(for: "totalRider"), totalRider > 0 {
-                        DashboardStatRow(label: "Present", value: "\(payload?.int(for: "presentRider") ?? 0)/\(totalRider)")
-                    } else if let pending = payload?.int(for: "pendingRequests"), pending > 0 {
-                        DashboardPendingTag(count: pending, suffix: "Pending")
-                    } else if let pendingLeave = payload?.int(for: "pendingLeaveCount"), pendingLeave > 0 {
-                        DashboardPendingTag(count: pendingLeave, suffix: "Pending")
-                    } else if let pendingRegularize = payload?.int(for: "pendingRegularizeCount"), pendingRegularize > 0 {
-                        DashboardPendingTag(count: pendingRegularize, suffix: "Pending")
-                    } else {
-                        Text("Tap to open")
-                            .font(.system(size: 13))
-                            .foregroundStyle(AppTheme.textMuted)
-                    }
-                }
-            }
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers

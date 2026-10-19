@@ -39,6 +39,9 @@ final class AddSellerViewModel: ObservableObject {
     @Published var areas: [OrderInsightsStateArea] = []
     @Published var sellerTypes: [AddSellerTypeItem] = []
     @Published var staffMembers: [AddSellerStaffMember] = []
+    /// Edit mode only — mirrors Android's "Update Seller Address" checkbox. Off by default, so saving
+    /// any other field leaves the seller's stored GPS location and address untouched.
+    @Published var updateSellerAddress = false
     @Published var isLoading = false
     @Published var isLoadingDetail = false
     @Published var isSubmitting = false
@@ -139,6 +142,16 @@ final class AddSellerViewModel: ObservableObject {
 
     func submit(locationSnapshot: LocationSnapshot?) {
         guard validate() else { return }
+
+        // Editing without "Update Seller Address" sends no location at all, so the server keeps
+        // what is stored — the admin's own position must never replace a seller's (Android parity).
+        if isEditMode && !updateSellerAddress {
+            isSubmitting = true
+            errorMessage = nil
+            submitUpdate(lat: nil, long: nil, address: nil)
+            return
+        }
+
         guard let locationSnapshot, locationSnapshot.isFresh else {
             errorMessage = "Refresh your location before saving the seller."
             return
@@ -209,9 +222,11 @@ final class AddSellerViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    private func submitUpdate(lat: String, long: String, address: String) {
+    /// `lat`/`long`/`address` nil means "don't touch the stored location": the keys are left out of
+    /// the request rather than sent empty.
+    private func submitUpdate(lat: String?, long: String?, address: String?) {
         guard let editSellerId else { return }
-        let params: [String: Any] = [
+        var params: [String: Any] = [
             "seller_id": editSellerId,
             "name": sellerName,
             "mobile": mobile,
@@ -222,14 +237,16 @@ final class AddSellerViewModel: ObservableObject {
             "shop_name": shopName,
             "whatsapp_no": whatsapp,
             "landmark": landmark,
-            "latitude": lat,
-            "longitude": long,
-            "address": address,
             "manual_address": manualAddress,
             "seller_type": sellerTypeId ?? 0,
             "assign_to": assignedToId.map(String.init) ?? "",
             "gst_no": gstNo
         ]
+        if let lat, let long, let address {
+            params["latitude"] = lat
+            params["longitude"] = long
+            params["address"] = address
+        }
 
         service.updateSeller(params: params)
             .receive(on: DispatchQueue.main)

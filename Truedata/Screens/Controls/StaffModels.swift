@@ -47,6 +47,8 @@ struct RegisteredStaffMember: Identifiable, Hashable, Decodable {
     var stateId: String
     var cityId: String
     var joiningDate: String
+    /// "15000.00" or a bare number; nil when the API leaves it out. Shown only to salary roles.
+    var salary: String?
     var status: String
     var profilePic: String
     var aadharFrontPic: String
@@ -59,6 +61,7 @@ struct RegisteredStaffMember: Identifiable, Hashable, Decodable {
         case stateId = "state_id"
         case cityId = "city_id"
         case joiningDate = "joining_date"
+        case salary
         case profilePic = "profile_pic"
         case aadharFrontPic = "addhar_front_pic"
         case aadharBackPic = "addhar_back_pic"
@@ -75,6 +78,7 @@ struct RegisteredStaffMember: Identifiable, Hashable, Decodable {
         stateId = container.decodeStringLeniently(forKey: .stateId) ?? ""
         cityId = container.decodeStringLeniently(forKey: .cityId) ?? ""
         joiningDate = container.decodeStringLeniently(forKey: .joiningDate) ?? ""
+        salary = container.decodeStringLeniently(forKey: .salary)
         status = container.decodeStringLeniently(forKey: .status) ?? ""
         profilePic = container.decodeStringLeniently(forKey: .profilePic) ?? ""
         aadharFrontPic = container.decodeStringLeniently(forKey: .aadharFrontPic) ?? ""

@@ -137,6 +137,9 @@ struct BillRegisterEntry: Identifiable {
     var clearedOrders: Int { json["cleared_orders"]?.intValue ?? 0 }
     var totalAmount: Double { json["total_amount"]?.doubleValue ?? 0 }
     var pendingAmount: Double { json["pending_amount"]?.doubleValue ?? 0 }
+    /// The backend has returned "Cleared" as well as "cleared"; comparing the raw string let a
+    /// cleared register keep its Reassign and Clear controls.
+    var isCleared: Bool { status.lowercased() == BillRegisterStatus.cleared.rawValue }
     var orders: [BillRegisterOrderEntry]? {
         guard case .array(let values) = json["orders"] else { return nil }
         return values.map(BillRegisterOrderEntry.init)

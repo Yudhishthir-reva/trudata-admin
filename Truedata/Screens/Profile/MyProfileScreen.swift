@@ -128,6 +128,9 @@ struct MyProfileScreen: View {
                 }
                 .padding(16)
             }
+            // Android's scaffold sits on Surface (#FAFAFA). On a white page the white cards had
+            // nothing to stand against, so they read as one flat sheet.
+            .background(DashboardTheme.surface)
         }
     }
 
@@ -162,8 +165,14 @@ struct MyProfileScreen: View {
         .background {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(
+                    // Both stops are brand tones. This was primary-into-purple; the purple is a
+                    // fixed data-viz accent, not a brand colour, so once the brand went green the
+                    // header faded green-to-violet. Android fixed the same thing.
                     LinearGradient(
-                        colors: [DashboardTheme.primaryBlue, Color(hex: "632BC7")],
+                        colors: [
+                            Color(hex: AppTheme.useGreenTheme ? "1D8750" : "14446A"),
+                            Color(hex: AppTheme.useGreenTheme ? "0E4A28" : "002B45")
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -175,7 +184,9 @@ struct MyProfileScreen: View {
         title: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        // Android `InfoCard`: 20dp corners, 16dp padding, 12dp under the title, and a 4dp
+        // elevation. The old shadow was faint enough that the cards read as flat panels.
+        VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(DashboardTheme.neutralDark)
@@ -186,26 +197,28 @@ struct MyProfileScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
+        .shadow(color: Color.black.opacity(0.10), radius: 8, y: 3)
     }
 
     private func infoRow(icon: String, label: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        // Android `InfoRow`: a 20dp icon centred against the pair, 16dp apart, 8dp padding.
+        HStack(alignment: .center, spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: 18))
+                .font(.system(size: 20))
                 .foregroundStyle(DashboardTheme.primaryBlue)
-                .frame(width: 22)
+                .frame(width: 20)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(label)
-                    .font(.system(size: 12))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(DashboardTheme.neutralMedium)
-                Text(value.isEmptyString ? "—" : value)
-                    .font(.system(size: 15, weight: .semibold))
+                Text(value.isEmptyString ? "-" : value)
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(DashboardTheme.neutralDark)
             }
         }
-        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
     }
 
     private func documentRow(title: String, action: @escaping () -> Void) -> some View {

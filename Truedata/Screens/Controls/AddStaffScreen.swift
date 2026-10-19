@@ -239,6 +239,16 @@ struct AddStaffScreen: View {
                     }
                 }
 
+                if viewModel.canViewSalary {
+                    InputField(
+                        label: "Salary",
+                        text: $viewModel.salary,
+                        placeholder: "Enter monthly salary",
+                        keyboardType: .decimalPad,
+                        submitLabel: .done
+                    )
+                }
+
                 if !viewModel.isEditMode {
                     photoSection(title: StaffPhotoKind.profile.title, image: viewModel.profileImage, kind: .profile)
                     photoSection(title: StaffPhotoKind.aadharFront.title, image: viewModel.aadharFrontImage, kind: .aadharFront)

@@ -656,8 +656,13 @@ struct HomeScreen: View {
                                     .padding(.horizontal, 4)
                             }
 
-                            LazyVStack(spacing: 16) {
-                                ForEach(section.items) { item in
+                            // A plain VStack on purpose. Nesting a LazyVStack inside the outer
+                            // LazyVStack let the inner one report a size before its children were
+                            // built, so sections intermittently scrolled in blank. The outer stack
+                            // already defers each section; a section's few cards build eagerly.
+                            VStack(spacing: 16) {
+                                // Skip keys this build can't draw, so they leave no empty slot.
+                                ForEach(section.items.filter { DashboardItemCard.handledRoutes.contains($0.route) }) { item in
                                     DashboardItemCard(
                                         item: item,
                                         role: viewModel.role,

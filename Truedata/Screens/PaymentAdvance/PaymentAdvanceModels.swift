@@ -11,6 +11,10 @@ enum AdvanceStatus: String, CaseIterable, Identifiable {
     case pending, partial, completed, onHold = "on_hold", cancelled
     var id: String { rawValue }
     var title: String { rawValue.replacingOccurrences(of: "_", with: " ").capitalized }
+    /// Android `AdvanceStatus.isOpen`: completed and cancelled advances take no more payments.
+    static func isOpen(_ status: String) -> Bool {
+        [AdvanceStatus.pending, .partial, .onHold].map(\.rawValue).contains(status.lowercased())
+    }
 }
 
 struct PaymentAdvanceRecord: Identifiable {
@@ -28,6 +32,7 @@ struct PaymentAdvanceRecord: Identifiable {
     let role: String
     let author: String
     let attachment: URL?
+    let createdAt: String
     let returns: [PaymentAdvanceRecord]
 
     init(_ json: JSONValue, isReturn: Bool = false) throws {
@@ -50,6 +55,7 @@ struct PaymentAdvanceRecord: Identifiable {
         personID = json["person"]?["id"]?.intValue ?? 0
         role = json["person"]?["role"]?["name"]?.stringValue ?? json["person"]?["role"]?.stringValue ?? ""
         author = json[self.isReturn ? "received_by" : "given_by"]?["name"]?.stringValue ?? ""
+        createdAt = json["created_at"]?.stringValue ?? ""
         attachment = json["attachment"].flatMap { URL(string: $0.stringValue) }.flatMap { ["https", "http"].contains($0.scheme?.lowercased() ?? "") ? $0 : nil }
         returns = try (json["returns"]?.arrayValue ?? []).map { try Self($0, isReturn: true) }
     }

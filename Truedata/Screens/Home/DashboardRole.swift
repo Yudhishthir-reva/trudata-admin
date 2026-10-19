@@ -65,6 +65,16 @@ enum DashboardRole {
         isPrivilegedRole(role)
     }
 
+    /// Only admin and sales manager may see and set a staff member's salary (Android
+    /// `canViewStaffSalary`). Narrower than `isPrivilegedRole`: accountant is excluded.
+    static func canViewStaffSalary(role: String) -> Bool {
+        ["admin", "sales manager"].contains(normalized(role))
+    }
+
+    static var currentUserCanViewStaffSalary: Bool {
+        canViewStaffSalary(role: UserDefaultManager.shared.getUserDefaultsString(key: .userRole))
+    }
+
     /// Convenience for the logged-in user role from UserDefaults.
     static var currentUserCanViewSellerMobile: Bool {
         canViewSellerMobile(

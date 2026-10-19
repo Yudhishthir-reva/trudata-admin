@@ -115,12 +115,19 @@ final class PaymentAdvanceViewModel: ObservableObject {
     }
 
     func updateStatus(_ status: AdvanceStatus) async {
-        guard access.canManage, !saving, let detail else { return }
+        guard let detail else { return }
+        await updateStatus(status, for: detail.recordID, reloadDetail: true)
+    }
+
+    /// The list row's menu can change a status without the detail ever being loaded, so the id
+    /// comes in explicitly instead of from `detail`.
+    func updateStatus(_ status: AdvanceStatus, for recordID: Int, reloadDetail: Bool = false) async {
+        guard access.canManage, !saving, recordID > 0 else { return }
         saving = true; error = nil
         defer { saving = false }
         do {
-            _ = try await service.request("update-status", params: ["id": detail.recordID, "status": status.rawValue])
-            await loadDetail(detail.recordID)
+            _ = try await service.request("update-status", params: ["id": recordID, "status": status.rawValue])
+            if reloadDetail { await loadDetail(recordID) } else { await load() }
         } catch { self.error = error.localizedDescription }
     }
 }

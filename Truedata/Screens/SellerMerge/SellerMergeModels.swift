@@ -23,10 +23,11 @@ struct SellerMergeResponse: Decodable {
 }
 
 enum SellerMergeAccess {
+    /// Role only, as on Android. The staging-only guard here was removed once the merge
+    /// endpoints went live on production.
     static var allowed: Bool {
         let role = DashboardRole.normalized(UserDefaultManager.shared.getUserDefaultsString(key: .userRole))
-        return BASE_URL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) == "https://spicemonk.in/staging/api"
-            && ["admin", "accountant", "sales manager", "sale manager"].contains(role)
+        return ["admin", "accountant", "sales manager", "sale manager"].contains(role)
     }
 }
 

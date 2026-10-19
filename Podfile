@@ -8,7 +8,6 @@ target 'Truedata' do
   pod 'IQKeyboardManagerSwift'
   pod 'FirebaseCore'
   pod 'FirebaseMessaging'
-  pod 'FirebaseRemoteConfig'
 
 
 end

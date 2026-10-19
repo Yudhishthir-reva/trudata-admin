@@ -83,29 +83,21 @@ struct PaymentInsightsScreen: View {
         )
     }
 
+    /// The same segmented control Payment Advance and the rest of the Utility family use
+    /// (`CashTabs`): equal-width pills, the selected one filled with the brand gradient.
     private var viewModeTabs: some View {
-        HStack(spacing: 0) {
-            ForEach(PaymentInsightsViewMode.allCases, id: \.self) { mode in
-                Button { viewModel.viewMode = mode } label: {
-                    VStack(spacing: 8) {
-                        Text(mode.rawValue)
-                            .font(.system(size: 15, weight: viewModel.viewMode == mode ? .bold : .medium))
-                            .foregroundStyle(
-                                viewModel.viewMode == mode
-                                ? DashboardTheme.primaryBlue
-                                : DashboardTheme.neutralMedium
-                            )
-                        Rectangle()
-                            .fill(viewModel.viewMode == mode ? DashboardTheme.primaryBlue : Color.clear)
-                            .frame(height: 2)
+        CashTabs(
+            titles: PaymentInsightsViewMode.allCases.map(\.rawValue),
+            selection: Binding(
+                get: { viewModel.viewMode.rawValue },
+                set: { title in
+                    if let mode = PaymentInsightsViewMode(rawValue: title) {
+                        viewModel.viewMode = mode
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.plain)
-            }
-        }
+            )
+        )
         .padding(.horizontal, 16)
-        .background(Color(hex: "F3F4F6"))
     }
 
     @ViewBuilder

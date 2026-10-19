@@ -49,7 +49,7 @@ final class SellerMergeViewModel: ObservableObject {
     var canReview: Bool { primary?.isActive == true && secondary != nil && primary?.id != secondary?.id && !busy }
 
     private func request(_ path: String, _ params: [String: Any]) async throws -> SellerMergeResponse {
-        guard SellerMergeAccess.allowed else { throw RequestError.apiMessage("Seller Merge is available to authorized staff on staging only.") }
+        guard SellerMergeAccess.allowed else { throw RequestError.apiMessage("Seller Merge is open to Admin, Sales Manager and Accountant.") }
         let publisher: AnyPublisher<SellerMergeResponse, Error> = NetworkServiceManager.shared.request(
             BillRegisterEndpoint(endPointUrl: path), params: params, headers: UserDefaultManager.shared.authHeader)
         for try await response in publisher.values {

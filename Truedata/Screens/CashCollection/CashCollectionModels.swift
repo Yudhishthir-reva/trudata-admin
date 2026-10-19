@@ -31,9 +31,14 @@ struct CashAccess {
     var canViewLedger: Bool { canReviewAll }
     var canManageAdvance: Bool { canReviewAll }
     var canManageBills: Bool { canReviewAll }
+    /// Mark anyone's attendance by hand and read what was marked (Android `canManageAttendance`).
+    var canManageAttendance: Bool { ManualAttendanceAccess.allowed(role: role) }
+
+    private let role: String
 
     init(role: String) {
         let role = role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        self.role = role
         canReviewAll = ["admin", "accountant", "sales manager"].contains(role)
         canEdit = role == "admin"
         canViewOwnBills = !DashboardRole.isOfficeStaff(role)
@@ -127,6 +132,9 @@ struct CashRecord: Identifiable {
     let denominations: [CashLine]
     /// Running cash in hand after this line. Ledger rows carry it; other lists do not.
     let balanceAfter: Int?
+    /// `collection` or `amount_taken` on ledger rows; empty on the other lists.
+    let ledgerType: String
+    var isAmountTaken: Bool { ledgerType == "amount_taken" }
     init(_ json: JSONValue) {
         id = json["id"]?.intValue ?? 0
         amount = (json["total_amount"] ?? json["amount"])?.cashRupees ?? 0
@@ -138,6 +146,7 @@ struct CashRecord: Identifiable {
         reason = json["reason"]?.stringValue ?? ""
         reviewedBy = json["reviewed_by"]?["name"]?.stringValue ?? ""
         takenBy = json["taken_by"]?["name"]?.stringValue ?? ""
+        ledgerType = json["type"]?.stringValue ?? ""
         denominations = json["denominations"]?.arrayValue.map(CashLine.init) ?? []
         balanceAfter = json["balance_after"]?.cashRupees
     }
@@ -198,6 +207,21 @@ struct CashFilter: Equatable {
     var to = Date()
     var month = Date()
     var staffIds: Set<Int> = []
+
+    /// Android `periodPhrase`: reads inside a sentence ("No amount was taken in October").
+    var periodPhrase: String {
+        switch period {
+        case .today: return "today"
+        case .all: return "yet"
+        case .month: return "in \(month.formatted(.dateTime.month(.wide).year()))"
+        case .range:
+            let start = from.formatted(date: .abbreviated, time: .omitted)
+            let end = to.formatted(date: .abbreviated, time: .omitted)
+            return Calendar.current.isDate(from, inSameDayAs: to)
+                ? "on \(start)"
+                : "between \(start) and \(end)"
+        }
+    }
     var status = ""
     var isValid: Bool { period != .range || from <= to }
 

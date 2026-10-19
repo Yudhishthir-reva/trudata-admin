@@ -7,6 +7,9 @@ struct PaymentAdvanceScreen: View {
     @StateObject private var model = PaymentAdvanceViewModel()
     @State private var giving = false
     @State private var choosingStaff = false
+    @State private var receivingRecord: PaymentAdvanceRecord?
+    @State private var statusRecord: PaymentAdvanceRecord?
+    @State private var rowStatus: AdvanceStatus?
 
     var body: some View {
         AdvancePage(title: model.access.canManage ? "Payment Advance" : "My Payment Advance", onHome: onHome) {
@@ -23,9 +26,20 @@ struct PaymentAdvanceScreen: View {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                     TextField("Search by name, purpose, remark", text: $model.filter.search)
                 }.padding(12).background(.white, in: RoundedRectangle(cornerRadius: 12))
-                CashDropdown(title: "Role", placeholder: "All roles", options: [CashDropdownOption(id: "0", title: "All roles", icon: "person.3.fill")] + model.roles.map { CashDropdownOption(id: "\($0.id)", title: $0.name, icon: "person.fill") }, selection: Binding(get: { "\(model.filter.roleID)" }, set: { model.filter.roleID = Int($0) ?? 0 }))
-                CashDropdown(title: "Status", placeholder: "All statuses", options: [CashDropdownOption(id: "", title: "All statuses", icon: "line.3.horizontal.decrease.circle")] + AdvanceStatus.allCases.map { CashDropdownOption(id: $0.rawValue, title: $0.title, icon: advanceStatusIcon($0)) }, selection: $model.filter.status)
-                    .disabled(model.filter.type == "returned")
+                // Android shows role and status as scrolling chip rows, not dropdowns, so the
+                // active filter is visible without opening anything.
+                advanceChipRow(
+                    options: [(id: "0", title: "All roles")] + model.roles.map { (id: "\($0.id)", title: $0.name) },
+                    selection: "\(model.filter.roleID)"
+                ) { model.filter.roleID = Int($0) ?? 0 }
+                // A returned record has no repayment status, so Android hides the row outright
+                // instead of leaving a dead control on screen.
+                if model.filter.type != "returned" {
+                    advanceChipRow(
+                        options: [(id: "", title: "Any status")] + AdvanceStatus.allCases.map { (id: $0.rawValue, title: $0.title) },
+                        selection: model.filter.status
+                    ) { model.filter.status = $0 }
+                }
                 Button { choosingStaff = true } label: {
                     HStack {
                         Label("Staff: \(model.filter.staffIDs.isEmpty ? "All staff" : "\(model.filter.staffIDs.count) selected")", systemImage: "person.3.fill")
@@ -53,17 +67,56 @@ struct PaymentAdvanceScreen: View {
                 Button("Retry") { Task { await model.load() } }
             }
             if model.records.isEmpty && !model.loading && model.error == nil {
-                ContentUnavailableView("No payments found", systemImage: "banknote", description: Text("Records matching your filters will appear here."))
+                // Android separates "your filters matched nothing" from "there is nothing yet",
+                // and only offers the Give Advance hint to someone who can actually give one.
+                let periodSuffix = model.filter.usesDates
+                    ? " between \(model.filter.from.formatted(date: .abbreviated, time: .omitted)) and \(model.filter.to.formatted(date: .abbreviated, time: .omitted))"
+                    : ""
+                let hasFilters = !model.filter.search.trimmingCharacters(in: .whitespaces).isEmpty
+                    || !model.filter.status.isEmpty
+                    || model.filter.roleID != 0
+                    || !model.filter.staffIDs.isEmpty
+                let emptyMessage: String = {
+                    if !model.access.canManage { return "No advance was given to you\(periodSuffix)." }
+                    if hasFilters { return "No records match these filters." }
+                    return "No advance was given\(periodSuffix). Tap Give Advance to add one."
+                }()
+                ContentUnavailableView("Nothing here", systemImage: "banknote", description: Text(emptyMessage))
             }
             ForEach(model.records) { record in
                 NavigationLink {
                     PaymentAdvanceDetailScreen(id: record.advanceID, onHome: onHome)
-                } label: { AdvanceRecordCard(record: record) }.buttonStyle(.plain)
+                } label: { AdvanceRecordCard(record: record) }
+                .buttonStyle(.plain)
+                // Android `AdvanceRowMenu`: receive a payment or change a status straight from
+                // the row, without opening the record first. Tapping the row still opens it.
+                .contextMenu {
+                    if model.access.canManage && !record.isReturn {
+                        if AdvanceStatus.isOpen(record.status) && record.outstanding > 0 {
+                            Button { receivingRecord = record } label: {
+                                Label("Receive payment", systemImage: "arrow.down.circle")
+                            }
+                        }
+                        Button { rowStatus = AdvanceStatus(rawValue: record.status) ?? .pending; statusRecord = record } label: {
+                            Label("Change status", systemImage: "clock")
+                        }
+                    }
+                }
             }
             if model.loading { ProgressView().frame(maxWidth: .infinity) }
             if model.hasMore && !model.loading {
                 Button("Load more") { Task { await model.load(more: true) } }.frame(maxWidth: .infinity)
             }
+        }
+        .sheet(item: $receivingRecord, onDismiss: { Task { await model.load() } }) { record in
+            PaymentAdvanceFormScreen(advance: record)
+        }
+        .sheet(item: $statusRecord) { record in
+            AdvanceStatusSheet(current: record.status, selection: $rowStatus, saving: model.saving) {
+                guard let status = rowStatus else { return }
+                Task { await model.updateStatus(status, for: record.advanceID); statusRecord = nil }
+            }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .task(id: model.filter) {
             do { try await Task.sleep(for: .milliseconds(300)) } catch { return }
@@ -91,10 +144,31 @@ struct PaymentAdvanceScreen: View {
         }
     }
 
+    private func advanceChipRow(
+        options: [(id: String, title: String)],
+        selection: String,
+        onSelect: @escaping (String) -> Void
+    ) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(options, id: \.id) { option in
+                    let isSelected = option.id == selection
+                    Button { onSelect(option.id) } label: {
+                        Text(option.title).font(.caption)
+                            .padding(.horizontal, 11).padding(.vertical, 8)
+                            .foregroundStyle(isSelected ? AppTheme.cerulean : AppTheme.textPrimary)
+                            .background(isSelected ? AppTheme.cerulean.opacity(0.12) : .white, in: Capsule())
+                            .overlay(Capsule().stroke(isSelected ? AppTheme.cerulean : AppTheme.gainsboro))
+                    }.buttonStyle(.plain)
+                }
+            }.padding(.horizontal, 2)
+        }
+    }
+
     private var recordTabs: [(value: String, title: String)] {
         [("all", "All"),
-         ("advance", model.access.canManage ? "Advance Given" : "Received"),
-         ("returned", model.access.canManage ? "Payment Received" : "Returned")]
+         ("advance", model.access.canManage ? "Advance Given" : "Advance"),
+         ("returned", model.access.canManage ? "Received" : "Returned")]
     }
 
     private var summary: some View {
@@ -197,7 +271,7 @@ private struct PaymentAdvanceDetailScreen: View {
     @State private var showingStatus = false
 
     var body: some View {
-        AdvancePage(title: "Advance #\(id)", onHome: onHome) {
+        AdvancePage(title: "Advance Details", onHome: onHome) {
             if model.loading { ProgressView().frame(maxWidth: .infinity) }
             if let error = model.error {
                 Text(error).foregroundStyle(.red)
@@ -208,13 +282,16 @@ private struct PaymentAdvanceDetailScreen: View {
                     HStack {
                         Text("ADVANCE #\(record.recordID)").font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.8))
                         Spacer()
-                        Text(record.status.replacingOccurrences(of: "_", with: " ").capitalized)
-                            .font(.caption.weight(.semibold)).foregroundStyle(AppTheme.darkMidnightBlue)
-                            .padding(.horizontal, 12).padding(.vertical, 7).background(.white.opacity(0.9), in: Capsule())
+                        AdvanceStatusPill(status: record.status)
                     }
                     Text(advanceMoney(record.amount)).font(.largeTitle.bold()).foregroundStyle(.white)
-                    Text(record.person).font(.headline).foregroundStyle(.white)
-                    Rectangle().fill(.white.opacity(0.25)).frame(height: 1)
+                    Text([record.person, record.role].filter { !$0.isEmpty }.joined(separator: " · "))
+                        .font(.headline).foregroundStyle(.white)
+                    // Android shows how much has come back as a bar, not a plain divider.
+                    ProgressView(
+                        value: NSDecimalNumber(decimal: record.amount - record.outstanding).doubleValue,
+                        total: max(NSDecimalNumber(decimal: record.amount).doubleValue, 1)
+                    ).tint(.white)
                     HStack {
                         heroMetric("Returned", record.amount - record.outstanding)
                         heroMetric("Outstanding", record.outstanding)
@@ -225,6 +302,7 @@ private struct PaymentAdvanceDetailScreen: View {
                     detailLine("Given on", record.date)
                     detailLine("Purpose", record.text.isEmpty ? "—" : record.text)
                     detailLine("Given by", record.author.isEmpty ? "—" : record.author)
+                    detailLine("Entered", record.createdAt.isEmpty ? "—" : record.createdAt)
                     if let attachment = record.attachment { Link("View attachment", destination: attachment) }
                 }
                 AdvanceCard {
@@ -242,17 +320,35 @@ private struct PaymentAdvanceDetailScreen: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if let record = model.detail, model.access.canManage {
                 HStack(spacing: 10) {
+                    // Android's buttons are 52dp tall with a 14dp radius; iOS's bordered styles
+                    // default to a taller, much rounder shape, so they are drawn explicitly.
+                    let canReceive = record.outstanding > 0 && AdvanceStatus.isOpen(record.status)
                     Button { proposedStatus = AdvanceStatus(rawValue: record.status) ?? .pending; showingStatus = true } label: {
-                        Label("Status", systemImage: "clock").frame(maxWidth: .infinity).padding(12)
-                    }.buttonStyle(.bordered).disabled(model.saving)
-                    if record.outstanding > 0 && record.status != "cancelled" {
-                        Button { receiving = true } label: {
-                            Label("Receive Payment", systemImage: "arrow.down.circle.fill").frame(maxWidth: .infinity).padding(12)
-                        }.buttonStyle(.borderedProminent).disabled(model.saving)
+                        Label("Status", systemImage: "clock")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity).frame(height: 52)
+                            .foregroundStyle(CashStyle.green)
+                            .background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 14))
                     }
+                    .buttonStyle(.plain)
+                    .disabled(model.saving)
+
+                    Button { receiving = true } label: {
+                        Label("Receive Payment", systemImage: "arrow.down.left")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity).frame(height: 52)
+                            .foregroundStyle(.white)
+                            .background(CashStyle.green, in: RoundedRectangle(cornerRadius: 14))
+                            .opacity(canReceive && !model.saving ? 1 : 0.45)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(model.saving || !canReceive)
                 }.padding(.horizontal, 14).padding(.vertical, 8).background(.regularMaterial)
             }
         }
+        // AdvancePage tints its own content, but a safeAreaInset is attached outside that scope,
+        // so Status and Receive Payment were falling back to the system blue accent.
+        .tint(CashStyle.green)
         .sheet(isPresented: $receiving, onDismiss: { Task { await model.loadDetail(id) } }) {
             if let detail = model.detail { PaymentAdvanceFormScreen(advance: detail) }
         }
@@ -288,6 +384,27 @@ private func advanceOutstandingText(_ amount: Decimal) -> String {
 }
 
 private struct PaymentAdvanceFormScreen: View {
+    private static let dayParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static func day(_ raw: String) -> Date? {
+        dayParser.date(from: String(raw.prefix(10)))
+    }
+
+    private var summaryLabel: String {
+        guard let advance else {
+            let name = model.people.first { $0.id == form.personID }?.name
+            return name.map { "Advance to \($0)" } ?? "Choose a person"
+        }
+        let entered = PaymentAdvanceForm.amount(form.amount) ?? 0
+        let after = max(advance.outstanding - entered, 0)
+        return "Outstanding after this: \(advanceMoney(after))"
+    }
+
     let advance: PaymentAdvanceRecord?
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model = PaymentAdvanceViewModel()
@@ -309,7 +426,7 @@ private struct PaymentAdvanceFormScreen: View {
                     }
                 } else {
                     Section("Select person") {
-                        CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map { CashDropdownOption(id: "\($0.id)", title: $0.name, icon: "person.fill") }, selection: Binding(get: { form.personID == 0 ? "" : "\(form.personID)" }, set: { form.personID = Int($0) ?? 0 }))
+                        CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map { CashDropdownOption(id: "\($0.id)", title: $0.role.isEmpty ? $0.name : "\($0.name) (\($0.role))", icon: "person.fill") }, selection: Binding(get: { form.personID == 0 ? "" : "\(form.personID)" }, set: { form.personID = Int($0) ?? 0 }))
                         if let error = model.optionsError {
                             Text(error).foregroundStyle(.red)
                             Button("Retry") { Task { await model.loadOptions() } }
@@ -333,9 +450,15 @@ private struct PaymentAdvanceFormScreen: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    DatePicker("Date", selection: $form.date, in: ...Date(), displayedComponents: .date)
+                    // Android bounds the receive form at the advance's own date, so a repayment
+                    // can't be dated before the money was handed over.
+                    if let earliest = advance.flatMap({ Self.day($0.date) }) {
+                        DatePicker("Date", selection: $form.date, in: earliest...Date(), displayedComponents: .date)
+                    } else {
+                        DatePicker("Date", selection: $form.date, in: ...Date(), displayedComponents: .date)
+                    }
                     HStack(alignment: .bottom) {
-                        TextField(advance == nil ? "Purpose / Remark" : "Remark", text: $form.text, axis: .vertical).lineLimit(3...6)
+                        TextField(advance == nil ? "e.g. For market visit and expenses" : "e.g. Partial return", text: $form.text, axis: .vertical).lineLimit(3...6)
                         SpeechRemarkButton(text: $form.text).padding(.bottom, 8)
                     }
                     if !form.amount.isEmpty, let validationError {
@@ -354,8 +477,21 @@ private struct PaymentAdvanceFormScreen: View {
                 }.disabled(attachmentLoading)
                 if let error = model.error { Section { Text(error).foregroundStyle(.red) } }
                 Section {
+                    // Android keeps a running summary above the actions: who it is for, or what
+                    // will still be outstanding once this payment lands.
+                    HStack {
+                        Text(summaryLabel).font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Text(advanceMoney(PaymentAdvanceForm.amount(form.amount) ?? 0))
+                            .font(.subheadline.weight(.semibold))
+                    }
                     Button { confirming = true } label: {
-                        HStack { Spacer(); if model.saving { ProgressView() } else { Text("Submit").fontWeight(.semibold) }; Spacer() }
+                        HStack {
+                            Spacer()
+                            if model.saving { ProgressView() }
+                            else { Text(advance == nil ? "Give Advance" : "Receive").fontWeight(.semibold) }
+                            Spacer()
+                        }
                     }.disabled(!valid || model.saving || attachmentLoading)
                 }
             }
@@ -430,19 +566,8 @@ private struct AdvanceRecordCard: View {
                     if !record.author.isEmpty { Text("\(record.isReturn ? "Received" : "Given") by \(record.author)") }
                 }.font(.caption).foregroundStyle(.secondary)
                 Spacer()
-                Text(record.status.replacingOccurrences(of: "_", with: " ").capitalized)
-                    .font(.caption.weight(.medium)).padding(.horizontal, 10).padding(.vertical, 6)
-                    .foregroundStyle(statusColor).background(statusColor.opacity(0.12), in: Capsule())
+                AdvanceStatusPill(status: record.status)
             }
-        }
-    }
-    private var statusColor: Color {
-        switch record.status {
-        case "completed", "returned": return AppTheme.cerulean
-        case "partial": return .blue
-        case "cancelled": return .red
-        case "on_hold": return .secondary
-        default: return .orange
         }
     }
 }
@@ -559,4 +684,34 @@ private func advanceMoney(_ amount: Decimal) -> String {
     formatter.minimumFractionDigits = 0
     formatter.maximumFractionDigits = 2
     return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "₹\(amount)"
+}
+
+/// Android `AdvanceStatusPill`: pending amber, partial blue, completed green, cancelled red,
+/// anything else grey. The detail hero used one colour for every status.
+struct AdvanceStatusPill: View {
+    let status: String
+
+    private var look: (label: String, fg: Color, bg: Color) {
+        switch status.lowercased() {
+        case "pending":
+            return ("Pending", Color(hex: "B45309"), Color(hex: "FEF3C7"))
+        case "partial":
+            return ("Partial", Color(hex: "0369A1"), Color(hex: "E0F2FE"))
+        case "completed":
+            return ("Completed", Color(hex: "15803D"), Color(hex: "DCFCE7"))
+        case "cancelled":
+            return ("Cancelled", Color(hex: "DC2626"), Color(hex: "FFF1F2"))
+        default:
+            let text = status.replacingOccurrences(of: "_", with: " ").capitalized
+            return (text.isEmpty ? "—" : text, Color(hex: "4B5563"), Color(hex: "F3F4F6"))
+        }
+    }
+
+    var body: some View {
+        Text(look.label)
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(look.fg)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(look.bg, in: Capsule())
+    }
 }

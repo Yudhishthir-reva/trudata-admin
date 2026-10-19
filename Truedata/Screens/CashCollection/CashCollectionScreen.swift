@@ -239,6 +239,8 @@ struct UtilityScreen: View {
         static let bills = Color(hex: "7C3AED")
         static let ledger = Color(hex: "475569")
         static let merge = Color(hex: "0F766E")
+        static let markAttendance = Color(hex: "0E7490")
+        static let attendanceHistory = Color(hex: "BE185D")
     }
 
     var body: some View {
@@ -280,6 +282,18 @@ struct UtilityScreen: View {
                             icon: "doc.text",
                             accent: Accent.bills
                         )
+                    }
+                }
+
+                if access.canManageAttendance {
+                    section("ATTENDANCE")
+                    NavigationLink { MarkManualAttendanceScreen(onHome: onHome) } label: {
+                        tile("Mark Attendance", "Mark staff present, absent, half day or holiday",
+                             icon: "person.badge.clock", accent: Accent.markAttendance)
+                    }
+                    NavigationLink { ManualAttendanceHistoryScreen(onHome: onHome) } label: {
+                        tile("Attendance History", "See who was marked on any day",
+                             icon: "calendar.badge.clock", accent: Accent.attendanceHistory)
                     }
                 }
 
@@ -389,9 +403,15 @@ struct CashCollectionScreen: View {
     /// promise "All".
     private var listTitle: String { model.access.canReviewAll ? "All Collection" : "My Collection" }
 
+    /// Android gates Summary behind `SUMMARY_FOR_EVERYONE || access.canReviewAll`, and the flag is
+    /// false — a sale person sees only their own submissions, so a company-wide total is not theirs.
+    private var tabTitles: [String] {
+        model.access.canReviewAll ? ["Submit", listTitle, "Summary"] : ["Submit", listTitle]
+    }
+
     var body: some View {
         CashPage(title: "Cash Collection", onHome: onHome, onRefresh: { refresh() }) {
-            CashTabs(titles: ["Submit", listTitle, "Summary"], selection: $tab)
+            CashTabs(titles: tabTitles, selection: $tab)
             CashFeedback(model: model)
             if tab == "Submit" {
                 CashDenominationForm(form: $form).disabled(model.isSaving)
@@ -423,7 +443,12 @@ struct CashCollectionScreen: View {
                     if await model.submit(form) { form = CashCountForm(); tab = "All Collection" }
                 }
             }
-        } message: { Text("Confirm that the counted notes and coins match the cash you are handing over.") }
+        } message: {
+            // Android spells out what is being sent and that it is final; submitting can't be
+            // undone from the app, so the counts and that warning belong in the prompt.
+            let pieces = CashDenomination.all.reduce(0) { $0 + (Int(form.counts[$1.id, default: ""]) ?? 0) }
+            Text("\(pieces) notes and coins adding up to \(cashMoney(form.total ?? 0)). It goes to your admin for approval. You can't change it after submitting.")
+        }
     }
 
     private func refresh() {
@@ -435,6 +460,13 @@ struct CashCollectionScreen: View {
 }
 
 struct CashCollectionDetailScreen: View {
+    /// Android titles this by what you can do here: editing, reviewing, or just looking.
+    private var detailTitle: String {
+        if editing { return "Edit Collection" }
+        if model.access.canReviewAll, model.detail?.status == "pending" { return "Review Collection" }
+        return "Collection Detail"
+    }
+
     let id: Int
     var onHome: () -> Void
     @StateObject private var model = CashCollectionViewModel()
@@ -445,7 +477,7 @@ struct CashCollectionDetailScreen: View {
     @State private var confirmEdit = false
 
     var body: some View {
-        CashPage(title: "Review Collection", onHome: onHome, onRefresh: { Task { await model.loadDetail(id) } }) {
+        CashPage(title: detailTitle, onHome: onHome, onRefresh: { Task { await model.loadDetail(id) } }) {
             CashFeedback(model: model)
             if model.isLoading { ProgressView() }
             if let record = model.detail {
@@ -453,9 +485,7 @@ struct CashCollectionDetailScreen: View {
                     HStack {
                         Text("COLLECTION #\(record.id)").font(.caption.weight(.medium))
                         Spacer()
-                        Text(record.status.capitalized).font(.caption.weight(.medium))
-                            .foregroundStyle(record.status == "pending" ? Color.orange : CashStyle.green).padding(8)
-                            .background(record.status == "pending" ? Color.yellow.opacity(0.85) : CashStyle.pale, in: Capsule())
+                        CashStatusPill(status: record.status)
                     }
                     Text(cashMoney(record.amount)).font(.largeTitle.bold())
                     Text("Submitted by \(record.name)").font(.headline)
@@ -463,8 +493,10 @@ struct CashCollectionDetailScreen: View {
                 }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
                     .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 18))
                 if editing {
+                    Text("Change the counts or the total. They must still add up. The collection stays pending after saving.")
+                        .font(.subheadline).foregroundStyle(CashStyle.muted)
                     CashDenominationForm(form: $form).disabled(model.isSaving)
-                    Button("Save Changes") { confirmEdit = true }
+                    Button("Save changes") { confirmEdit = true }
                         .buttonStyle(.borderedProminent).disabled(!form.isBalanced || model.isSaving)
                     Button("Cancel Edit") { editing = false }.disabled(model.isSaving)
                 } else {
@@ -504,10 +536,17 @@ struct CashCollectionDetailScreen: View {
                     Text("From \(record.name)").font(.caption).foregroundStyle(CashStyle.muted)
                     Text(cashMoney(record.amount)).font(.title2.weight(.semibold))
                     HStack(spacing: 10) {
+                        let canReview = model.access.canReviewAll && record.status == "pending"
                         if model.access.canEdit && record.status != "approved" {
                             Button { form = CashCountForm(record: record); editing = true } label: {
-                                Image(systemName: "pencil").frame(width: 48, height: 48)
-                                    .foregroundStyle(CashStyle.ink).background(CashStyle.border.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+                                if canReview {
+                                    Image(systemName: "pencil").frame(width: 48, height: 48)
+                                        .foregroundStyle(CashStyle.ink).background(CashStyle.border.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+                                } else {
+                                    Label("Edit collection", systemImage: "pencil")
+                                        .frame(maxWidth: .infinity).padding(.vertical, 15)
+                                        .foregroundStyle(.white).background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 12))
+                                }
                             }.accessibilityLabel("Edit counts")
                         }
                         if model.access.canReviewAll && record.status == "pending" {
@@ -526,7 +565,11 @@ struct CashCollectionDetailScreen: View {
             }
         }
         .task { await model.loadDetail(id) }
-        .confirmationDialog(reviewAction == true ? "Approve this collection?" : "Reject this collection?", isPresented: Binding(get: { reviewAction != nil }, set: { if !$0 { reviewAction = nil } }), titleVisibility: .visible) {
+        .confirmationDialog(
+            "\(reviewAction == true ? "Approve" : "Reject") \(cashMoney(model.detail?.amount ?? 0))?",
+            isPresented: Binding(get: { reviewAction != nil }, set: { if !$0 { reviewAction = nil } }),
+            titleVisibility: .visible
+        ) {
             let approve = reviewAction == true
             Button(approve ? "Approve" : "Reject", role: approve ? nil : .destructive) {
                 Task {
@@ -536,9 +579,17 @@ struct CashCollectionDetailScreen: View {
                     }
                 }
             }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            // The amount and who handed it over are the whole decision; Android puts both in the
+            // prompt and warns that an approval can't be edited afterwards.
+            let who = (model.detail?.name).flatMap { $0.isEmpty ? nil : $0 } ?? "this person"
+            Text(reviewAction == true
+                 ? "This confirms you received \(cashMoney(model.detail?.amount ?? 0)) from \(who). Approved collections can't be edited."
+                 : "\(who) will see it as rejected with your remark.")
         }
         .confirmationDialog("Save the updated cash counts?", isPresented: $confirmEdit, titleVisibility: .visible) {
-            Button("Save Changes") {
+            Button("Save changes") {
                 Task {
                     if await model.submit(form, editing: id) { editing = false; await model.loadDetail(id) }
                 }
@@ -564,7 +615,7 @@ struct AmountTakenScreen: View {
     var body: some View {
         CashPage(title: "Amount Taken", onHome: onHome, onRefresh: { Task { await model.reload(); await model.loadPeople() } }) {
             if model.access.canManageAmountTaken {
-                CashTabs(titles: ["Add", "List"], selection: $tab)
+                CashTabs(titles: ["Add", "All Taken"], selection: $tab)
                 CashFeedback(model: model)
                 if tab == "Add" {
                     takenForm
@@ -574,8 +625,10 @@ struct AmountTakenScreen: View {
                     if model.records.isEmpty && !model.isLoading && model.error == nil {
                         VStack(spacing: 12) {
                             Image(systemName: "wallet.pass").font(.largeTitle).foregroundStyle(CashStyle.green)
-                            Text("No amounts taken").font(.headline)
-                            Text("Recorded cash out will appear here. Try another date range or add a new record.")
+                            Text("Nothing recorded").font(.headline)
+                            // Android names the period being looked at, and says when a staff
+                            // filter is what narrowed it, instead of a generic "try again" line.
+                            Text("No amount was taken \(model.filter.periodPhrase)\(model.filter.staffIds.isEmpty ? "." : " by the chosen staff.")")
                                 .font(.subheadline).foregroundStyle(CashStyle.muted).multilineTextAlignment(.center)
                         }.frame(maxWidth: .infinity).padding(.vertical, 32)
                     }
@@ -595,7 +648,7 @@ struct AmountTakenScreen: View {
             if tab == "Add" && model.access.canManageAmountTaken { takenFooter }
         }
         .task { await model.loadPeople() }
-        .onChange(of: tab) { if $0 == "List" { Task { await model.reload() } } }
+        .onChange(of: tab) { if $0 == "All Taken" { Task { await model.reload() } } }
         .onChange(of: model.filter) { _ in Task { await model.reload() } }
         .task(id: "\(personId)-\(CashFilter.dateString(date))") {
             collectionId = 0
@@ -605,7 +658,7 @@ struct AmountTakenScreen: View {
             Button("Confirm") {
                 Task {
                     if await model.addTaken(personId: personId, amount: amount, reason: reason, remark: remark, date: date, collectionId: collectionId > 0 ? collectionId : nil) {
-                        amount = ""; reason = ""; remark = ""; personId = 0; collectionId = 0; tab = "List"
+                        amount = ""; reason = ""; remark = ""; personId = 0; collectionId = 0; tab = "All Taken"
                     }
                 }
             }
@@ -681,11 +734,27 @@ struct AmountTakenScreen: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Label("Collection reference", systemImage: "link").font(.headline).foregroundStyle(CashStyle.green)
                     Text("Optionally link this amount to a cash collection for the selected person and date.").font(.subheadline).foregroundStyle(CashStyle.muted)
-                    CashDropdown(title: "Link collection (optional)", placeholder: "No collection linked", options:
-                        [CashDropdownOption(id: "0", title: "No collection linked", icon: "link")] + model.linkedCollections.map {
-                            CashDropdownOption(id: String($0.id), title: "#\($0.id) · \(cashMoney($0.amount))", detail: $0.date, icon: "banknote")
-                        }, selection: Binding(get: { String(collectionId) }, set: { collectionId = Int($0) ?? 0 }))
-                        .disabled(personId == 0 || model.isLoadingLinks)
+                    // Android lays the person's collections out as chips so they can be compared
+                    // at a glance, rather than hiding them behind a dropdown.
+                    if personId != 0 && !model.isLoadingLinks && !model.linkedCollections.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                let options: [(id: Int, title: String)] =
+                                    [(id: 0, title: "None")]
+                                    + model.linkedCollections.map { (id: $0.id, title: "\(cashMoney($0.amount)) · \($0.date)") }
+                                ForEach(options, id: \.id) { option in
+                                    let isSelected = collectionId == option.id
+                                    Button { collectionId = option.id } label: {
+                                        Text(option.title).font(.caption)
+                                            .padding(.horizontal, 11).padding(.vertical, 8)
+                                            .foregroundStyle(isSelected ? CashStyle.green : CashStyle.ink)
+                                            .background(isSelected ? CashStyle.pale : .white, in: Capsule())
+                                            .overlay(Capsule().stroke(isSelected ? CashStyle.green : CashStyle.border))
+                                    }.buttonStyle(.plain)
+                                }
+                            }.padding(.horizontal, 2)
+                        }
+                    }
                     if model.isLoadingLinks { ProgressView("Loading collections…").font(.caption) }
                     if let error = model.linksError {
                         Text("Collection link unavailable: \(error)").font(.caption).foregroundStyle(CashStyle.muted)
@@ -791,11 +860,13 @@ struct CashQuickReasons: View {
 struct CashLedgerScreen: View {
     var onHome: () -> Void
     @StateObject private var model = CashCollectionViewModel(kind: .ledger)
-    @StateObject private var takenModel = CashCollectionViewModel(kind: .taken)
     @State private var selectedTaken: CashRecord?
+    /// `V2/cash-collection/ledger` is one list of both kinds, as on Android. Pulling the
+    /// amount-taken list in as well duplicated every taken row.
     private var entries: [LedgerDisplayEntry] {
-        (model.records.filter { $0.status == "approved" || $0.status.isEmpty }.map { LedgerDisplayEntry(record: $0, isTaken: false) }
-         + takenModel.records.filter { $0.status == "approved" }.map { LedgerDisplayEntry(record: $0, isTaken: true) })
+        model.records
+            .filter { $0.status == "approved" || $0.status.isEmpty }
+            .map { LedgerDisplayEntry(record: $0, isTaken: $0.isAmountTaken) }
             .sorted { $0.record.date > $1.record.date }
     }
     private func ledgerMetric(_ title: String, _ value: String) -> some View {
@@ -807,7 +878,7 @@ struct CashLedgerScreen: View {
     }
 
     var body: some View {
-        CashPage(title: "Ledger", onHome: onHome, onRefresh: { Task { await model.reload(); await takenModel.reload() } }) {
+        CashPage(title: "Ledger", onHome: onHome, onRefresh: { Task { await model.reload() } }) {
             if model.access.canViewLedger {
                 CashFilterView(filter: $model.filter, people: model.people, showsStaff: true)
                 CashFeedback(model: model)
@@ -815,17 +886,31 @@ struct CashLedgerScreen: View {
                 // The ledger endpoint returns period totals of its own. Deriving them from the
                 // rows paged in so far understated every figure once a period ran past one page.
                 if let ledger = model.ledgerSummary {
+                    // Android leads on net cash, not the closing balance: Collected / Taken /
+                    // Entries, then an opening → closing strip underneath.
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("CLOSING BALANCE").font(.caption.weight(.semibold))
-                        Text(cashMoney(ledger.closingBalance)).font(.largeTitle.bold())
+                        Text("NET CASH").font(.caption.weight(.semibold))
+                        Text(cashMoney(ledger.netAmount)).font(.largeTitle.bold())
                         Text(model.filter.period == .all ? "All time" : model.filter.period.rawValue)
                             .font(.subheadline.weight(.medium))
                         HStack(spacing: 7) {
-                            ledgerMetric("Opening", cashMoney(ledger.openingBalance))
-                            ledgerMetric("Collected", cashMoney(ledger.totalCollection))
-                            ledgerMetric("Taken", cashMoney(ledger.totalTaken))
-                            ledgerMetric("Net", cashMoney(ledger.netAmount))
+                            ledgerMetric("Collected", "+" + cashMoney(ledger.totalCollection))
+                            ledgerMetric("Taken", ledger.totalTaken > 0 ? "−" + cashMoney(ledger.totalTaken) : cashMoney(0))
+                            ledgerMetric("Entries", "\(model.totalRecords)")
                         }.padding(14).background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                        HStack(alignment: .center, spacing: 8) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Opening balance").font(.caption2)
+                                Text(cashMoney(ledger.openingBalance)).font(.footnote.bold())
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "arrow.forward").font(.caption).opacity(0.6)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("Closing balance").font(.caption2)
+                                Text(cashMoney(ledger.closingBalance)).font(.footnote.bold())
+                            }.frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                        .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
                     }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
                         .background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 18))
                 } else if let summary = model.summary {
@@ -836,7 +921,7 @@ struct CashLedgerScreen: View {
                             .font(.subheadline.weight(.medium))
                         HStack(spacing: 7) {
                             ledgerMetric("Collected", cashMoney(summary.amount))
-                            ledgerMetric("Taken shown", cashMoney(takenModel.records.filter { $0.status == "approved" }.reduce(0) { $0 + $1.amount }))
+                            ledgerMetric("Taken shown", cashMoney(entries.filter(\.isTaken).reduce(0) { $0 + $1.record.amount }))
                             ledgerMetric("Entries shown", "\(entries.count)")
                         }.padding(14).background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                     }.foregroundStyle(.white).padding(18).frame(maxWidth: .infinity, alignment: .leading)
@@ -845,9 +930,28 @@ struct CashLedgerScreen: View {
                     CashRetry(message: "Totals unavailable: \(error)") { Task { await model.loadSummary() } }
                 }
                 if model.isLoading { ProgressView() }
-                if entries.isEmpty && !model.isLoading && !takenModel.isLoading { Text("No ledger entries for this period.").foregroundStyle(.secondary) }
+                if entries.isEmpty && !model.isLoading {
+                    VStack(spacing: 6) {
+                        Text("No entries").font(.headline)
+                        Text("Nothing was collected or taken \(model.filter.periodPhrase).")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity).padding(.vertical, 24)
+                }
                 ForEach(Array(Set(entries.map { ledgerDayKey($0.record.date) })).sorted(by: >), id: \.self) { day in
-                    let dayEntries = entries.filter { ledgerDayKey($0.record.date) == day }
+                    // Sorting only by day left every collection above every amount taken;
+                    // Android keeps a day's entries in time order, which is how they're read.
+                    let dayEntries = entries
+                        .filter { ledgerDayKey($0.record.date) == day }
+                        .sorted { a, b in
+                            let left = LedgerTime.date(a.record.submittedAt)
+                            let right = LedgerTime.date(b.record.submittedAt)
+                            switch (left, right) {
+                            case let (l?, r?): return l > r
+                            case (nil, _?): return false
+                            case (_?, nil): return true
+                            default: return a.record.id > b.record.id
+                            }
+                        }
                     let collected = dayEntries.filter { !$0.isTaken }.reduce(0) { $0 + $1.record.amount }
                     let taken = dayEntries.filter(\.isTaken).reduce(0) { $0 + $1.record.amount }
                     HStack {
@@ -861,7 +965,7 @@ struct CashLedgerScreen: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 3) {
-                            Text(model.hasMore || takenModel.hasMore ? "Shown net" : "Net").font(.caption).foregroundStyle(CashStyle.muted)
+                            Text(model.hasMore ? "Shown net" : "Net").font(.caption).foregroundStyle(CashStyle.muted)
                             Text(cashMoney(collected - taken)).foregroundStyle(collected >= taken ? CashStyle.green : .red)
                         }
                     }.padding(.top, 12)
@@ -881,13 +985,11 @@ struct CashLedgerScreen: View {
                     }
                 }
                 CashLoadMore(model: model)
-                CashLoadMore(model: takenModel)
             } else { Text("You don't have access to this.") }
         }
-        .task { await model.loadPeople(); takenModel.filter = model.filter; await model.reload(); await takenModel.reload() }
+        .task { await model.loadPeople(); await model.reload() }
         .onChange(of: model.filter) { value in
-            takenModel.filter = value
-            Task { await model.reload(); await takenModel.reload() }
+            Task { await model.reload() }
         }
         .sheet(item: $selectedTaken) { record in CashTakenDetailSheet(record: record) }
     }
@@ -909,7 +1011,9 @@ private struct LedgerEntryCard: View {
                 .frame(width: 38, height: 38).background(entry.isTaken ? Color.red.opacity(0.1) : CashStyle.pale, in: Circle())
             VStack(alignment: .leading, spacing: 4) {
                 Text(record.name.isEmpty ? "—" : record.name).font(.subheadline.weight(.medium)).foregroundStyle(CashStyle.ink).lineLimit(1)
-                Text("\(record.submittedAt.contains(",") ? String(record.submittedAt.split(separator: ",").last ?? "").trimmingCharacters(in: .whitespaces) + " · " : "")\(entry.isTaken ? record.reason : "Collection #\(record.id)")")
+                Text([LedgerTime.label(record.submittedAt),
+                      entry.isTaken ? (record.reason.isEmpty ? "Amount taken" : record.reason) : "Collection #\(record.id)"]
+                        .compactMap { $0 }.joined(separator: " · "))
                     .font(.caption).foregroundStyle(CashStyle.muted).lineLimit(1)
                 if entry.isTaken && !record.takenBy.isEmpty { Text("Taken by \(record.takenBy)").font(.caption).foregroundStyle(CashStyle.muted) }
                 if !record.remark.isEmpty { Text("“\(record.remark)”").font(.caption.italic()).foregroundStyle(CashStyle.muted).lineLimit(1) }
@@ -921,7 +1025,7 @@ private struct LedgerEntryCard: View {
                     .lineLimit(1).minimumScaleFactor(0.8)
                 // Android shows the running cash in hand the server computed for this line.
                 if let balance = record.balanceAfter {
-                    Text(cashMoney(balance)).font(.caption).foregroundStyle(CashStyle.muted)
+                    Text("Bal \(cashMoney(balance))").font(.caption).foregroundStyle(CashStyle.muted)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
             }
@@ -1252,6 +1356,7 @@ private struct CashSubmitFooter: View {
 private struct CashSummaryView: View {
     @ObservedObject var model: CashCollectionViewModel
     @State private var expandedStaff: Set<Int> = []
+    @State private var showsUnusedDenominations = false
 
     private var periodTitle: String {
         switch model.filter.period {
@@ -1272,8 +1377,26 @@ private struct CashSummaryView: View {
                 CashCard {
                     VStack(alignment: .leading, spacing: 20) {
                         CashSummaryHeading(title: "By denomination", subtitle: "\(summary.denominations.filter { $0.quantity > 0 }.count) of \(summary.denominations.count) used · bar = amount", icon: "banknote")
-                        ForEach(summary.denominations) { line in
+                        // Android lists only the denominations actually counted and puts the rest
+                        // behind a toggle; showing every zero row made "x of y used" read wrong.
+                        let used = summary.denominations.filter { $0.quantity > 0 }
+                        let unused = summary.denominations.filter { $0.quantity == 0 }
+                        ForEach(showsUnusedDenominations ? summary.denominations : used) { line in
                             CashSummaryDenomination(line: line, total: summary.amount)
+                        }
+                        if !unused.isEmpty {
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.26)) { showsUnusedDenominations.toggle() }
+                            } label: {
+                                Text(showsUnusedDenominations
+                                     ? "Hide unused"
+                                     : "Show \(unused.count) unused (\(unused.map { "₹\($0.numericValue) \($0.kind)" }.joined(separator: ", ")))")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(AppTheme.cerulean)
+                                    .lineLimit(2)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 6)
+                            }.buttonStyle(.plain)
                         }
                     }
                 }
@@ -1471,7 +1594,7 @@ private struct CashDenominationLines: View {
             VStack(spacing: 12) {
                 Label("Denomination details", systemImage: "banknote").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
                 if nonZeroLines.isEmpty {
-                    Text("No denominations recorded")
+                    Text("No denomination breakup was sent for this collection.")
                         .font(.subheadline)
                         .foregroundStyle(CashStyle.muted)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -1505,6 +1628,24 @@ private struct CashDenominationLines: View {
 }
 
 private struct CashFilterView: View {
+    struct QuickRange {
+        let title: String
+        let range: () -> (from: Date, to: Date)
+    }
+
+    static let quickRanges: [QuickRange] = [
+        QuickRange(title: "Yesterday") {
+            let day = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+            return (day, day)
+        },
+        QuickRange(title: "Last 7 days") {
+            (Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date(), Date())
+        },
+        QuickRange(title: "Last 30 days") {
+            (Calendar.current.date(byAdding: .day, value: -29, to: Date()) ?? Date(), Date())
+        },
+    ]
+
     @Binding var filter: CashFilter
     let people: [OrderInsightsStaffMember]
     var showsStaff = false
@@ -1529,6 +1670,27 @@ private struct CashFilterView: View {
                 }
             }
             if filter.period == .range {
+                // Android `QuickRanges`: the three ranges people ask for most, so the calendar is
+                // only needed for anything else.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(CashFilterView.quickRanges, id: \.title) { preset in
+                            let range = preset.range()
+                            let isSelected = Calendar.current.isDate(filter.from, inSameDayAs: range.from)
+                                && Calendar.current.isDate(filter.to, inSameDayAs: range.to)
+                            Button {
+                                filter.from = range.from
+                                filter.to = range.to
+                            } label: {
+                                Text(preset.title).font(.caption)
+                                    .padding(.horizontal, 11).padding(.vertical, 8)
+                                    .foregroundStyle(isSelected ? CashStyle.green : CashStyle.ink)
+                                    .background(isSelected ? CashStyle.pale : .white, in: Capsule())
+                                    .overlay(Capsule().stroke(isSelected ? CashStyle.green : CashStyle.border))
+                            }.buttonStyle(.plain)
+                        }
+                    }.padding(.horizontal, 2)
+                }
                 Button { showingRange = true } label: {
                     Label("\(filter.from.formatted(date: .abbreviated, time: .omitted))  →  \(filter.to.formatted(date: .abbreviated, time: .omitted))", systemImage: "calendar")
                         .frame(maxWidth: .infinity).padding(12)
@@ -1773,5 +1935,61 @@ private final class RemarkSpeechRecognizer: ObservableObject {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         engine = nil
         request = nil
+    }
+}
+
+/// Android `StatusPill`: approved is green, rejected red, pending amber, anything else grey.
+/// The old badge only told pending from "everything else", so a rejected collection read green.
+struct CashStatusPill: View {
+    let status: String
+
+    private var look: (label: String, fg: Color, bg: Color) {
+        switch status.lowercased() {
+        case "approved":
+            return ("Approved", Color(hex: "15803D"), Color(hex: "DCFCE7"))
+        case "rejected":
+            return ("Rejected", Color(hex: "DC2626"), Color(hex: "FFF1F2"))
+        case "pending":
+            return ("Pending", Color(hex: "B45309"), Color(hex: "FEF3C7"))
+        default:
+            let text = status.isEmpty ? "—" : status.capitalized
+            return (text, Color(hex: "4B5563"), Color(hex: "F3F4F6"))
+        }
+    }
+
+    var body: some View {
+        Text(look.label)
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(look.fg)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(look.bg, in: Capsule())
+    }
+}
+
+/// Android `timeOf`: the server sends "2026-09-30 14:30:00", and older rows "30 Sep 2026, 02:30 PM".
+/// iOS only handled the comma form, so a modern row showed no time at all.
+enum LedgerTime {
+    private static func formatter(_ format: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = format
+        return formatter
+    }
+
+    private static let server = formatter("yyyy-MM-dd HH:mm:ss")
+    private static let legacy = formatter("d MMM yyyy, hh:mm a")
+    private static let display = formatter("h:mm a")
+
+    static func date(_ raw: String) -> Date? {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        return server.date(from: text) ?? legacy.date(from: text)
+    }
+
+    /// The time alone, or nil when the value carries only a date.
+    static func label(_ raw: String) -> String? {
+        if let parsed = date(raw) { return display.string(from: parsed) }
+        let tail = raw.components(separatedBy: ", ").dropFirst().joined(separator: ", ")
+        return tail.trimmingCharacters(in: .whitespaces).isEmpty ? nil : tail
     }
 }

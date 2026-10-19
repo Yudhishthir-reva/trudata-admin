@@ -28,7 +28,11 @@ struct SellerMergeScreen: View {
                 }
                 .scrollDismissesKeyboard(.interactively)
             } else {
-                Text("Seller Merge is available to authorized staff on staging only.").padding()
+                VStack(spacing: 6) {
+                    Text("Seller Merge isn't available").font(.headline)
+                    Text("It's open to Admin, Sales Manager and Accountant.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }.frame(maxWidth: .infinity).padding()
                 Spacer()
             }
         }
@@ -48,7 +52,14 @@ struct SellerMergeScreen: View {
             Button("Merge sellers", role: .destructive) { Task { await model.execute() } }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("All records from \(model.secondary?.title ?? "the duplicate") will move to \(model.primary?.title ?? "the kept seller"). The duplicate will be deactivated. This cannot be undone here.")
+            // "All records will move" reads wrong when the duplicate has none; Android states the
+            // actual count and says plainly when there is nothing to move.
+            let from = model.secondary?.title ?? "the duplicate"
+            let into = model.primary?.title ?? "the kept seller"
+            let moving = records == 0
+                ? "\(from) has no records to move."
+                : "\(records.formatted()) record\(records == 1 ? "" : "s") of \(from) will move to \(into)."
+            Text("\(moving) \(from) will be deactivated. This can't be undone.")
         }
     }
 

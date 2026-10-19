@@ -17,7 +17,6 @@ struct TruedataApp: App {
                 .dynamicTypeSize(.large)
                 .handleNoInternet()
                 .preferredColorScheme(.light)
-                .preventScreenshots()
         }
     }
 }
@@ -54,7 +53,6 @@ struct RootContainerView: View {
         for window in UIApplication.shared.connectedWindows {
             window.overrideUserInterfaceStyle = .light
             window.enableTapToDismissKeyboard()
-            window.enableScreenCaptureProtection()
         }
     }
 }

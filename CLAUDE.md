@@ -14,7 +14,8 @@ Android behaviour as the spec.
 Always open `Truedata.xcworkspace`, never `Truedata.xcodeproj` — CocoaPods.
 The workspace lists ~20 pod schemes; the app scheme is `Truedata`.
 
-Pods: IQKeyboardManagerSwift, FirebaseCore, FirebaseMessaging, FirebaseRemoteConfig.
+Pods: IQKeyboardManagerSwift, FirebaseCore, FirebaseMessaging. **No FirebaseRemoteConfig** —
+see App Review constraints below.
 
 **New `.swift` files must be registered in `project.pbxproj`** — this project does not
 use Xcode 16 synchronized folders, so a file on disk is not compiled until it is added:
@@ -122,8 +123,29 @@ that interpolates a path prefix, so grep for the raw path too.
 let currentEnvironment: RequestEnvironmentType = .stagging
 ```
 
-That single line switches staging / production. **Currently set to `.stagging`** —
-check it before any release build.
+That single line switches staging / production. **Currently set to `.production`.**
+Check it before any release build — and note the test accounts are staging-only, so a
+production build will return 422 from `V2/home3` for them.
+
+## App Review constraints (do not reintroduce)
+
+The app was rejected under **Guideline 2.3.1(a) — hidden features** for two things. Both are
+removed; putting either back will get it rejected again, and the account is now in extended
+review:
+
+- **No screen-capture or screen-recording detection.** `UIScreen.isCaptured`,
+  `UIScreen.capturedDidChangeNotification`, blocking overlays, and the `UITextField`
+  secure-canvas trick (reaching into `_UITextLayoutCanvasView`) are all gone. Apple cited
+  "screen recording detection that blocks content visibility".
+- **No Firebase Remote Config.** The shared `spicemonk-ecosys` project serves an
+  `app_update_config` parameter that names a different app (`com.birdtm.app`) and links an
+  APK on GitHub. iOS never read it but still fetched it, which Apple cited as "remote
+  configuration referencing a different application". The SDK is unlinked; the app makes no
+  Remote Config fetch.
+
+If remote configuration is ever needed again, the parameter must be conditioned to the
+Android app in the Firebase console first, and the iOS feature must be visible and
+documented — not something that changes behaviour after review.
 
 ## Gotchas
 

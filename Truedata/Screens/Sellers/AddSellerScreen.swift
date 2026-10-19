@@ -285,7 +285,19 @@ struct AddSellerScreen: View {
                     placeholder: "Enter manual address"
                 )
 
-                locationCard
+                if viewModel.isEditMode {
+                    Toggle(isOn: $viewModel.updateSellerAddress) {
+                        Text("Update Seller Address")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(AppTheme.cerulean)
+                    }
+                    .tint(AppTheme.cerulean)
+                }
+
+                // Android shows the GPS block in edit mode only once the checkbox is on.
+                if !viewModel.isEditMode || viewModel.updateSellerAddress {
+                    locationCard
+                }
 
                 if !viewModel.isEditMode {
                     photoSection(title: "Profile Photo", image: viewModel.profileImage, kind: .profile)
