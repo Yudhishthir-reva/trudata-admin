@@ -56,6 +56,7 @@ struct SellerProfileScreen: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 profileHeader
+                                pendingBillsCard
                                 tabBar
                                     .id(SellerProfileScrollAnchor.tabBar)
                                 tabContent
@@ -116,6 +117,34 @@ struct SellerProfileScreen: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Pending bills
+
+    /// Android `SellerProfileV2Screen`: the card sits between the header and the tabs whenever the
+    /// server sends the pending-bill figures, or the seller is barred from new orders.
+    @ViewBuilder
+    private var pendingBillsCard: some View {
+        let stats = viewModel.financialStats
+        if viewModel.profile != nil,
+           stats?.pendingBillsCount != nil || stats?.pendingBillsAmount != nil || !viewModel.canCreateOrder {
+            // A destination link rather than a path value, so it pushes whether this profile has
+            // its own NavigationStack or sits inside Home's (usesNavigationStack: false).
+            NavigationLink {
+                ViewPendingBillsScreen(
+                    sellerId: viewModel.profileSellerId,
+                    staffId: 0,
+                    sellerName: viewModel.profile?.shopName ?? ""
+                )
+            } label: {
+                SellerPendingBillsCard(
+                    count: stats?.pendingBillsCount,
+                    amount: stats?.pendingBillsAmount,
+                    restricted: !viewModel.canCreateOrder
+                )
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     // MARK: - Header
@@ -833,6 +862,77 @@ struct SellerProfileScreen: View {
     }
 
     // MARK: - Actions
+}
+
+/// Android `PendingBillsCard`: orange while bills are unpaid (or new orders are barred), green
+/// once none are. The whole card opens the bills, with "View Pending Bills" drawn as its button.
+private struct SellerPendingBillsCard: View {
+    let count: Int?
+    let amount: String?
+    let restricted: Bool
+
+    private var hasPendingBills: Bool { (count ?? 0) > 0 }
+    private var warm: Bool { hasPendingBills || restricted }
+    private var accent: Color { warm ? Color(hex: "9A3412") : Color(hex: "166534") }
+
+    private var subtitle: String {
+        if hasPendingBills { return "Delivered bills awaiting payment" }
+        return count == nil ? "Review outstanding payments" : "No bills awaiting payment"
+    }
+
+    /// Android formats with the en-IN currency instance: "₹12,345.00"; "—" when absent or unreadable.
+    private var amountText: String {
+        guard let raw = amount, let value = Double(raw.replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces)) else {
+            return "—"
+        }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "INR"
+        formatter.locale = Locale(identifier: "en_IN")
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? "₹\(raw)"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.rectangle.portrait")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(accent)
+                    .frame(width: 50, height: 50)
+                    .background(accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Pending Bills").font(.system(size: 16, weight: .bold)).foregroundStyle(accent)
+                    Text(subtitle).font(.system(size: 12)).foregroundStyle(accent)
+                }
+                Spacer(minLength: 0)
+            }
+            BillWeightedRow(spacing: 20) {
+                figure(count.map(String.init) ?? "—", "Unpaid bills", size: 32).billWeight(0.8)
+                figure(amountText, "Outstanding amount", size: 24).billWeight(1.4)
+            }
+            Text("View Pending Bills")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(accent)
+                .frame(maxWidth: .infinity).frame(height: 40)
+                .overlay(Capsule().stroke(accent, lineWidth: 1))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(warm ? Color(hex: "FFF7ED") : Color(hex: "F0FDF4"), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(accent.opacity(0.25), lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private func figure(_ value: String, _ label: String, size: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value).font(.system(size: size, weight: .bold)).foregroundStyle(accent)
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(accent)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }
 
 private enum SellerProfileScrollAnchor: String {

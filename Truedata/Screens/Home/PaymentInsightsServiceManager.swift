@@ -50,8 +50,7 @@ class PaymentInsightsServiceManager {
         page: Int,
         startDate: String,
         endDate: String,
-        paymentMode: String,
-        staffId: String,
+        paymentType: String,
         sellerId: String
     ) -> AnyPublisher<BillSettlementHistoryResponse, Error> {
         var params: [String: Any] = [
@@ -59,8 +58,9 @@ class PaymentInsightsServiceManager {
             "start_date": startDate,
             "end_date": endDate
         ]
-        if !paymentMode.isEmptyString { params["payment_mode"] = paymentMode }
-        if !staffId.isEmptyString { params["staff_id"] = staffId }
+        // The server reads the mode (1 cash, 2 cheque, 3 UPI) as `payment_type`, not
+        // `payment_mode`, and has no staff filter here (a sales person only sees their own).
+        if !paymentType.isEmptyString { params["payment_type"] = paymentType }
         if !sellerId.isEmptyString { params["seller_id"] = sellerId }
 
         return networkService.request(

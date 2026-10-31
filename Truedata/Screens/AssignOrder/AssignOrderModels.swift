@@ -183,6 +183,8 @@ struct AssignOrderDTO: Decodable {
     var orderDate: String
     var beatId: String
     var beatName: String
+    /// Android `total_weight`: sent as text ("12.5 kg"); absent or blank shows no weight.
+    var totalWeight: String?
 
     enum CodingKeys: String, CodingKey {
         case status
@@ -196,6 +198,7 @@ struct AssignOrderDTO: Decodable {
         case orderDate = "order_date"
         case beatId = "beat_id"
         case beatName = "beat_name"
+        case totalWeight = "total_weight"
     }
 
     init(from decoder: Decoder) throws {
@@ -211,6 +214,8 @@ struct AssignOrderDTO: Decodable {
         orderDate = container.decodeStringLeniently(forKey: .orderDate) ?? ""
         beatId = container.decodeStringLeniently(forKey: .beatId) ?? ""
         beatName = container.decodeStringLeniently(forKey: .beatName) ?? ""
+        let weight = container.decodeStringLeniently(forKey: .totalWeight)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        totalWeight = weight?.isEmpty == false ? weight : nil
     }
 
     var asModel: AssignOrderItem {
@@ -225,7 +230,8 @@ struct AssignOrderDTO: Decodable {
             orderNotDelivered: orderNotDelivered,
             date: orderDate,
             beatId: beatId,
-            beatName: beatName
+            beatName: beatName,
+            totalWeight: totalWeight
         )
     }
 }
@@ -242,4 +248,5 @@ struct AssignOrderItem: Identifiable, Hashable {
     let date: String
     let beatId: String
     let beatName: String
+    var totalWeight: String? = nil
 }

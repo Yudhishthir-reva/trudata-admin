@@ -10,6 +10,7 @@ struct PaymentInsightsScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: PaymentInsightsViewModel
     @State private var showFilterSheet = false
+    @State private var showSettlementFilterSheet = false
 
     init(
         startDate: String? = nil,
@@ -40,8 +41,8 @@ struct PaymentInsightsScreen: View {
                     onRefresh: { viewModel.refreshAll() }
                 )
 
-                searchAndFilterBar
                 viewModeTabs
+                tabFilters
                 recordsHeader
                 mainContent
             }
@@ -58,6 +59,11 @@ struct PaymentInsightsScreen: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showSettlementFilterSheet) {
+            PaymentSettlementFilterSheet(viewModel: viewModel)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private var isInitialLoading: Bool {
@@ -71,16 +77,41 @@ struct PaymentInsightsScreen: View {
         }
     }
 
-    private var searchAndFilterBar: some View {
-        SearchAndFilterBar(
-            placeholder: "Search transactions...",
-            searchText: Binding(
-                get: { viewModel.searchText },
-                set: { viewModel.updateSearch($0) }
-            ),
-            isFilterActive: viewModel.isFilterActive,
-            onFilterTap: { showFilterSheet = true }
-        )
+    /// Report and Bills come from one API and share a filter; Settlements has its own. Each tab
+    /// says which set it is showing, and only Bills has a search (it narrows that list).
+    @ViewBuilder
+    private var tabFilters: some View {
+        VStack(spacing: 8) {
+            if viewModel.viewMode == .settlements {
+                let summary = viewModel.settlementFilterSummary
+                PaymentTabFilterBar(
+                    scope: "Settlements",
+                    parts: summary.parts,
+                    activeCount: summary.active,
+                    onOpen: { showSettlementFilterSheet = true },
+                    onClear: { viewModel.resetSettlementFilters() }
+                )
+            } else {
+                if viewModel.viewMode == .bills {
+                    PaymentBillsSearchField(
+                        text: Binding(
+                            get: { viewModel.searchText },
+                            set: { viewModel.updateSearch($0) }
+                        )
+                    )
+                }
+                let summary = viewModel.reportFilterSummary
+                PaymentTabFilterBar(
+                    scope: "Report & Bills",
+                    parts: summary.parts,
+                    activeCount: summary.active,
+                    onOpen: { showFilterSheet = true },
+                    onClear: { viewModel.resetToDefaultFilters() }
+                )
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
     }
 
     /// The same segmented control Payment Advance and the rest of the Utility family use
@@ -98,6 +129,7 @@ struct PaymentInsightsScreen: View {
             )
         )
         .padding(.horizontal, 16)
+        .padding(.top, 12)
     }
 
     @ViewBuilder
@@ -515,7 +547,7 @@ private struct PaymentSettlementRow: View {
 
             HStack(spacing: 8) {
                 paymentModeTag
-                if !item.discount.isEmptyString, item.discount != "0", item.discount != "0.0" {
+                if item.showsDiscount {
                     discountTag
                 }
             }
@@ -523,6 +555,9 @@ private struct PaymentSettlementRow: View {
             HStack(alignment: .top, spacing: 16) {
                 settlementColumn(title: "SELLER", value: item.sellerName)
                 settlementColumn(title: "STAFF", value: item.staffName)
+                if !item.settledBy.isEmptyString {
+                    settledByColumn
+                }
             }
 
             if let mobile = SellerContactVisibility.visibleMobile(item.sellerPhone) {
@@ -600,6 +635,21 @@ private struct PaymentSettlementRow: View {
         .clipShape(Capsule())
     }
 
+    /// Smaller than SELLER / STAFF and one line, as on Android, so three columns still fit.
+    private var settledByColumn: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("SETTLED BY")
+                .font(.system(size: 9, weight: .bold))
+                .tracking(0.5)
+                .foregroundStyle(DashboardTheme.neutralMedium)
+            Text(item.settledBy)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(DashboardTheme.neutralDark)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func settlementColumn(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -611,5 +661,118 @@ private struct PaymentSettlementRow: View {
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Which filters the tab below is showing, and the button that changes them (Android
+/// `TabFilterBar`). [scope] names the tabs they apply to.
+private struct PaymentTabFilterBar: View {
+    let scope: String
+    let parts: [String]
+    let activeCount: Int
+    var onOpen: () -> Void
+    var onClear: () -> Void
+
+    private var isActive: Bool { activeCount > 0 }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("FILTERS · \(scope.uppercased())")
+                    .font(.system(size: 9.5, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundStyle(DashboardTheme.neutralMedium)
+                Text(parts.joined(separator: " · "))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.neutralDark)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if isActive {
+                Button("Clear", action: onClear)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(DashboardTheme.dangerRed)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 10)
+                    .buttonStyle(.plain)
+            }
+
+            filterButton
+        }
+        .padding(.leading, 12)
+        .padding(.trailing, 6)
+        .padding(.vertical, 8)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(
+                    isActive ? DashboardTheme.primaryBlue.opacity(0.45) : DashboardTheme.neutralMedium.opacity(0.25),
+                    lineWidth: 1
+                )
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .onTapGesture(perform: onOpen)
+    }
+
+    private var filterButton: some View {
+        Button(action: onOpen) {
+            Image(systemName: "slider.horizontal.3")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(DashboardTheme.primaryBlue)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(alignment: .topTrailing) {
+                    if isActive {
+                        Text("\(activeCount)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 17, height: 17)
+                            .background(DashboardTheme.dangerRed)
+                            .clipShape(Circle())
+                            .offset(x: 4, y: -4)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Change filters")
+    }
+}
+
+/// The Bills tab's search; the server matches "#…" to order numbers, digits to order or mobile,
+/// letters to shop or name.
+private struct PaymentBillsSearchField: View {
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(DashboardTheme.neutralMedium)
+            TextField("Order no, mobile or shop name", text: $text)
+                .font(.system(size: 14))
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(DashboardTheme.neutralMedium)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(DashboardTheme.neutralMedium.opacity(0.4), lineWidth: 1)
+        }
     }
 }

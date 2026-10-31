@@ -30,12 +30,23 @@ struct CashDropdownOption: Identifiable, Hashable {
     var icon: String? = nil
 }
 
+/// Android's field error line: 11.5pt semibold red under the field it is about.
+struct CashFieldError: View {
+    let text: String
+    var body: some View {
+        Text(text).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(BillTone.err)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 struct CashDropdown: View {
     let title: String
     let placeholder: String
     let options: [CashDropdownOption]
     @Binding var selection: String
     var searchable = true
+    /// Android `PickerField(error:)`: red fill, red border and the message underneath.
+    var error: String? = nil
     @State private var isPresented = false
 
     private var selectedTitle: String? { options.first { $0.id == selection }?.title }
@@ -56,9 +67,10 @@ struct CashDropdown: View {
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold)).foregroundStyle(AppTheme.slateGray)
                 }.padding(.horizontal, 14).padding(.vertical, 13)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.gainsboro, lineWidth: 1))
+                    .background(error == nil ? Color.white : BillTone.errBg, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(error == nil ? AppTheme.gainsboro : BillTone.err, lineWidth: 1))
             }.buttonStyle(.plain)
+            if let error { CashFieldError(text: error) }
         }
         .sheet(isPresented: $isPresented) {
             CashDropdownSheet(title: title, options: options, selection: $selection, searchable: searchable)
@@ -430,9 +442,15 @@ struct CashCollectionScreen: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if tab == "Submit" {
-                CashSubmitFooter(form: form, isSaving: model.isSaving, onClear: { form = CashCountForm() }, onSubmit: { confirm = true })
+                CashSubmitFooter(form: form, isSaving: model.isSaving, onClear: { form = CashCountForm() }, onSubmit: askSubmit)
             }
         }
+        .overlay {
+            if let alert = model.alert {
+                BillErrorDialog(message: alert.message, title: alert.title) { model.alert = nil }
+            }
+        }
+        .animation(.easeOut(duration: 0.18), value: model.alert)
         .task { await model.loadPeople(); await summaryModel.loadPeople() }
         .onChange(of: summaryModel.filter) { _ in if tab == "Summary" { refresh() } }
         .onChange(of: tab) { _ in refresh() }
@@ -449,6 +467,18 @@ struct CashCollectionScreen: View {
             let pieces = CashDenomination.all.reduce(0) { $0 + (Int(form.counts[$1.id, default: ""]) ?? 0) }
             Text("\(pieces) notes and coins adding up to \(cashMoney(form.total ?? 0)). It goes to your admin for approval. You can't change it after submitting.")
         }
+    }
+
+    /// Android `askSubmit`: the button always answers. A count that can't go says why in a
+    /// "Check the counts" dialog, and a missing total also marks its box.
+    private func askSubmit() {
+        guard !model.isSaving else { return }
+        if let problem = form.problem(editing: false) {
+            form.declaredError = problem.field
+            model.alert = CashAlert(title: CashAlert.countsTitle, message: problem.message)
+            return
+        }
+        confirm = true
     }
 
     private func refresh() {
@@ -475,6 +505,8 @@ struct CashCollectionDetailScreen: View {
     @State private var form = CashCountForm()
     @State private var reviewAction: Bool?
     @State private var confirmEdit = false
+    /// Android `remarkError`: set by a Reject with no remark, cleared by typing one.
+    @State private var remarkError: String?
 
     var body: some View {
         CashPage(title: detailTitle, onHome: onHome, onRefresh: { Task { await model.loadDetail(id) } }) {
@@ -496,8 +528,8 @@ struct CashCollectionDetailScreen: View {
                     Text("Change the counts or the total. They must still add up. The collection stays pending after saving.")
                         .font(.subheadline).foregroundStyle(CashStyle.muted)
                     CashDenominationForm(form: $form).disabled(model.isSaving)
-                    Button("Save changes") { confirmEdit = true }
-                        .buttonStyle(.borderedProminent).disabled(!form.isBalanced || model.isSaving)
+                    Button("Save changes") { askSave() }
+                        .buttonStyle(.borderedProminent).disabled(model.isSaving)
                     Button("Cancel Edit") { editing = false }.disabled(model.isSaving)
                 } else {
                     CashDenominationLines(lines: record.denominations)
@@ -513,13 +545,20 @@ struct CashCollectionDetailScreen: View {
                         CashCard {
                             VStack(alignment: .leading, spacing: 16) {
                                 CashSummaryHeading(title: "Review remark", subtitle: "Required when rejecting", icon: "square.and.pencil")
-                                HStack(alignment: .top) {
-                                    TextField("e.g. Verified with the cash in hand", text: $remark, axis: .vertical)
-                                        .lineLimit(3...5)
-                                        .onChange(of: remark) { value in remark = String(value.prefix(250)) }
-                                    SpeechRemarkButton(text: $remark)
-                                }.padding(14).background(CashStyle.pale.opacity(0.2), in: RoundedRectangle(cornerRadius: 12))
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack(alignment: .top) {
+                                        TextField("e.g. Verified with the cash in hand", text: $remark, axis: .vertical)
+                                            .lineLimit(3...5)
+                                            .onChange(of: remark) { _, value in
+                                                if value.count > 250 { remark = String(value.prefix(250)) }
+                                                remarkError = nil
+                                            }
+                                        SpeechRemarkButton(text: $remark)
+                                    }.padding(14)
+                                        .background(remarkError == nil ? CashStyle.pale.opacity(0.2) : BillTone.errBg, in: RoundedRectangle(cornerRadius: 12))
+                                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(remarkError == nil ? CashStyle.border : BillTone.err, lineWidth: remarkError == nil ? 1 : 1.5))
+                                    if let remarkError { CashFieldError(text: remarkError) }
+                                }
                             }
                         }.disabled(model.isSaving)
                     }
@@ -550,10 +589,10 @@ struct CashCollectionDetailScreen: View {
                             }.accessibilityLabel("Edit counts")
                         }
                         if model.access.canReviewAll && record.status == "pending" {
-                            Button { reviewAction = false } label: {
+                            Button { askReject() } label: {
                                 Label("Reject", systemImage: "xmark").frame(maxWidth: .infinity).padding(.vertical, 15)
                                     .foregroundStyle(.red).background(Color.red.opacity(0.09), in: RoundedRectangle(cornerRadius: 12))
-                            }.disabled(remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
                             Button { reviewAction = true } label: {
                                 Label("Approve", systemImage: "checkmark").frame(maxWidth: .infinity).padding(.vertical, 15)
                                     .foregroundStyle(.white).background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 12))
@@ -595,6 +634,33 @@ struct CashCollectionDetailScreen: View {
                 }
             }
         }
+        .overlay {
+            if let alert = model.alert {
+                BillErrorDialog(message: alert.message, title: alert.title) { model.alert = nil }
+            }
+        }
+        .animation(.easeOut(duration: 0.18), value: model.alert)
+    }
+
+    /// Android `askSave`: edits that don't add up are explained in "Can't continue".
+    private func askSave() {
+        guard !model.isSaving else { return }
+        if let problem = form.problem(editing: true) {
+            model.alert = CashAlert(message: problem.message)
+            return
+        }
+        confirmEdit = true
+    }
+
+    /// Android `askReject`: a rejection needs a remark, so the box turns red and says so.
+    private func askReject() {
+        guard !model.isSaving else { return }
+        if remark.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            remarkError = "Add a remark saying why it's rejected"
+            model.alert = CashAlert(message: "Add a remark saying why it's rejected. The person who submitted it will see it.")
+            return
+        }
+        reviewAction = false
     }
 }
 
@@ -611,6 +677,9 @@ struct AmountTakenScreen: View {
     @State private var confirmAdd = false
     @State private var selected: CashRecord?
     @State private var detailRecord: CashRecord?
+    /// Android `personError` / `amountError`: set by a refused Save, cleared by fixing the field.
+    @State private var personError: String?
+    @State private var amountError: String?
 
     var body: some View {
         CashPage(title: "Amount Taken", onHome: onHome, onRefresh: { Task { await model.reload(); await model.loadPeople() } }) {
@@ -659,10 +728,21 @@ struct AmountTakenScreen: View {
                 Task {
                     if await model.addTaken(personId: personId, amount: amount, reason: reason, remark: remark, date: date, collectionId: collectionId > 0 ? collectionId : nil) {
                         amount = ""; reason = ""; remark = ""; personId = 0; collectionId = 0; tab = "All Taken"
+                    } else if let message = model.alert?.message.lowercased() {
+                        // Android routes a server refusal to the field it names, as well as the dialog.
+                        if message.contains("person") { personError = model.alert?.message }
+                        if message.contains("amount") { amountError = model.alert?.message }
                     }
                 }
             }
         }
+        .overlay {
+            if let alert = model.alert {
+                BillErrorDialog(message: alert.message, title: alert.title) { model.alert = nil }
+            }
+        }
+        .animation(.easeOut(duration: 0.18), value: model.alert)
+        .onChange(of: personId) { _, _ in personError = nil }
         .confirmationDialog("Review amount taken", isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } }), titleVisibility: .visible) {
             if let record = selected {
                 Button("Approve") { update(record, approve: true) }
@@ -674,8 +754,20 @@ struct AmountTakenScreen: View {
         }
     }
 
-    private var canSubmit: Bool {
-        personId > 0 && (Int(amount) ?? 0) > 0 && !model.isSaving && !model.isLoadingLinks
+    /// Only busy states grey the button; a missing person or amount is explained on tap.
+    private var canSubmit: Bool { !model.isSaving && !model.isLoadingLinks }
+
+    /// Android `askAdd`: each missing field is marked, and the dialog lists them all.
+    private func askAdd() {
+        guard canSubmit else { return }
+        personError = personId > 0 ? nil : "Choose who took the amount"
+        amountError = (Int(amount) ?? 0) > 0 ? nil : "Enter an amount above ₹0"
+        let problems = [personError, amountError].compactMap { $0 }
+        if !problems.isEmpty {
+            model.alert = CashAlert(message: problems.joined(separator: ".\n") + ".")
+            return
+        }
+        confirmAdd = true
     }
 
     private var takenForm: some View {
@@ -691,16 +783,22 @@ struct AmountTakenScreen: View {
                     Label("Payment details", systemImage: "banknote").font(.headline).foregroundStyle(CashStyle.green)
                     CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map {
                         CashDropdownOption(id: String($0.id), title: $0.name, icon: "person.fill")
-                    }, selection: Binding(get: { String(personId) }, set: { personId = Int($0) ?? 0 }))
+                    }, selection: Binding(get: { String(personId) }, set: { personId = Int($0) ?? 0 }), error: personError)
                     if let error = model.peopleError { CashRetry(message: error) { Task { await model.loadPeople() } } }
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Amount *").font(.subheadline.weight(.medium))
                         HStack(spacing: 10) {
                             Text("₹").font(.title2.weight(.semibold)).foregroundStyle(CashStyle.green)
                             TextField("Enter amount", text: $amount).keyboardType(.numberPad).font(.title3.weight(.medium))
-                                .onChange(of: amount) { _, value in amount = value.filter { $0.isASCII && $0.isNumber } }
-                        }.padding(14).background(CashStyle.pale.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.border))
+                                .onChange(of: amount) { _, value in
+                                    let clean = cashDigits(value, max: 9)
+                                    if clean != value { amount = clean }
+                                    amountError = nil
+                                }
+                        }.padding(14)
+                            .background(amountError == nil ? CashStyle.pale.opacity(0.5) : BillTone.errBg, in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(amountError == nil ? CashStyle.border : BillTone.err, lineWidth: amountError == nil ? 1 : 1.5))
+                        if let amountError { CashFieldError(text: amountError) }
                     }
                     DatePicker(selection: $date, in: ...Date(), displayedComponents: .date) {
                         Label("Date", systemImage: "calendar").font(.subheadline.weight(.medium))
@@ -780,7 +878,7 @@ struct AmountTakenScreen: View {
                     Text(person.name).font(.subheadline).foregroundStyle(CashStyle.muted).multilineTextAlignment(.trailing)
                 }
             }
-            Button { confirmAdd = true } label: {
+            Button { askAdd() } label: {
                 HStack(spacing: 10) {
                     if model.isSaving { ProgressView().tint(.white) }
                     else { Image(systemName: "checkmark.circle.fill") }
@@ -1149,14 +1247,26 @@ private struct CashDenominationForm: View {
                     Label("Total cash amount", systemImage: "indianrupeesign.circle.fill")
                         .font(.headline).foregroundStyle(CashStyle.ink)
                     Text("The cash you are handing over").font(.subheadline).foregroundStyle(CashStyle.muted)
+                    // Android's total box: red with its error, green once filled, grey while empty.
+                    let hasError = form.declaredError != nil
+                    let filled = !form.declared.isEmpty
                     HStack(spacing: 8) {
                         Text("₹").font(.title2.weight(.semibold))
                         TextField("0", text: $form.declared).keyboardType(.numberPad).font(.title2.weight(.semibold))
                             .accessibilityLabel("Total cash amount")
-                    }.padding(14).overlay(RoundedRectangle(cornerRadius: 12).stroke(CashStyle.green, lineWidth: 1))
+                            .onChange(of: form.declared) { _, value in
+                                let clean = cashDigits(value, max: CashCountForm.declaredMax)
+                                if clean != value { form.declared = clean }
+                            }
+                    }
+                    .padding(14)
+                    .background(hasError ? BillTone.errBg : filled ? Color.white : Color(hex: "F5F5F5"), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10)
+                        .stroke(hasError ? BillTone.err : filled ? CashStyle.bright : BillTone.fieldBorder, lineWidth: 1))
                     if let declared = Int(form.declared), declared > 0 {
                         Text("\(declared) rupees").font(.caption).foregroundStyle(CashStyle.muted)
                     }
+                    if let error = form.declaredError { CashFieldError(text: error) }
                 }
             }
             discrepancy
@@ -1166,6 +1276,9 @@ private struct CashDenominationForm: View {
                 HStack(alignment: .bottom) {
                     TextField("Remark (optional)", text: $form.remark, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
+                        .onChange(of: form.remark) { _, value in
+                            if value.count > CashCountForm.remarkMax { form.remark = String(value.prefix(CashCountForm.remarkMax)) }
+                        }
                     SpeechRemarkButton(text: $form.remark)
                 }
             }
@@ -1293,13 +1406,13 @@ private struct CashDenominationRow: View {
                     .frame(height: 38)
                     .accessibilityLabel("\(denomination.label) quantity")
                     .onChange(of: count) { _, newValue in
-                        let digits = newValue.filter(\.isNumber)
+                        let digits = cashDigits(newValue, max: CashCountForm.countMax)
                         if digits != newValue { count = digits }
                     }
 
                 Button {
                     let current = Int(count.filter(\.isNumber)) ?? 0
-                    count = String(current + 1)
+                    count = String(min(current + 1, 999_999))
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 14, weight: .bold))
@@ -1345,7 +1458,8 @@ private struct CashSubmitFooter: View {
                     .foregroundStyle(CashStyle.green).background(CashStyle.pale, in: RoundedRectangle(cornerRadius: 14))
                 Button(action: onSubmit) { Label("Submit", systemImage: "paperplane.fill").frame(maxWidth: .infinity).frame(height: 50) }
                     .foregroundStyle(.white).background(CashStyle.gradient, in: RoundedRectangle(cornerRadius: 14))
-                    .disabled(!form.isBalanced || isSaving).opacity(form.isBalanced && !isSaving ? 1 : 0.55)
+                    // Always tappable, as on Android: a count that can't go is explained, not greyed out.
+                    .disabled(isSaving).opacity(isSaving ? 0.55 : 1)
             }.font(.headline).buttonStyle(.plain)
         }.padding(.horizontal, 14).padding(.top, 10).padding(.bottom, 8)
             .background(.white, in: UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
@@ -1809,17 +1923,28 @@ struct CashPage<Content: View>: View {
     let title: String
     var onHome: () -> Void
     var onRefresh: (() -> Void)? = nil
+    /// Android `CcTopBar(menu:)`: a ⋮ button between refresh and home whose items this fills.
+    var menu: (() -> AnyView)? = nil
+    /// Where back is headed instead of a plain dismiss, e.g. to ask before throwing work away.
+    var onBack: (() -> Void)? = nil
     @ViewBuilder var content: () -> Content
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button { dismiss() } label: { Image(systemName: "arrow.left") }.accessibilityLabel("Back")
-                Text(title).font(.title3.weight(.semibold))
-                Spacer()
-                if let onRefresh { Button(action: onRefresh) { Image(systemName: "arrow.clockwise") }.accessibilityLabel("Refresh") }
-                Button(action: onHome) { Image(systemName: "house.fill") }.accessibilityLabel("Home")
+            // Every icon gets a full 44pt square (Apple's minimum) and a gap between, so refresh,
+            // ⋮ and home sitting side by side can't be hit by mistake.
+            HStack(spacing: 4) {
+                Button { if let onBack { onBack() } else { dismiss() } } label: { barIcon("arrow.left") }.accessibilityLabel("Back")
+                Text(title).font(.title3.weight(.semibold)).lineLimit(1).padding(.leading, 4)
+                Spacer(minLength: 8)
+                if let onRefresh { Button(action: onRefresh) { barIcon("arrow.clockwise") }.accessibilityLabel("Refresh") }
+                if let menu {
+                    Menu { menu() } label: { barIcon("ellipsis").rotationEffect(.degrees(90)) }
+                        .accessibilityLabel("More actions")
+                }
+                Button(action: onHome) { barIcon("house.fill") }.accessibilityLabel("Home")
             }
-            .font(.title3).foregroundStyle(.white).padding(.horizontal, 16).padding(.vertical, 18)
+            .buttonStyle(.plain)
+            .font(.title3).foregroundStyle(.white).padding(.horizontal, 6).padding(.vertical, 6)
             .background(CashStyle.gradient, in: UnevenRoundedRectangle(bottomLeadingRadius: 18, bottomTrailingRadius: 18))
             .background(CashStyle.gradient.ignoresSafeArea(edges: .top))
             ScrollView {
@@ -1831,6 +1956,10 @@ struct CashPage<Content: View>: View {
         .tint(CashStyle.green)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func barIcon(_ name: String) -> some View {
+        Image(systemName: name).frame(width: 44, height: 44).contentShape(Rectangle())
     }
 }
 

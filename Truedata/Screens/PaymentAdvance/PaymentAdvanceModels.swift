@@ -112,10 +112,32 @@ struct PaymentAdvanceFilter: Equatable {
 }
 
 struct PaymentAdvanceForm {
+    /// Android caps: amount 9 digits, purpose / remark 250 characters, attachment 5 MB.
+    static let amountMax = 9
+    static let textMax = 250
+    static let fileMaxBytes = 5 * 1024 * 1024
+
     var personID = 0
     var amount = ""
     var date = Date()
     var text = ""
+
+    /// Android `submit()` on the give / receive forms: what is wrong with each field, worded the
+    /// same, so the screen can mark the field and list them in "Can't continue".
+    func problems(advance: PaymentAdvanceRecord?) -> (person: String?, amount: String?) {
+        let value = Int64(amount) ?? 0
+        guard let advance else {
+            return (personID > 0 ? nil : "Choose who the advance is for",
+                    value > 0 ? nil : "Enter an amount above ₹0")
+        }
+        if !AdvanceStatus.isOpen(advance.status) {
+            let label = AdvanceStatus(rawValue: advance.status.lowercased())?.title.lowercased() ?? advance.status.lowercased()
+            return (nil, "This advance is \(label); nothing can be received against it")
+        }
+        if value <= 0 { return (nil, "Enter an amount above ₹0") }
+        if Decimal(value) > advance.outstanding { return (nil, "Only \(advanceRupeeText(advance.outstanding)) is outstanding") }
+        return (nil, nil)
+    }
 
     static func amount(_ raw: String) -> Decimal? {
         let parts = raw.split(separator: ".", omittingEmptySubsequences: false)
@@ -142,14 +164,25 @@ struct PaymentAdvanceForm {
             params["advance_id"] = advance.recordID
             params["receive_amount"] = NSDecimalNumber(decimal: amount).stringValue
             let remark = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !remark.isEmpty { params["remark"] = remark }
+            if !remark.isEmpty { params["remark"] = String(remark.prefix(Self.textMax)) }
         } else {
             guard personID > 0 else { throw PaymentAdvanceError.message("Select a person.") }
             params["person_id"] = personID
             params["amount"] = NSDecimalNumber(decimal: amount).stringValue
             let purpose = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !purpose.isEmpty { params["purpose"] = purpose }
+            if !purpose.isEmpty { params["purpose"] = String(purpose.prefix(Self.textMax)) }
         }
         return params
     }
+}
+
+/// "₹1,25,000.5", as Android's `rupees` writes an amount inside a sentence.
+func advanceRupeeText(_ amount: Decimal) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencyCode = "INR"
+    formatter.locale = Locale(identifier: "en_IN")
+    formatter.minimumFractionDigits = 0
+    formatter.maximumFractionDigits = 2
+    return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "₹\(amount)"
 }

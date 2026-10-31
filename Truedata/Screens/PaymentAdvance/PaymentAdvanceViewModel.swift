@@ -43,6 +43,8 @@ final class PaymentAdvanceViewModel: ObservableObject {
     @Published var loading = false
     @Published var saving = false
     @Published var error: String?
+    /// A refused give / receive, shown as Android's "Can't continue" dialog.
+    @Published var alert: String?
     @Published var optionsError: String?
     @Published var hasMore = false
     private var page = 0
@@ -105,13 +107,13 @@ final class PaymentAdvanceViewModel: ObservableObject {
 
     func save(form: PaymentAdvanceForm, advance: PaymentAdvanceRecord?, file: MultipartFileUpload?) async -> Bool {
         guard access.canManage, !saving else { return false }
-        saving = true; error = nil
+        saving = true; error = nil; alert = nil
         defer { saving = false }
         do {
             let params = try form.parameters(advance: advance)
             _ = try await service.request(advance == nil ? "give" : "receive", params: params, file: file)
             return true
-        } catch { self.error = error.localizedDescription; return false }
+        } catch { alert = error.localizedDescription; return false }
     }
 
     func updateStatus(_ status: AdvanceStatus) async {

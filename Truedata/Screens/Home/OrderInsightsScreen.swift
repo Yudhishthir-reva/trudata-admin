@@ -498,9 +498,24 @@ private struct OrderInsightsOrderCard: View {
 
                     Spacer(minLength: 8)
 
-                    Text(order.totalAmount.priceLabel)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(DashboardTheme.primaryBlue)
+                    // The order's other total, so it sits under the amount rather than in the
+                    // detail grid below, which is about who and where.
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(order.totalAmount.priceLabel)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(DashboardTheme.primaryBlue)
+                        if let weight = order.totalWeight {
+                            HStack(spacing: 3) {
+                                Image(systemName: "scalemass")
+                                    .font(.system(size: 11))
+                                    .accessibilityLabel("Total weight")
+                                Text(weight)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .lineLimit(1)
+                            }
+                            .foregroundStyle(DashboardTheme.neutralMedium)
+                        }
+                    }
                 }
 
                 // Date Row

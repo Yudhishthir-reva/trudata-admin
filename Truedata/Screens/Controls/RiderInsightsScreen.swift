@@ -719,6 +719,8 @@ struct RiderInsightsScreen: View {
 
                 infoRow(icon: "bicycle", label: "Rider:", value: order.riderName)
                 infoRow(icon: "building.2.fill", label: "Seller:", value: order.sellerName)
+                // Android puts the seller's profile link right under the seller, on the same card.
+                ViewSellerProfileButton(sellerId: order.sellerId)
                 infoRow(icon: "person.fill", label: "Sales Person:", value: order.staffName)
             }
             .padding(14)

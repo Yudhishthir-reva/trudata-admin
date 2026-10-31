@@ -69,6 +69,99 @@ struct PaymentInsightsAppliedFilters {
     var paymentStatus: String
     var staffId: String
     var sellerId: String
+    /// Kept with the id so the filter bar can name the seller even when the paged seller list
+    /// no longer holds it (after a search in the sheet, say).
+    var sellerName: String = ""
+}
+
+/// The Settlements tab's own filters. bill-settlement-history narrows by date, mode and seller
+/// only, so there is no status or staff here, and nothing in it touches Report and Bills.
+struct PaymentSettlementFilters: Equatable {
+    var startDate: String
+    var endDate: String
+    var datePreset: OrderInsightsDatePreset = .today
+    /// "" for every mode, else "1" cash, "2" cheque, "3" UPI — sent as `payment_type`.
+    var paymentType: String = ""
+    var sellerId: String = ""
+    var sellerName: String = ""
+
+    static var today: PaymentSettlementFilters {
+        let today = OrderInsightsDateFormat.todayString
+        return PaymentSettlementFilters(startDate: today, endDate: today)
+    }
+}
+
+/// Words for the per-tab filter bar, mirroring Android `PaymentInsightsFilters.kt`.
+enum PaymentInsightsFilterSummary {
+    /// Payment mode keys as the server sends and takes them.
+    static let modeLabels: [(key: String, label: String)] = [("1", "Cash"), ("2", "Cheque"), ("3", "UPI")]
+    private static let statusLabels = ["0": "Pending", "1": "Remaining", "2": "Complete"]
+
+    private static let shortDay: DateFormatter = makeFormatter("d MMM")
+    private static let longDay: DateFormatter = makeFormatter("d MMM yyyy")
+
+    private static func makeFormatter(_ format: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }
+
+    static func modeLabel(_ key: String) -> String? {
+        modeLabels.first { $0.key == key }?.label
+    }
+
+    /// "Today", "This Month", or a custom range as "1 Oct – 30 Oct 2026".
+    static func dateLabel(preset: OrderInsightsDatePreset, start: String, end: String) -> String {
+        guard preset == .custom else { return preset.rawValue }
+        guard let a = OrderInsightsDateFormat.parse(start) else { return "Custom dates" }
+        let b = OrderInsightsDateFormat.parse(end) ?? a
+        let calendar = Calendar.current
+        if calendar.isDate(a, inSameDayAs: b) { return longDay.string(from: a) }
+        if calendar.component(.year, from: a) == calendar.component(.year, from: b) {
+            return "\(shortDay.string(from: a)) – \(longDay.string(from: b))"
+        }
+        return "\(longDay.string(from: a)) – \(longDay.string(from: b))"
+    }
+
+    /// What Report and Bills are narrowed by, in words, and how many filters that is.
+    static func parts(for filters: PaymentInsightsAppliedFilters, staffName: String) -> (parts: [String], active: Int) {
+        var parts = [dateLabel(preset: filters.datePreset, start: filters.startDate, end: filters.endDate)]
+        parts.append(modeLabel(filters.paymentMode) ?? (filters.paymentMode == "0" ? "N/A mode" : "All modes"))
+        if let status = statusLabels[filters.paymentStatus] { parts.append(status) }
+        if !filters.staffId.isEmptyString { parts.append(staffName.isEmptyString ? "1 staff" : staffName) }
+        if !filters.sellerId.isEmptyString {
+            parts.append(filters.sellerName.isEmptyString ? "1 seller" : filters.sellerName)
+        }
+        let active = [
+            filters.datePreset != .today,
+            !filters.paymentMode.isEmptyString,
+            !filters.paymentStatus.isEmptyString,
+            !filters.staffId.isEmptyString,
+            !filters.sellerId.isEmptyString
+        ].filter { $0 }.count
+        return (parts, active)
+    }
+
+    static func parts(for filters: PaymentSettlementFilters) -> (parts: [String], active: Int) {
+        let seller: String
+        if filters.sellerId.isEmptyString {
+            seller = "All sellers"
+        } else {
+            seller = filters.sellerName.isEmptyString ? "1 seller" : filters.sellerName
+        }
+        let parts = [
+            dateLabel(preset: filters.datePreset, start: filters.startDate, end: filters.endDate),
+            modeLabel(filters.paymentType) ?? "All modes",
+            seller
+        ]
+        let active = [
+            filters.datePreset != .today,
+            !filters.paymentType.isEmptyString,
+            !filters.sellerId.isEmptyString
+        ].filter { $0 }.count
+        return (parts, active)
+    }
 }
 
 struct PaymentHistoryResponse: Decodable {
@@ -593,10 +686,16 @@ struct BillSettlementItem: Identifiable, Decodable, Hashable {
     var sellerPhone: String
     var staffName: String
     var discount: String
+    var isDiscApply: Bool
+    /// Who settled the bill, shown as sent ("N/A" included); blank when the server leaves it out.
+    var settledBy: String
     var imageUrl: String
 
     enum CodingKeys: String, CodingKey {
         case id, date, discount
+        case isDiscApply = "is_disc_apply"
+        case settledBy = "settled_by"
+        case settleBy = "settle_by"
         case billId = "bill_id"
         case orderId = "order_id"
         case paymentMode = "payment_mode"
@@ -620,6 +719,18 @@ struct BillSettlementItem: Identifiable, Decodable, Hashable {
         sellerPhone = container.decodeStringLeniently(forKey: .sellerPhone) ?? ""
         staffName = container.decodeStringLeniently(forKey: .staffName) ?? ""
         discount = container.decodeStringLeniently(forKey: .discount) ?? ""
+        isDiscApply = container.decodeBoolLeniently(forKey: .isDiscApply) ?? false
+        // Some server builds spell it `settle_by`.
+        settledBy = (container.decodeStringLeniently(forKey: .settledBy)
+            ?? container.decodeStringLeniently(forKey: .settleBy)
+            ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         imageUrl = container.decodeStringLeniently(forKey: .imageUrl) ?? ""
+    }
+}
+
+extension BillSettlementItem {
+    /// The server sends "0.00" when no discount was given; only a real one gets the chip.
+    var showsDiscount: Bool {
+        isDiscApply && (Double(discount.trim) ?? 0) > 0
     }
 }

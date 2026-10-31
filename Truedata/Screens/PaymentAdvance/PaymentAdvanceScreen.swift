@@ -415,6 +415,9 @@ private struct PaymentAdvanceFormScreen: View {
     @State private var attachmentLoading = false
     @State private var attachmentError: String?
     @State private var confirming = false
+    /// Android `personError` / `amountError`: set by a refused submit, cleared by fixing the field.
+    @State private var personError: String?
+    @State private var amountError: String?
 
     var body: some View {
         NavigationStack {
@@ -426,7 +429,7 @@ private struct PaymentAdvanceFormScreen: View {
                     }
                 } else {
                     Section("Select person") {
-                        CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map { CashDropdownOption(id: "\($0.id)", title: $0.role.isEmpty ? $0.name : "\($0.name) (\($0.role))", icon: "person.fill") }, selection: Binding(get: { form.personID == 0 ? "" : "\(form.personID)" }, set: { form.personID = Int($0) ?? 0 }))
+                        CashDropdown(title: "Person *", placeholder: "Choose a person", options: model.people.map { CashDropdownOption(id: "\($0.id)", title: $0.role.isEmpty ? $0.name : "\($0.name) (\($0.role))", icon: "person.fill") }, selection: Binding(get: { form.personID == 0 ? "" : "\(form.personID)" }, set: { form.personID = Int($0) ?? 0; personError = nil }), error: personError)
                         if let error = model.optionsError {
                             Text(error).foregroundStyle(.red)
                             Button("Retry") { Task { await model.loadOptions() } }
@@ -434,7 +437,16 @@ private struct PaymentAdvanceFormScreen: View {
                     }
                 }
                 Section(advance == nil ? "Advance details" : "Payment details") {
-                    TextField(advance == nil ? "Advance amount (₹)" : "Receive amount (₹)", text: $form.amount).keyboardType(.numberPad)
+                    VStack(alignment: .leading, spacing: 4) {
+                        TextField(advance == nil ? "Advance amount (₹)" : "Receive amount (₹)", text: $form.amount).keyboardType(.numberPad)
+                            .onChange(of: form.amount) { _, value in
+                                let clean = cashDigits(value, max: PaymentAdvanceForm.amountMax)
+                                if clean != value { form.amount = clean }
+                                amountError = nil
+                            }
+                        if let amountError { CashFieldError(text: amountError) }
+                    }
+                    .listRowBackground(amountError == nil ? Color.white : BillTone.errBg)
                     // Android `FillOutstanding`: settling the whole balance is the common case, so
                     // offer it as one tap instead of retyping the figure shown above.
                     if let advance, advance.outstanding > 0 {
@@ -459,10 +471,10 @@ private struct PaymentAdvanceFormScreen: View {
                     }
                     HStack(alignment: .bottom) {
                         TextField(advance == nil ? "e.g. For market visit and expenses" : "e.g. Partial return", text: $form.text, axis: .vertical).lineLimit(3...6)
+                            .onChange(of: form.text) { _, value in
+                                if value.count > PaymentAdvanceForm.textMax { form.text = String(value.prefix(PaymentAdvanceForm.textMax)) }
+                            }
                         SpeechRemarkButton(text: $form.text).padding(.bottom, 8)
-                    }
-                    if !form.amount.isEmpty, let validationError {
-                        Text(validationError).font(.caption).foregroundStyle(.red)
                     }
                 }
                 Section("Attachment (optional)") {
@@ -473,7 +485,10 @@ private struct PaymentAdvanceFormScreen: View {
                         Button("Remove attachment", role: .destructive) { self.file = nil; photo = nil }
                     }
                     if attachmentLoading { ProgressView("Loading attachment…") }
-                    if let attachmentError { Text(attachmentError).foregroundStyle(.red) }
+                    // Android `AttachmentField`: the hint line turns into the error when a file is refused.
+                    Text(attachmentError ?? "JPG, PNG or PDF, up to 5 MB")
+                        .font(.system(size: 11.5, weight: attachmentError == nil ? .regular : .semibold))
+                        .foregroundStyle(attachmentError == nil ? BillTone.faint : BillTone.err)
                 }.disabled(attachmentLoading)
                 if let error = model.error { Section { Text(error).foregroundStyle(.red) } }
                 Section {
@@ -485,14 +500,14 @@ private struct PaymentAdvanceFormScreen: View {
                         Text(advanceMoney(PaymentAdvanceForm.amount(form.amount) ?? 0))
                             .font(.subheadline.weight(.semibold))
                     }
-                    Button { confirming = true } label: {
+                    Button { askSubmit() } label: {
                         HStack {
                             Spacer()
                             if model.saving { ProgressView() }
                             else { Text(advance == nil ? "Give Advance" : "Receive").fontWeight(.semibold) }
                             Spacer()
                         }
-                    }.disabled(!valid || model.saving || attachmentLoading)
+                    }.disabled(model.saving || attachmentLoading)
                 }
             }
             .disabled(model.saving)
@@ -510,6 +525,7 @@ private struct PaymentAdvanceFormScreen: View {
                     guard let data = try await selected.loadTransferable(type: Data.self) else { throw PaymentAdvanceError.message("Couldn't read the photo.") }
                     try Task.checkCancellation()
                     let type = selected.supportedContentTypes.first ?? .jpeg
+                    guard data.count <= PaymentAdvanceForm.fileMaxBytes else { throw PaymentAdvanceError.message("The file is larger than 5 MB. Choose a smaller one.") }
                     file = MultipartFileUpload(fieldName: "attachment", fileName: "attachment.\(type.preferredFilenameExtension ?? "jpg")", mimeType: type.preferredMIMEType ?? "image/jpeg", data: data)
                 } catch { if !Task.isCancelled { attachmentError = error.localizedDescription } }
             }
@@ -519,6 +535,7 @@ private struct PaymentAdvanceFormScreen: View {
                     let access = url.startAccessingSecurityScopedResource()
                     defer { if access { url.stopAccessingSecurityScopedResource() } }
                     let data = try Data(contentsOf: url)
+                    guard data.count <= PaymentAdvanceForm.fileMaxBytes else { throw PaymentAdvanceError.message("The file is larger than 5 MB. Choose a smaller one.") }
                     let type = UTType(filenameExtension: url.pathExtension)
                     file = MultipartFileUpload(fieldName: "attachment", fileName: url.lastPathComponent, mimeType: type?.preferredMIMEType ?? "application/octet-stream", data: data)
                     attachmentError = nil
@@ -526,15 +543,43 @@ private struct PaymentAdvanceFormScreen: View {
             }
             .confirmationDialog(advance == nil ? "Give this advance?" : "Record this returned payment?", isPresented: $confirming, titleVisibility: .visible) {
                 Button("Confirm submission") {
-                    Task { if await model.save(form: form, advance: advance, file: file) { dismiss() } }
+                    Task {
+                        if await model.save(form: form, advance: advance, file: file) { dismiss() }
+                        else if let message = model.alert?.lowercased() {
+                            // Android routes a server refusal to the field it names, as well as the dialog.
+                            if message.contains("person") { personError = model.alert }
+                            if message.contains("amount") || message.contains("outstanding") { amountError = model.alert }
+                            if message.contains("attach") || message.contains("file") { attachmentError = model.alert }
+                        }
+                    }
                 }
             }
+            .overlay {
+                if let alert = model.alert {
+                    BillErrorDialog(message: alert) { model.alert = nil }
+                }
+            }
+            .animation(.easeOut(duration: 0.18), value: model.alert)
         }
     }
-    private var valid: Bool { validationError == nil }
-    private var validationError: String? {
-        do { _ = try form.parameters(advance: advance); return nil }
-        catch { return error.localizedDescription }
+
+    /// Android `submit()`: every missing or wrong field is marked, and "Can't continue" lists them.
+    /// Date limits are enforced by the picker itself, as on Android.
+    private func askSubmit() {
+        guard !model.saving, !attachmentLoading else { return }
+        let problems = form.problems(advance: advance)
+        personError = problems.person
+        amountError = problems.amount
+        let messages = [problems.person, problems.amount].compactMap { $0 }
+        if !messages.isEmpty {
+            model.alert = messages.joined(separator: ".\n") + "."
+            return
+        }
+        do { _ = try form.parameters(advance: advance) } catch {
+            model.alert = error.localizedDescription
+            return
+        }
+        confirming = true
     }
 }
 

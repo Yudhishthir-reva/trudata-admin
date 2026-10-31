@@ -45,6 +45,8 @@ final class CashCollectionViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isSaving = false
     @Published var error: String?
+    /// A refused save or review, shown as Android's `ErrorDialog` rather than a line of red text.
+    @Published var alert: CashAlert?
     @Published var peopleError: String?
     @Published var summaryError: String?
     @Published var message: String?
@@ -175,15 +177,16 @@ final class CashCollectionViewModel: ObservableObject {
     }
 
     func submit(_ form: CashCountForm, editing id: Int? = nil) async -> Bool {
-        guard let params = form.parameters(id: id) else { error = "Enter a positive cash total and matching note and coin counts."; return false }
+        // The screen validates first (Android `askSubmit`); this only guards a stale tap.
+        guard let params = form.parameters(id: id) else { return false }
         if id != nil && (!access.canEdit || detail?.status == "approved") { return false }
-        return await mutate(id == nil ? "submit" : "edit", params)
+        return await mutate(id == nil ? "submit" : "edit", params, failureTitle: id == nil ? CashAlert.countsTitle : CashAlert.defaultTitle)
     }
 
     func review(approve: Bool, remark: String) async -> Bool {
         guard access.canReviewAll, let detail, detail.status == "pending" else { return false }
         let remark = remark.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard approve || !remark.isEmpty else { error = "Add a remark saying why it's rejected."; return false }
+        guard approve || !remark.isEmpty else { return false }
         var params: [String: Any] = ["id": detail.id, "action": approve ? "approved" : "rejected"]
         if !remark.isEmpty { params["remark"] = String(remark.prefix(250)) }
         return await mutate("review", params)
@@ -212,8 +215,7 @@ final class CashCollectionViewModel: ObservableObject {
 
     func addTaken(personId: Int, amount: String, reason: String, remark: String, date: Date, collectionId: Int?) async -> Bool {
         guard access.canManageAmountTaken else { return false }
-        guard date <= Date() else { error = "Choose today or an earlier date."; return false }
-        guard personId > 0, let amount = Int(amount), amount > 0 else { error = "Choose a person and enter an amount above ₹0."; return false }
+        guard date <= Date(), personId > 0, let amount = Int(amount), amount > 0 else { return false }
         var params: [String: Any] = ["person_id": personId, "amount": amount, "date": CashFilter.dateString(date)]
         for (key, text) in [("reason", reason), ("remark", remark)] {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -228,10 +230,11 @@ final class CashCollectionViewModel: ObservableObject {
         return await mutate("amount-taken/update-status", ["id": record.id, "status": approve ? "approved" : "rejected"])
     }
 
-    private func mutate(_ path: String, _ params: [String: Any]) async -> Bool {
+    private func mutate(_ path: String, _ params: [String: Any], failureTitle: String? = nil) async -> Bool {
         guard !isSaving else { return false }
         isSaving = true
         error = nil
+        alert = nil
         message = nil
         defer { isSaving = false }
         do {
@@ -239,7 +242,10 @@ final class CashCollectionViewModel: ObservableObject {
             guard case .object = response["data"] else { throw RequestError.invalidResponse }
             message = response["message"]?.arrayValue.first?.stringValue ?? response["message"]?.stringValue ?? "Saved successfully."
             return true
-        } catch { self.error = errorText(error); return false }
+        } catch {
+            alert = CashAlert(title: failureTitle ?? CashAlert.defaultTitle, message: errorText(error))
+            return false
+        }
     }
 
     private func errorText(_ error: Error) -> String { (error as? RequestError)?.errorString ?? error.localizedDescription }

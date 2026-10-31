@@ -30,16 +30,26 @@ final class PaymentInsightsViewModel: ObservableObject {
     @Published var paymentStatus = ""
     @Published var staffId = ""
     @Published var sellerId = ""
+    @Published var sellerName = ""
+
+    /// Settlements filter on their own; Report and Bills share the fields above.
+    @Published var settlementFilters = PaymentSettlementFilters.today
 
     @Published var staffList: [OrderInsightsStaffMember] = []
     @Published var sellerList: [OrderInsightsSellerItem] = []
     @Published var areaStates: [OrderInsightsStateArea] = []
     @Published var sellerCurrentPage = 1
     @Published var sellerLastPage = 1
+    @Published var sellerTotal = 0
 
     private let service = PaymentInsightsServiceManager()
     private var cancellables = Set<AnyCancellable>()
     private var searchCancellable: AnyCancellable?
+    /// One request per list, cancelled on refresh, so a slow response for old filters can't
+    /// land after (and overwrite) the one for the filters now showing.
+    private var transactionCancellable: AnyCancellable?
+    private var settlementCancellable: AnyCancellable?
+    private var sellerCancellable: AnyCancellable?
     private var transactionPage = 1
     private var settlementPage = 1
     private var canLoadMoreTransactions = true
@@ -74,14 +84,23 @@ final class PaymentInsightsViewModel: ObservableObject {
         if let paymentStatus, !paymentStatus.isEmptyString {
             self.paymentStatus = paymentStatus
         }
+
+        // Settlements open on the same dates the caller asked for (as Android's
+        // initializeWithPresets does), then filter independently.
+        settlementFilters = PaymentSettlementFilters(
+            startDate: self.startDate,
+            endDate: self.endDate,
+            datePreset: selectedDatePreset
+        )
     }
 
-    var isFilterActive: Bool {
-        !paymentMode.isEmptyString
-            || !paymentStatus.isEmptyString
-            || !staffId.isEmptyString
-            || !sellerId.isEmptyString
-            || selectedDatePreset != .today
+    var reportFilterSummary: (parts: [String], active: Int) {
+        let staffName = staffList.first { String($0.id) == staffId }?.name ?? ""
+        return PaymentInsightsFilterSummary.parts(for: currentAppliedFilters(), staffName: staffName)
+    }
+
+    var settlementFilterSummary: (parts: [String], active: Int) {
+        PaymentInsightsFilterSummary.parts(for: settlementFilters)
     }
 
     func initialize() {
@@ -96,15 +115,18 @@ final class PaymentInsightsViewModel: ObservableObject {
 
     func loadTransactions(isRefresh: Bool = false) {
         if isRefresh {
+            transactionCancellable?.cancel()
             transactionPage = 1
             canLoadMoreTransactions = true
+            isLoadingMore = false
         }
+        let requestedPage = transactionPage
 
         isLoading = transactions.isEmpty || isRefresh
         if !isRefresh { isLoadingMore = true }
         errorMessage = nil
 
-        service.fetchTransactionHistory(
+        transactionCancellable = service.fetchTransactionHistory(
             page: transactionPage,
             startDate: startDate,
             endDate: endDate,
@@ -119,7 +141,9 @@ final class PaymentInsightsViewModel: ObservableObject {
             guard let self else { return }
             self.isLoading = false
             self.isLoadingMore = false
-            if case .failure(let error) = completion, self.transactions.isEmpty {
+            guard case .failure(let error) = completion else { return }
+            self.stepBackTransactionPage(from: requestedPage, isRefresh: isRefresh)
+            if self.transactions.isEmpty {
                 self.errorMessage = (error as? RequestError)?.errorString ?? error.localizedDescription
             }
         } receiveValue: { [weak self] response in
@@ -142,39 +166,52 @@ final class PaymentInsightsViewModel: ObservableObject {
                 self.transactionPage = page.currentPage
                 self.canLoadMoreTransactions = page.currentPage < page.lastPage
                 self.errorMessage = nil
-            } else if self.transactions.isEmpty {
-                self.errorMessage = response.message.isEmptyString
-                    ? "Failed to load payment history."
-                    : response.message
+            } else {
+                self.stepBackTransactionPage(from: requestedPage, isRefresh: isRefresh)
+                if self.transactions.isEmpty {
+                    self.errorMessage = response.message.isEmptyString
+                        ? "Failed to load payment history."
+                        : response.message
+                }
             }
         }
-        .store(in: &cancellables)
+    }
+
+    /// A failed next page goes back one, so scrolling again retries it instead of skipping it.
+    private func stepBackTransactionPage(from page: Int, isRefresh: Bool) {
+        guard !isRefresh, page > 1 else { return }
+        transactionPage = page - 1
     }
 
     func loadSettlements(isRefresh: Bool = false) {
         if isRefresh {
+            settlementCancellable?.cancel()
             settlementPage = 1
             canLoadMoreSettlements = true
+            isLoadingMoreSettlements = false
         }
+        let requestedPage = settlementPage
+        let filters = settlementFilters
 
         isLoadingSettlements = settlements.isEmpty || isRefresh
         if !isRefresh { isLoadingMoreSettlements = true }
         settlementErrorMessage = nil
 
-        service.fetchBillSettlementHistory(
+        settlementCancellable = service.fetchBillSettlementHistory(
             page: settlementPage,
-            startDate: startDate,
-            endDate: endDate,
-            paymentMode: paymentMode,
-            staffId: staffId,
-            sellerId: sellerId
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+            paymentType: filters.paymentType,
+            sellerId: filters.sellerId
         )
         .receive(on: RunLoop.main)
         .sink { [weak self] completion in
             guard let self else { return }
             self.isLoadingSettlements = false
             self.isLoadingMoreSettlements = false
-            if case .failure(let error) = completion, self.settlements.isEmpty {
+            guard case .failure(let error) = completion else { return }
+            self.stepBackSettlementPage(from: requestedPage, isRefresh: isRefresh)
+            if self.settlements.isEmpty {
                 self.settlementErrorMessage = (error as? RequestError)?.errorString ?? error.localizedDescription
             }
         } receiveValue: { [weak self] response in
@@ -193,13 +230,20 @@ final class PaymentInsightsViewModel: ObservableObject {
                 self.settlementPage = page.currentPage
                 self.canLoadMoreSettlements = page.currentPage < page.lastPage
                 self.settlementErrorMessage = nil
-            } else if self.settlements.isEmpty {
-                self.settlementErrorMessage = response.message.isEmptyString
-                    ? "Failed to load settlements."
-                    : response.message
+            } else {
+                self.stepBackSettlementPage(from: requestedPage, isRefresh: isRefresh)
+                if self.settlements.isEmpty {
+                    self.settlementErrorMessage = response.message.isEmptyString
+                        ? "Failed to load settlements."
+                        : response.message
+                }
             }
         }
-        .store(in: &cancellables)
+    }
+
+    private func stepBackSettlementPage(from page: Int, isRefresh: Bool) {
+        guard !isRefresh, page > 1 else { return }
+        settlementPage = page - 1
     }
 
     func loadMoreTransactionsIfNeeded(current: PaymentTransactionItem) {
@@ -231,6 +275,7 @@ final class PaymentInsightsViewModel: ObservableObject {
             }
     }
 
+    /// Report and Bills only (they come from one API); Settlements keeps its own filters.
     func applyFilters(_ filters: PaymentInsightsAppliedFilters) {
         startDate = filters.startDate
         endDate = filters.endDate
@@ -239,9 +284,11 @@ final class PaymentInsightsViewModel: ObservableObject {
         paymentStatus = filters.paymentStatus
         staffId = filters.staffId
         sellerId = filters.sellerId
-        refreshAll()
+        sellerName = filters.sellerId.isEmptyString ? "" : filters.sellerName
+        loadTransactions(isRefresh: true)
     }
 
+    /// Report and Bills back to today with no other filter; Settlements untouched.
     func resetToDefaultFilters() {
         let today = OrderInsightsDateFormat.todayString
         startDate = today
@@ -251,7 +298,26 @@ final class PaymentInsightsViewModel: ObservableObject {
         paymentStatus = ""
         staffId = ""
         sellerId = ""
-        refreshAll()
+        sellerName = ""
+        loadTransactions(isRefresh: true)
+    }
+
+    /// The Settlements sheet's filters, all at once, one fetch. A preset other than custom
+    /// recomputes its range here so "This Week" etc. are always current.
+    func applySettlementFilters(_ filters: PaymentSettlementFilters) {
+        var filters = filters
+        if filters.datePreset != .custom, let range = OrderInsightsDatePreset.dateRange(for: filters.datePreset) {
+            filters.startDate = range.start
+            filters.endDate = range.end
+        }
+        if filters.sellerId.isEmptyString { filters.sellerName = "" }
+        settlementFilters = filters
+        loadSettlements(isRefresh: true)
+    }
+
+    /// Settlements back to today, every mode and seller.
+    func resetSettlementFilters() {
+        applySettlementFilters(.today)
     }
 
     func currentAppliedFilters() -> PaymentInsightsAppliedFilters {
@@ -262,7 +328,8 @@ final class PaymentInsightsViewModel: ObservableObject {
             paymentMode: paymentMode,
             paymentStatus: paymentStatus,
             staffId: staffId,
-            sellerId: sellerId
+            sellerId: sellerId,
+            sellerName: sellerName
         )
     }
 
@@ -299,7 +366,8 @@ final class PaymentInsightsViewModel: ObservableObject {
             sellerCurrentPage += 1
         }
 
-        service.getSellerList(
+        // Search fires per keystroke; only the latest query's results may land.
+        sellerCancellable = service.getSellerList(
             page: sellerCurrentPage,
             stateId: stateId,
             cityId: cityId,
@@ -316,7 +384,7 @@ final class PaymentInsightsViewModel: ObservableObject {
             }
             self.sellerCurrentPage = response.data.currentPage
             self.sellerLastPage = response.data.lastPage
+            self.sellerTotal = response.data.total
         }
-        .store(in: &cancellables)
     }
 }

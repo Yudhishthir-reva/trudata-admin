@@ -457,6 +457,9 @@ struct RiderOrderDisplayItem: Identifiable, Hashable {
     var orderStatusLabel: String
     var riderName: String
     var sellerName: String
+    /// Android `OrderInfo.sellerId`: only delivered and all-rider rows carry a seller, so the
+    /// others leave it nil and the card shows no "View Seller Profile".
+    var sellerId: Int? = nil
     var staffName: String
     var distance: String?
     var address: String?

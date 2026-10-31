@@ -286,38 +286,21 @@ struct OrderDetailScreen: View {
                 }
             }
 
-            // Bottom 2 Mini Metric Cards
+            // Android weights these 1 : 1.2 : 2.2, so the shop name gets the most room. Equal
+            // thirds truncated it to "Siddhi Vi...". Items and Weight hug their text and the
+            // shop takes whatever is left, which lands on the same proportions.
             HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Items")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.75))
-
-                    Text("\(order.orderDetails.count)")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
+                heroTile(title: "Items", value: "\(order.orderDetails.count)", valueSize: 18)
+                if let weight = order.totalWeight {
+                    heroTile(title: "Weight", value: weight)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.black.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Shop")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.75))
-
-                    Text(order.shopDisplay.isEmptyString ? (order.sellerName.isEmptyString ? "N/A" : order.sellerName) : order.shopDisplay)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.black.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                heroTile(
+                    title: "Shop",
+                    value: order.shopDisplay.isEmptyString
+                        ? (order.sellerName.isEmptyString ? "N/A" : order.sellerName)
+                        : order.shopDisplay,
+                    expands: true
+                )
             }
         }
         .padding(16)
@@ -331,6 +314,30 @@ struct OrderDetailScreen: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: Color(hex: "1F7A3E").opacity(0.2), radius: 10, y: 4)
+    }
+
+    private func heroTile(
+        title: String,
+        value: String,
+        valueSize: CGFloat = 14,
+        expands: Bool = false
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.75))
+
+            Text(value)
+                .font(.system(size: valueSize, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: expands ? .infinity : nil, alignment: .leading)
+        .background(Color.black.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private func heroStatusChip(icon: String, text: String) -> some View {

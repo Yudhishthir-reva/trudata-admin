@@ -114,7 +114,8 @@ struct HomeScreen: View {
                             ViewPendingBillsScreen(
                                 sellerId: sellerId,
                                 staffId: staffId,
-                                sellerName: sellerName
+                                sellerName: sellerName,
+                                onHome: { navigationPath = NavigationPath() }
                             )
                         case .orderInsights(let startDate, let endDate, let datePreset, let orderStatus):
                             OrderInsightsScreen(

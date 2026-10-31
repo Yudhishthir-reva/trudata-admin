@@ -54,10 +54,52 @@ struct CashDenomination: Identifiable {
         + [20, 10, 5, 2, 1].map { Self(value: $0, kind: "coin") }
 }
 
+/// Android `ErrorDialog`'s title and message.
+struct CashAlert: Equatable {
+    static let defaultTitle = "Can't continue"
+    /// The Submit tab's own title for a refused count.
+    static let countsTitle = "Check the counts"
+    var title = CashAlert.defaultTitle
+    let message: String
+}
+
+/// Android `digitsOnly`: keeps digits, drops leading zeros, caps the length.
+func cashDigits(_ text: String, max: Int) -> String {
+    let digits = String(text.filter { $0.isASCII && $0.isNumber }.drop { $0 == "0" })
+    return String(digits.prefix(max))
+}
+
 struct CashCountForm {
-    var declared = ""
+    /// Android caps: the total at 9 digits, each count at 6, the remark at 250 characters.
+    static let declaredMax = 9
+    static let countMax = 6
+    static let remarkMax = 250
+
+    var declared = "" { didSet { if declared != oldValue { declaredError = nil } } }
     var remark = ""
     var counts: [String: String] = [:]
+    /// Shown under the total box after a refused submit; typing in the total clears it.
+    var declaredError: String?
+
+    private var pieces: Int { counts.values.compactMap(Int.init).reduce(0, +) }
+
+    /// Android `askSubmit` / `askSave`: what stops this count being sent, if anything. Submit
+    /// marks the total box; edit only explains, as Android does.
+    func problem(editing: Bool) -> (field: String?, message: String)? {
+        let declared = Int(self.declared) ?? 0
+        if declared <= 0 {
+            return editing
+                ? (nil, "Enter the total cash amount")
+                : ("Enter the total cash amount", "Enter the total cash amount you are handing over, then count each note and coin.")
+        }
+        if !editing && pieces == 0 { return (nil, "Count the notes and coins before submitting.") }
+        let counted = total ?? 0
+        if counted != declared {
+            let base = "The counts add up to \(cashRupeeText(counted)), not \(cashRupeeText(declared))."
+            return (nil, editing ? base : base + " Fix the counts or the total.")
+        }
+        return nil
+    }
 
     // Reject invalid/overflowing input instead of silently clamping a money entry.
     var total: Int? {
@@ -78,7 +120,8 @@ struct CashCountForm {
 
     func parameters(id: Int? = nil) -> [String: Any]? {
         guard isBalanced, let amount = Int(declared) else { return nil }
-        var body: [String: Any] = ["total_cash_amount": amount, "remark": remark]
+        var body: [String: Any] = ["total_cash_amount": amount,
+                                   "remark": String(remark.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.remarkMax))]
         for denomination in CashDenomination.all {
             body[denomination.id] = Int(counts[denomination.id, default: ""]) ?? 0
         }
@@ -253,4 +296,9 @@ struct CashFilter: Equatable {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
     }
+}
+
+/// "₹1,25,000", as Android's `rupees` writes amounts inside a sentence.
+func cashRupeeText(_ amount: Int) -> String {
+    amount.formatted(.currency(code: "INR").precision(.fractionLength(0)).locale(Locale(identifier: "en_IN")))
 }

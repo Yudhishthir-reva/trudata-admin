@@ -608,13 +608,24 @@ private struct AssignOrderRow: View {
                             }
                         }
                         Spacer()
-                        Text("₹\(order.totalAmount)")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(DashboardTheme.primaryBlue)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(DashboardTheme.primaryBlue.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("₹\(order.totalAmount)")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(DashboardTheme.primaryBlue)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(DashboardTheme.primaryBlue.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            if let weight = order.totalWeight {
+                                Text(weight)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(DashboardTheme.neutralMedium)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(DashboardTheme.neutralLight.opacity(0.4))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
+                        }
                     }
 
                     infoLine(icon: "person.fill", label: "Sale Person", value: order.staffName)

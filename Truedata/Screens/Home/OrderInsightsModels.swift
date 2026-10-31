@@ -178,6 +178,9 @@ struct OrderInsightsOrder: Identifiable, Decodable {
     var showRedBox: Bool
     var orderNotDelivered: Bool
     var deliveryDateTime: String
+    /// Preformatted by the backend, nil on responses that predate it, so the card leaves the
+    /// weight out rather than showing a blank. Sent by `V2/order-list2` and `V2/order-list3`.
+    var totalWeight: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "order_id"
@@ -202,6 +205,7 @@ struct OrderInsightsOrder: Identifiable, Decodable {
         case orderNotDelivered = "order_not_delivered"
         case deliveryDate
         case deliveryTime = "delivery_time"
+        case totalWeight = "total_weight"
     }
 
     init(from decoder: Decoder) throws {
@@ -238,6 +242,9 @@ struct OrderInsightsOrder: Identifiable, Decodable {
         } else {
             deliveryDateTime = "Not Delivered Yet"
         }
+        // Blank counts as absent, so the card shows no weight row at all.
+        totalWeight = container.decodeStringLeniently(forKey: .totalWeight)
+            .flatMap { $0.isEmptyString ? nil : $0 }
     }
 }
 
@@ -335,6 +342,8 @@ enum OrderInsightsDatePreset: String, CaseIterable {
     case thisMonth = "This Month"
     case lastMonth = "Last Month"
     case thisYear = "This Year"
+    case thisFinancialYear = "This Financial Year"
+    case lastFinancialYear = "Last Financial Year"
     case custom = "Custom"
 
     static func dateRange(for preset: OrderInsightsDatePreset) -> (start: String, end: String)? {
@@ -375,9 +384,26 @@ enum OrderInsightsDatePreset: String, CaseIterable {
             let year = calendar.component(.year, from: today)
             guard let start = calendar.date(from: DateComponents(year: year, month: 1, day: 1)) else { return nil }
             return (api.string(from: start), api.string(from: today))
+        case .thisFinancialYear:
+            return financialYearRange(startingIn: currentFinancialYearStart(calendar: calendar, today: today), calendar: calendar)
+        case .lastFinancialYear:
+            return financialYearRange(startingIn: currentFinancialYearStart(calendar: calendar, today: today) - 1, calendar: calendar)
         case .custom:
             return nil
         }
+    }
+
+    /// Indian financial year, April to March. Android's report and order view models send the
+    /// whole year (to 31 March) for both presets, not "to today", so this does the same.
+    private static func currentFinancialYearStart(calendar: Calendar, today: Date) -> Int {
+        let year = calendar.component(.year, from: today)
+        return calendar.component(.month, from: today) >= 4 ? year : year - 1
+    }
+
+    private static func financialYearRange(startingIn year: Int, calendar: Calendar) -> (start: String, end: String)? {
+        guard let start = calendar.date(from: DateComponents(year: year, month: 4, day: 1)),
+              let end = calendar.date(from: DateComponents(year: year + 1, month: 3, day: 31)) else { return nil }
+        return (OrderInsightsDateFormat.string(from: start), OrderInsightsDateFormat.string(from: end))
     }
 }
 
@@ -519,11 +545,14 @@ struct OrderInsightsSellerListResponse: Decodable {
 struct OrderInsightsSellerPage: Decodable {
     var currentPage: Int
     var lastPage: Int
+    /// Sellers across every page; 0 when the server leaves it out.
+    var total: Int = 0
     var sellers: [OrderInsightsSellerItem]
 
     enum CodingKeys: String, CodingKey {
         case currentPage = "current_page"
         case lastPage = "last_page"
+        case total
         case sellers
         case sellersData = "data"
     }
@@ -538,6 +567,7 @@ struct OrderInsightsSellerPage: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         currentPage = container.decodeIntLeniently(forKey: .currentPage) ?? 0
         lastPage = container.decodeIntLeniently(forKey: .lastPage) ?? 0
+        total = container.decodeIntLeniently(forKey: .total) ?? 0
         if let list = try? container.decode([OrderInsightsSellerItem].self, forKey: .sellersData) {
             sellers = list
         } else if let list = try? container.decode([OrderInsightsSellerItem].self, forKey: .sellers) {

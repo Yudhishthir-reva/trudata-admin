@@ -25,6 +25,7 @@
 		DB2000000000000000000001 /* BillRegister/BillRegisterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000001 /* BillRegister/BillRegisterModels.swift */; };
 		DB2000000000000000000002 /* BillRegister/BillRegisterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */; };
 		DB2000000000000000000003 /* BillRegister/BillRegisterScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */; };
+		DB2000000000000000000009 /* BillRegister/BillRegisterComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */; };
 		DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDB6590C303429F8005C1E91 /* Assets.xcassets */; };
 		DDB65910303429F8005C1E91 /* LenientDecoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E8303429F8005C1E91 /* LenientDecoding.swift */; };
 		DDB65911303429F8005C1E91 /* NetworkServiceManagable.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */; };
@@ -367,6 +368,7 @@
 		DB1000000000000000000001 /* BillRegister/BillRegisterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterModels.swift; sourceTree = "<group>"; };
 		DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterViewModel.swift; sourceTree = "<group>"; };
 		DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterScreen.swift; sourceTree = "<group>"; };
+		DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterComponents.swift; sourceTree = "<group>"; };
 		DDB65836303424E4005C1E91 /* Truedata.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Truedata.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDB658E8303429F8005C1E91 /* LenientDecoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LenientDecoding.swift; sourceTree = "<group>"; };
 		DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkServiceManagable.swift; sourceTree = "<group>"; };
@@ -898,6 +900,7 @@
 				EC1000000000000000000003 /* SellerMerge/SellerMergeScreen.swift */,
 				EC1000000000000000000004 /* Home/OfficeStaffHome.swift */,
 				DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */,
+				DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */,
 				DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */,
 				DDB658FA303429F8005C1E91 /* Home */,
 				DDB6594C30342A04005C1E91 /* AssignOrder */,
@@ -1355,7 +1358,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2660;
-				LastUpgradeCheck = 2660;
+				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					DDB65835303424E4005C1E91 = {
 						CreatedOnToolsVersion = 26.6;
@@ -1463,6 +1466,7 @@
 				EC2000000000000000000003 /* SellerMerge/SellerMergeScreen.swift in Sources */,
 				EC2000000000000000000004 /* Home/OfficeStaffHome.swift in Sources */,
 				DB2000000000000000000003 /* BillRegister/BillRegisterScreen.swift in Sources */,
+				DB2000000000000000000009 /* BillRegister/BillRegisterComponents.swift in Sources */,
 				DB2000000000000000000002 /* BillRegister/BillRegisterViewModel.swift in Sources */,
 				CC2000000000000000000002 /* CashCollectionViewModel.swift in Sources */,
 				CC2000000000000000000001 /* CashCollectionModels.swift in Sources */,
@@ -1816,7 +1820,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1838,6 +1844,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1877,7 +1884,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TP9YK56DA7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1892,6 +1901,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -1904,8 +1914,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
-				DEVELOPMENT_TEAM = TP9YK56DA7;
+				CURRENT_PROJECT_VERSION = 7;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -1966,8 +1976,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Truedata/Truedata.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
-				DEVELOPMENT_TEAM = TP9YK56DA7;
+				CURRENT_PROJECT_VERSION = 7;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;

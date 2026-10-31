@@ -46,6 +46,9 @@ struct OrderDetailData: Decodable {
     var beatId: Int
     var status: String
     var totalPrice: String
+    /// Preformatted by the backend; nil on responses that predate it, so the hero leaves the
+    /// weight tile out rather than showing a blank one.
+    var totalWeight: String?
     var discount: String
     var transactionStatus: String
     var invoiceLink: String
@@ -86,6 +89,7 @@ struct OrderDetailData: Decodable {
         case beatName = "beat_name"
         case beatId = "beat_id"
         case totalPrice = "total_price"
+        case totalWeight = "total_weight"
         case transactionStatus = "transaction_status"
         case invoiceLink = "invoice_link"
         case canDownloadInvoice = "can_download_invoice"
@@ -181,6 +185,8 @@ struct OrderDetailData: Decodable {
         beatId = container.decodeIntLeniently(forKey: .beatId) ?? 0
         status = container.decodeStringLeniently(forKey: .status) ?? ""
         totalPrice = container.decodeStringLeniently(forKey: .totalPrice) ?? "0"
+        totalWeight = container.decodeStringLeniently(forKey: .totalWeight)
+            .flatMap { $0.isEmptyString ? nil : $0 }
         discount = container.decodeStringLeniently(forKey: .discount) ?? "0"
         transactionStatus = container.decodeStringLeniently(forKey: .transactionStatus) ?? ""
         invoiceLink = container.decodeStringLeniently(forKey: .invoiceLink) ?? ""
@@ -241,6 +247,7 @@ struct OrderDetailData: Decodable {
         beatId = 0
         status = ""
         totalPrice = "0"
+        totalWeight = nil
         discount = "0"
         transactionStatus = ""
         invoiceLink = ""

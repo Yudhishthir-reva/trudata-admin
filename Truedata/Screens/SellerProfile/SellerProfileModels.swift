@@ -238,11 +238,17 @@ struct SellerProfileFinancialStats: Decodable {
     var totalAmount: String
     var pendingAmount: String
     var paidAmount: String
+    /// Delivered bills still unpaid, for the Pending Bills card. Nil when the server leaves them
+    /// out, which the card shows as "—" rather than a misleading 0.
+    var pendingBillsCount: Int?
+    var pendingBillsAmount: String?
 
     enum CodingKeys: String, CodingKey {
         case totalAmount = "total_amount"
         case pendingAmount = "pending_amount"
         case paidAmount = "paid_amount"
+        case pendingBillsCount = "pending_bills_count"
+        case pendingBillsAmount = "pending_bills_amount"
     }
 
     init(from decoder: Decoder) throws {
@@ -250,6 +256,8 @@ struct SellerProfileFinancialStats: Decodable {
         totalAmount = container.decodeStringLeniently(forKey: .totalAmount) ?? "0"
         pendingAmount = container.decodeStringLeniently(forKey: .pendingAmount) ?? "0"
         paidAmount = container.decodeStringLeniently(forKey: .paidAmount) ?? "0"
+        pendingBillsCount = container.decodeIntLeniently(forKey: .pendingBillsCount)
+        pendingBillsAmount = container.decodeStringLeniently(forKey: .pendingBillsAmount)
     }
 }
 
