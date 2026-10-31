@@ -1950,7 +1950,11 @@ struct CashPage<Content: View>: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14, content: content)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+                    // Pinned to the screen's width: a long shop name or chip row a point wider
+                    // than the screen let the page drift sideways like a web view.
+                    .containerRelativeFrame(.horizontal)
             }
+            .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
         }
         .background(Color(red: 247/255, green: 249/255, blue: 248/255))
         .tint(CashStyle.green)
