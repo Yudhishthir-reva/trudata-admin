@@ -523,6 +523,28 @@ enum OrderDetailStatusMapper {
                 icon: "xmark.circle.fill",
                 backgroundColor: DashboardTheme.dangerRed.opacity(0.15)
             )
+        // The packing stages an order goes through before a rider gets it.
+        case "paker assigned", "packer assigned", "10":
+            return OrderDetailStatusChip(
+                text: "\(label): Paker Assigned",
+                color: DashboardTheme.warningYellow,
+                icon: "hourglass.tophalf.filled",
+                backgroundColor: DashboardTheme.warningYellow.opacity(0.15)
+            )
+        case "in packing", "11":
+            return OrderDetailStatusChip(
+                text: "\(label): In Packing",
+                color: DashboardTheme.infoBlue,
+                icon: "cube.box.fill",
+                backgroundColor: DashboardTheme.infoBlue.opacity(0.15)
+            )
+        case "packed", "12":
+            return OrderDetailStatusChip(
+                text: "\(label): Packed",
+                color: DashboardTheme.successGreen,
+                icon: "cube.box.fill",
+                backgroundColor: DashboardTheme.successGreen.opacity(0.15)
+            )
         default:
             let readable = BillOrderStatus(key: status).label
             return OrderDetailStatusChip(

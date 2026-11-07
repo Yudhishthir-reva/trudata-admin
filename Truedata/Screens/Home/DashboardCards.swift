@@ -41,7 +41,9 @@ struct DashboardItemCard: View {
         "rider_report",
         "manage_employees",
         "controls",
-        "support"
+        "support",
+        "assign_paker",
+        "order_paker"
     ]
 
     let item: DashboardItem
@@ -115,6 +117,11 @@ struct DashboardItemCard: View {
             controlsCard
         case "support":
             supportCard
+        // Packer routes: the server sends them with no data; the cards load their own counts.
+        case "assign_paker":
+            AssignPackerCard(title: item.title, onOpen: { onNavigate(item.route) })
+        case "order_paker":
+            PackerQueueCard(title: item.title, onOpen: { onNavigate(item.route) })
         default:
             // Android's `when` has no else branch: a key it doesn't know draws no card. iOS used
             // to fall back to a guessed generic card, so Home showed widgets Android hides.

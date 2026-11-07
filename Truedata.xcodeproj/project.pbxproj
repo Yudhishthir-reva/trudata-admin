@@ -26,6 +26,14 @@
 		DB2000000000000000000002 /* BillRegister/BillRegisterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */; };
 		DB2000000000000000000003 /* BillRegister/BillRegisterScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */; };
 		DB2000000000000000000009 /* BillRegister/BillRegisterComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */; };
+		PK2000000000000000000001 /* Packer/PackerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000001 /* Packer/PackerModels.swift */; };
+		PK2000000000000000000002 /* Packer/PackerServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000002 /* Packer/PackerServiceManager.swift */; };
+		PK2000000000000000000003 /* Packer/PackerViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000003 /* Packer/PackerViewModels.swift */; };
+		PK2000000000000000000004 /* Packer/PackerComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000004 /* Packer/PackerComponents.swift */; };
+		PK2000000000000000000005 /* Packer/AssignPackerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000005 /* Packer/AssignPackerScreen.swift */; };
+		PK2000000000000000000006 /* Packer/PackerOrdersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000006 /* Packer/PackerOrdersScreen.swift */; };
+		PK2000000000000000000007 /* Packer/PackOrderScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000007 /* Packer/PackOrderScreen.swift */; };
+		PK2000000000000000000008 /* Packer/PackerHomeCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = PK1000000000000000000008 /* Packer/PackerHomeCards.swift */; };
 		DDB6590F303429F8005C1E91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDB6590C303429F8005C1E91 /* Assets.xcassets */; };
 		DDB65910303429F8005C1E91 /* LenientDecoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E8303429F8005C1E91 /* LenientDecoding.swift */; };
 		DDB65911303429F8005C1E91 /* NetworkServiceManagable.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */; };
@@ -369,6 +377,14 @@
 		DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterViewModel.swift; sourceTree = "<group>"; };
 		DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterScreen.swift; sourceTree = "<group>"; };
 		DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRegister/BillRegisterComponents.swift; sourceTree = "<group>"; };
+		PK1000000000000000000001 /* Packer/PackerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerModels.swift; sourceTree = "<group>"; };
+		PK1000000000000000000002 /* Packer/PackerServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerServiceManager.swift; sourceTree = "<group>"; };
+		PK1000000000000000000003 /* Packer/PackerViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerViewModels.swift; sourceTree = "<group>"; };
+		PK1000000000000000000004 /* Packer/PackerComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerComponents.swift; sourceTree = "<group>"; };
+		PK1000000000000000000005 /* Packer/AssignPackerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/AssignPackerScreen.swift; sourceTree = "<group>"; };
+		PK1000000000000000000006 /* Packer/PackerOrdersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerOrdersScreen.swift; sourceTree = "<group>"; };
+		PK1000000000000000000007 /* Packer/PackOrderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackOrderScreen.swift; sourceTree = "<group>"; };
+		PK1000000000000000000008 /* Packer/PackerHomeCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packer/PackerHomeCards.swift; sourceTree = "<group>"; };
 		DDB65836303424E4005C1E91 /* Truedata.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Truedata.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDB658E8303429F8005C1E91 /* LenientDecoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LenientDecoding.swift; sourceTree = "<group>"; };
 		DDB658E9303429F8005C1E91 /* NetworkServiceManagable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkServiceManagable.swift; sourceTree = "<group>"; };
@@ -902,6 +918,14 @@
 				DB1000000000000000000003 /* BillRegister/BillRegisterScreen.swift */,
 				DB1000000000000000000009 /* BillRegister/BillRegisterComponents.swift */,
 				DB1000000000000000000002 /* BillRegister/BillRegisterViewModel.swift */,
+				PK1000000000000000000001 /* Packer/PackerModels.swift */,
+				PK1000000000000000000002 /* Packer/PackerServiceManager.swift */,
+				PK1000000000000000000003 /* Packer/PackerViewModels.swift */,
+				PK1000000000000000000004 /* Packer/PackerComponents.swift */,
+				PK1000000000000000000005 /* Packer/AssignPackerScreen.swift */,
+				PK1000000000000000000006 /* Packer/PackerOrdersScreen.swift */,
+				PK1000000000000000000007 /* Packer/PackOrderScreen.swift */,
+				PK1000000000000000000008 /* Packer/PackerHomeCards.swift */,
 				DDB658FA303429F8005C1E91 /* Home */,
 				DDB6594C30342A04005C1E91 /* AssignOrder */,
 				DDB65BAA30342A31005C1E91 /* RetailerAppPayment */,
@@ -1467,6 +1491,14 @@
 				EC2000000000000000000004 /* Home/OfficeStaffHome.swift in Sources */,
 				DB2000000000000000000003 /* BillRegister/BillRegisterScreen.swift in Sources */,
 				DB2000000000000000000009 /* BillRegister/BillRegisterComponents.swift in Sources */,
+				PK2000000000000000000001 /* Packer/PackerModels.swift in Sources */,
+				PK2000000000000000000002 /* Packer/PackerServiceManager.swift in Sources */,
+				PK2000000000000000000003 /* Packer/PackerViewModels.swift in Sources */,
+				PK2000000000000000000004 /* Packer/PackerComponents.swift in Sources */,
+				PK2000000000000000000005 /* Packer/AssignPackerScreen.swift in Sources */,
+				PK2000000000000000000006 /* Packer/PackerOrdersScreen.swift in Sources */,
+				PK2000000000000000000007 /* Packer/PackOrderScreen.swift in Sources */,
+				PK2000000000000000000008 /* Packer/PackerHomeCards.swift in Sources */,
 				DB2000000000000000000002 /* BillRegister/BillRegisterViewModel.swift in Sources */,
 				CC2000000000000000000002 /* CashCollectionViewModel.swift in Sources */,
 				CC2000000000000000000001 /* CashCollectionModels.swift in Sources */,

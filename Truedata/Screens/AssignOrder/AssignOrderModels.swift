@@ -185,6 +185,7 @@ struct AssignOrderDTO: Decodable {
     var beatName: String
     /// Android `total_weight`: sent as text ("12.5 kg"); absent or blank shows no weight.
     var totalWeight: String?
+    var sellerName: String
 
     enum CodingKeys: String, CodingKey {
         case status
@@ -199,6 +200,7 @@ struct AssignOrderDTO: Decodable {
         case beatId = "beat_id"
         case beatName = "beat_name"
         case totalWeight = "total_weight"
+        case sellerName = "seller_name"
     }
 
     init(from decoder: Decoder) throws {
@@ -216,6 +218,7 @@ struct AssignOrderDTO: Decodable {
         beatName = container.decodeStringLeniently(forKey: .beatName) ?? ""
         let weight = container.decodeStringLeniently(forKey: .totalWeight)?.trimmingCharacters(in: .whitespacesAndNewlines)
         totalWeight = weight?.isEmpty == false ? weight : nil
+        sellerName = container.decodeStringLeniently(forKey: .sellerName) ?? ""
     }
 
     var asModel: AssignOrderItem {
@@ -231,7 +234,8 @@ struct AssignOrderDTO: Decodable {
             date: orderDate,
             beatId: beatId,
             beatName: beatName,
-            totalWeight: totalWeight
+            totalWeight: totalWeight,
+            sellerName: sellerName
         )
     }
 }
@@ -249,4 +253,13 @@ struct AssignOrderItem: Identifiable, Hashable {
     let beatId: String
     let beatName: String
     var totalWeight: String? = nil
+    /// The shopkeeper, which is what people call the party when they search.
+    var sellerName: String = ""
+
+    /// The search box: bill number, shop or shopkeeper. Searching only the shop name
+    /// found nothing when people typed the bill number or the party's name.
+    func matches(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return q.isEmpty || [invoiceId, sellerShopName, sellerName].contains { $0.localizedCaseInsensitiveContains(q) }
+    }
 }

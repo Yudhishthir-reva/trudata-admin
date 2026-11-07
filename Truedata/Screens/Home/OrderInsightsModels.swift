@@ -255,7 +255,14 @@ struct OrderInsightsStatusTab: Identifiable {
 }
 
 enum OrderInsightsStatusStyle {
-    case pending, toDeliver, pickup, delivered, cancelled, returned, assigned, deliveryFailed, partialReturn, unknown
+    case pending, toDeliver, pickup, delivered, cancelled, returned, assigned, deliveryFailed, partialReturn
+    // The packing stages an order goes through before a rider gets it (Android `OrderStatus` 10–12).
+    case pakerAssigned, inPacking, packed
+    case unknown
+
+    /// The packing stages `V2/order-list2` filters by but doesn't list in its `summary` yet,
+    /// so the status filter offers them without a count until it does.
+    static let packingStages: [OrderInsightsStatusStyle] = [.pakerAssigned, .inPacking, .packed]
 
     static func from(status: String) -> OrderInsightsStatusStyle {
         switch status.lowercased().trim {
@@ -268,6 +275,10 @@ enum OrderInsightsStatusStyle {
         case "6", "assign", "assigned": return .assigned
         case "7", "delivery failed", "delivery_failed": return .deliveryFailed
         case "8", "partial return", "partially returned", "partial_return": return .partialReturn
+        // "Paker" is how the backend and Android spell it; accept the correct spelling too.
+        case "10", "paker assigned", "packer assigned": return .pakerAssigned
+        case "11", "in packing": return .inPacking
+        case "12", "packed": return .packed
         default: return .unknown
         }
     }
@@ -283,20 +294,33 @@ enum OrderInsightsStatusStyle {
         case .assigned: return "Assigned"
         case .deliveryFailed: return "Delivery Failed"
         case .partialReturn: return "Partially Returned"
+        case .pakerAssigned: return "Paker Assigned"
+        case .inPacking: return "In Packing"
+        case .packed: return "Packed"
         case .unknown: return "Unknown"
         }
     }
 
     var color: Color {
         switch self {
-        case .pending: return DashboardTheme.warningYellow
-        case .toDeliver: return DashboardTheme.infoBlue
+        case .pending, .pakerAssigned: return DashboardTheme.warningYellow
+        case .toDeliver, .inPacking: return DashboardTheme.infoBlue
         case .pickup: return Color(hex: "FD7E14")
-        case .delivered: return DashboardTheme.successGreen
+        case .delivered, .packed: return DashboardTheme.successGreen
         case .cancelled, .deliveryFailed: return DashboardTheme.dangerRed
         case .returned, .partialReturn: return DashboardTheme.secondaryPurple
         case .assigned: return DashboardTheme.primaryBlue
         case .unknown: return DashboardTheme.neutralMedium
+        }
+    }
+
+    /// The `order_status` the list endpoint filters by; nil where this app never filters by it.
+    var filterCode: String? {
+        switch self {
+        case .pakerAssigned: return "10"
+        case .inPacking: return "11"
+        case .packed: return "12"
+        default: return nil
         }
     }
 }

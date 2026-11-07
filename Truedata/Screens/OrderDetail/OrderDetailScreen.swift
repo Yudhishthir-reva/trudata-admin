@@ -366,6 +366,8 @@ struct OrderDetailScreen: View {
         case "pending", "0": return "clock.fill"
         case "pickup", "2": return "archivebox.fill"
         case "to deliver", "to delivered", "1": return "shippingbox.fill"
+        case "paker assigned", "packer assigned", "10": return "hourglass.tophalf.filled"
+        case "in packing", "11", "packed", "12": return "cube.box.fill"
         default: return "checkmark.circle.fill"
         }
     }

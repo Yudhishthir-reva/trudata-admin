@@ -168,6 +168,13 @@ struct OrderInsightsFilterSheet: View {
                     draftStatus = item.status
                 }
             }
+            ForEach(viewModel.missingPackingStages, id: \.self) { stage in
+                if let code = stage.filterCode {
+                    FilterRadioRow(title: stage.displayName, isSelected: draftStatus == code) {
+                        draftStatus = code
+                    }
+                }
+            }
         }
     }
 

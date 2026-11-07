@@ -127,21 +127,13 @@ final class OrderInsightsViewModel: ObservableObject {
         if let saved = UserDefaults.standard.string(forKey: kOrderInsightsLastUsedLabel), !saved.isEmpty {
             return saved
         }
-        let statusName: String
-        if orderStatus == "0" { statusName = "Pending" }
-        else if orderStatus.isEmptyString { statusName = "All Orders" }
-        else { statusName = summary.first(where: { $0.status == orderStatus })?.statusLabel ?? "Status (\(orderStatus))" }
-
+        let statusName = filterStatusName(orderStatus)
         let dateName = selectedDatePreset == .custom ? "\(startDate) to \(endDate)" : selectedDatePreset.rawValue
         return "\(statusName) · \(dateName)"
     }
 
     func saveLastUsedFilter(filters: OrderInsightsAppliedFilters) {
-        let statusName: String
-        if filters.orderStatus == "0" { statusName = "Pending" }
-        else if filters.orderStatus.isEmptyString { statusName = "All Orders" }
-        else { statusName = summary.first(where: { $0.status == filters.orderStatus })?.statusLabel ?? "Status (\(filters.orderStatus))" }
-
+        let statusName = filterStatusName(filters.orderStatus)
         let dateName = filters.datePreset == .custom ? "\(filters.startDate) to \(filters.endDate)" : filters.datePreset.rawValue
         let label = "\(statusName) · \(dateName)"
 
@@ -231,6 +223,25 @@ final class OrderInsightsViewModel: ObservableObject {
 
     var statusFilterOptions: [OrderInsightsSummaryItem] {
         summary.filter { $0.status.lowercased() != "all" }
+    }
+
+    /// Packing stages the server's summary doesn't list yet, offered without a count until it does.
+    var missingPackingStages: [OrderInsightsStatusStyle] {
+        OrderInsightsStatusStyle.packingStages.filter { stage in
+            !statusFilterOptions.contains { $0.status == stage.filterCode }
+        }
+    }
+
+    /// The status half of the saved-filter label. The packing stages are named even when
+    /// the summary doesn't carry them, rather than falling through to "Status (10)".
+    private func filterStatusName(_ status: String) -> String {
+        if status == "0" { return "Pending" }
+        if status.isEmptyString { return "All Orders" }
+        if let label = summary.first(where: { $0.status == status })?.statusLabel { return label }
+        if let stage = OrderInsightsStatusStyle.packingStages.first(where: { $0.filterCode == status }) {
+            return stage.displayName
+        }
+        return "Status (\(status))"
     }
 
     func initialize() {

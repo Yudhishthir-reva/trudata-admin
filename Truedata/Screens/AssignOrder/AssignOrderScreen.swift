@@ -238,9 +238,7 @@ struct AssignOrderScreen: View {
     private func beatSection(beat: BeatWithOrdersItem, orders: [AssignOrderItem]) -> some View {
         let isExpanded = viewModel.expandedBeatId == beat.id
         let selectedCount = orders.filter { viewModel.selectedOrderIds.contains($0.id) }.count
-        let filtered = searchText.isEmpty
-            ? orders
-            : orders.filter { $0.sellerShopName.localizedCaseInsensitiveContains(searchText) }
+        let filtered = orders.filter { $0.matches(searchText) }
 
         return VStack(spacing: 8) {
             Button {
@@ -294,14 +292,13 @@ struct AssignOrderScreen: View {
 
     private var orderSearchField: some View {
         AssignOrderSearchField(
-            placeholder: "Search orders by shop name...",
+            placeholder: "Search bill no, shop or shopkeeper",
             text: $searchText
         )
     }
 
     private var filteredOrders: [AssignOrderItem] {
-        guard !searchText.isEmpty else { return viewModel.orders }
-        return viewModel.orders.filter { $0.sellerShopName.localizedCaseInsensitiveContains(searchText) }
+        viewModel.orders.filter { $0.matches(searchText) }
     }
 
     private func errorCard(_ message: String) -> some View {

@@ -11,6 +11,12 @@ enum HomeDestination: Hashable {
     case cashCollection
     case paymentAdvance
     case assignOrder
+    /// Android `pk_assign`: pending orders to a packer (route `assign_paker`).
+    case assignPacker
+    /// Android `pk_orders`: the signed-in packer's orders (route `order_paker`).
+    case packerOrders
+    /// Android `pk_order/{id}`: packing one order into boxes.
+    case packOrder(orderId: Int)
     case approveBills
     case orderApproval
     case viewPendingBills(sellerId: Int, staffId: Int, sellerName: String)
@@ -98,6 +104,15 @@ struct HomeScreen: View {
                             UtilityScreen(onHome: { navigationPath = NavigationPath() })
                         case .assignOrder:
                             AssignOrderScreen()
+                        case .assignPacker:
+                            AssignPackerScreen(onHome: { navigationPath = NavigationPath() })
+                        case .packerOrders:
+                            PackerOrdersScreen(
+                                onOpen: { navigationPath.append(HomeDestination.packOrder(orderId: $0)) },
+                                onHome: { navigationPath = NavigationPath() }
+                            )
+                        case .packOrder(let orderId):
+                            PackOrderScreen(orderId: orderId, onHome: { navigationPath = NavigationPath() })
                         case .approveBills:
                             ApproveBillsScreen()
                         case .orderApproval:
@@ -443,6 +458,10 @@ struct HomeScreen: View {
             navigationPath.append(HomeDestination.sellerReport)
         case "assign_order":
             navigationPath.append(HomeDestination.assignOrder)
+        case "assign_paker":
+            navigationPath.append(HomeDestination.assignPacker)
+        case "order_paker":
+            navigationPath.append(HomeDestination.packerOrders)
         case "approve_bills":
             navigationPath.append(HomeDestination.approveBills)
         case "pending_settle_cheque", "settle_cheque", "cheque_settlement", "cheque_settle":

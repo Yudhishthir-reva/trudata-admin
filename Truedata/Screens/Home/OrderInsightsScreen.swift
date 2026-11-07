@@ -475,6 +475,14 @@ private struct OrderInsightsOrderCard: View {
         OrderInsightsStatusStyle.from(status: order.status)
     }
 
+    /// Android `fromApiStatus`: a status the app doesn't know is shown as the server sent it,
+    /// rather than "Unknown", so a new stage is still readable.
+    private var statusLabel: String {
+        guard statusStyle == .unknown else { return statusStyle.displayName }
+        let raw = order.status.trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? statusStyle.displayName : raw
+    }
+
     private var borderColor: Color {
         if isInSelectionMode && isSelected { return DashboardTheme.primaryBlue }
         return Color(hex: "EF4444")
@@ -528,7 +536,7 @@ private struct OrderInsightsOrderCard: View {
                 // Badges Row
                 HStack(spacing: 8) {
                     // Status Badge
-                    Text(statusStyle.displayName)
+                    Text(statusLabel)
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(statusStyle.color)
                         .padding(.horizontal, 8)
