@@ -545,8 +545,48 @@ enum OrderDetailStatusMapper {
                 icon: "cube.box.fill",
                 backgroundColor: DashboardTheme.successGreen.opacity(0.15)
             )
+        // Android `getDeliveryStatusVisuals` names these too; without them they fell through to
+        // "Unknown".
+        case "return", "returned", "5":
+            return OrderDetailStatusChip(
+                text: "\(label): Returned",
+                color: DashboardTheme.neutralMedium,
+                icon: "arrow.uturn.backward.circle.fill",
+                backgroundColor: DashboardTheme.neutralMedium.opacity(0.15)
+            )
+        case "assign", "assigned", "confirmed", "6":
+            return OrderDetailStatusChip(
+                text: "\(label): Assigned",
+                color: DashboardTheme.primaryBlue,
+                icon: "checkmark.rectangle.stack.fill",
+                backgroundColor: DashboardTheme.primaryBlue.opacity(0.15)
+            )
+        case "in transit", "on the way":
+            return OrderDetailStatusChip(
+                text: "\(label): In Transit",
+                color: DashboardTheme.infoBlue,
+                icon: "shippingbox.fill",
+                backgroundColor: DashboardTheme.infoBlue.opacity(0.15)
+            )
+        case "delivery failed", "7":
+            return OrderDetailStatusChip(
+                text: "\(label): Delivery Failed",
+                color: DashboardTheme.dangerRed,
+                icon: "exclamationmark.triangle.fill",
+                backgroundColor: DashboardTheme.dangerRed.opacity(0.15)
+            )
+        case "partial return", "8":
+            return OrderDetailStatusChip(
+                text: "\(label): Returned (P)",
+                color: DashboardTheme.neutralMedium,
+                icon: "arrow.uturn.backward.circle.fill",
+                backgroundColor: DashboardTheme.neutralMedium.opacity(0.15)
+            )
         default:
-            let readable = BillOrderStatus(key: status).label
+            // Show what the server sent, like Android, instead of mapping every unlisted value
+            // to "Unknown" — a new stage stays readable.
+            let trimmed = status.trimmingCharacters(in: .whitespacesAndNewlines)
+            let readable = trimmed.isEmpty ? "Unknown" : trimmed.prefix(1).uppercased() + trimmed.dropFirst()
             return OrderDetailStatusChip(
                 text: "\(label): \(readable)",
                 color: DashboardTheme.neutralMedium,

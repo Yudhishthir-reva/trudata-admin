@@ -461,14 +461,6 @@ struct SellerProfileColorItem: Identifiable, Decodable {
     var displayColor: Color {
         SellerProfileColorPalette.color(for: id)
     }
-
-    static var fallbackItems: [SellerProfileColorItem] {
-        [
-            .init(id: 1, name: "Green", description: "Green color"),
-            .init(id: 4, name: "Orange", description: "Orange color"),
-            .init(id: 3, name: "Red", description: "Red color")
-        ]
-    }
 }
 
 enum SellerProfileColorPalette {

@@ -34,6 +34,19 @@ class SellerProfileServiceManager {
         )
     }
 
+    /// Android `SellerRepository.sendOrderApprovalRequest`: asks an admin to let this seller take
+    /// new orders again.
+    func sendOrderApprovalRequest(sellerId: Int) -> AnyPublisher<StartNewOrderStatusResponse, Error> {
+        let staffId = UserDefaultManager.shared.getUserDefaultsString(key: .userId)
+        var params: [String: Any] = ["seller_id": sellerId]
+        if !staffId.isEmptyString { params["staff_id"] = staffId }
+        return networkService.request(
+            APIRouter.orderApprovalRequest,
+            params: params,
+            headers: authHeaders
+        )
+    }
+
     func getColorList() -> AnyPublisher<SellerProfileColorListResponse, Error> {
         networkService.request(
             APIRouter.colorList,

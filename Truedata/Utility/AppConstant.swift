@@ -11,7 +11,7 @@ enum APIBaseURL {
 }
 
 /// Sirf yahi line badlo: `.production` ya `.stagging`
-let currentEnvironment: RequestEnvironmentType = .production
+let currentEnvironment: RequestEnvironmentType = .stagging
 
 let BASE_URL: String = {
     switch currentEnvironment {

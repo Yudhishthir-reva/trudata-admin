@@ -18,6 +18,10 @@ final class SellerProfileViewModel: ObservableObject {
     @Published var topProducts: [SellerProfileTopProduct] = []
     @Published var topCategories: [SellerProfileTopCategory] = []
     @Published var canCreateOrder = false
+    /// Android `SellerOrderAccessState`: the "Request Access" call for a seller barred from new orders.
+    @Published var accessSending = false
+    @Published var accessSent = false
+    @Published var accessError: String?
     @Published var colorList: [SellerProfileColorItem] = []
     @Published var isUpdatingColor = false
     @Published var colorUpdateMessage: String?
@@ -245,10 +249,13 @@ final class SellerProfileViewModel: ObservableObject {
         return String(format: "%.1f%%", (value / total) * 100)
     }
 
+    /// Android `SellerProfileHeader`: the flags come only from `color-list`; no list, no row.
     var availablePaymentFlags: [SellerProfileColorItem] {
-        colorList.isEmpty ? SellerProfileColorItem.fallbackItems : colorList
+        colorList
     }
 
+    /// Android shows the Payment Flag row only to users allowed to change it (`is_share_seller`)
+    /// and only once the colour list has loaded.
     var canUpdatePaymentFlag: Bool {
         profile?.canUpdateColor == true && !availablePaymentFlags.isEmpty
     }
@@ -297,6 +304,30 @@ final class SellerProfileViewModel: ObservableObject {
         .store(in: &cancellables)
     }
 
+    /// Android `SellerOrderAccessViewModel.requestAccess`: once per profile, only while orders are blocked.
+    func requestOrderAccess() {
+        guard sellerIdInt > 0, !canCreateOrder, !accessSending, !accessSent else { return }
+        accessSending = true
+        accessError = nil
+        service.sendOrderApprovalRequest(sellerId: sellerIdInt)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.accessSending = false
+                if case .failure = completion {
+                    self.accessError = "Could not send request. Check your connection and try again."
+                }
+            } receiveValue: { [weak self] response in
+                guard let self else { return }
+                self.accessSending = false
+                self.accessSent = response.status
+                self.accessError = response.status
+                    ? nil
+                    : (response.message.isEmptyString ? "Could not send request. Please try again." : response.message)
+            }
+            .store(in: &cancellables)
+    }
+
     func loadColorList() {
         service.getColorList()
             .receive(on: DispatchQueue.main)
@@ -328,16 +359,14 @@ final class SellerProfileViewModel: ObservableObject {
                 guard let self else { return }
                 self.isUpdatingColor = false
                 if response.status {
-                    self.colorUpdateMessage = response.message.isEmptyString
-                        ? "Payment flag updated successfully"
-                        : response.message
+                    // Android just reloads the profile so the new flag shows; no popup.
                     self.loadProfile(isRefresh: true)
                 } else {
                     self.colorUpdateMessage = response.message.isEmptyString
                         ? "Failed to update payment flag"
                         : response.message
+                    self.showColorUpdateAlert = true
                 }
-                self.showColorUpdateAlert = true
             }
             .store(in: &cancellables)
     }

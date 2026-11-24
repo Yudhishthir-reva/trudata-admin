@@ -130,20 +130,23 @@ struct SellerProfileScreen: View {
            stats?.pendingBillsCount != nil || stats?.pendingBillsAmount != nil || !viewModel.canCreateOrder {
             // A destination link rather than a path value, so it pushes whether this profile has
             // its own NavigationStack or sits inside Home's (usesNavigationStack: false).
-            NavigationLink {
+            // Only "View Pending Bills" opens the list, as on Android, so the Request Access button
+            // below it can take its own tap.
+            SellerPendingBillsCard(
+                count: stats?.pendingBillsCount,
+                amount: stats?.pendingBillsAmount,
+                restricted: !viewModel.canCreateOrder,
+                accessSending: viewModel.accessSending,
+                accessSent: viewModel.accessSent,
+                accessError: viewModel.accessError,
+                onRequestAccess: viewModel.requestOrderAccess
+            ) {
                 ViewPendingBillsScreen(
                     sellerId: viewModel.profileSellerId,
                     staffId: 0,
                     sellerName: viewModel.profile?.shopName ?? ""
                 )
-            } label: {
-                SellerPendingBillsCard(
-                    count: stats?.pendingBillsCount,
-                    amount: stats?.pendingBillsAmount,
-                    restricted: !viewModel.canCreateOrder
-                )
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -184,7 +187,7 @@ struct SellerProfileScreen: View {
                         Text(profile.displayOwnerName)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(DashboardTheme.neutralMedium)
-                        if let flagColor = profile.flagColor {
+                        if profile.canUpdateColor, let flagColor = profile.flagColor {
                             Circle()
                                 .fill(flagColor)
                                 .frame(width: 8, height: 8)
@@ -193,16 +196,18 @@ struct SellerProfileScreen: View {
                 }
                 .padding(.top, 8)
 
-                paymentFlagRow(selectedColorId: profile.colorId)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .disabled(viewModel.isUpdatingColor)
-                    .overlay {
-                        if viewModel.isUpdatingColor {
-                            ProgressView()
-                                .tint(DashboardTheme.primaryBlue)
+                if viewModel.canUpdatePaymentFlag {
+                    paymentFlagRow(selectedColorId: profile.colorId)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .disabled(viewModel.isUpdatingColor)
+                        .overlay {
+                            if viewModel.isUpdatingColor {
+                                ProgressView()
+                                    .tint(DashboardTheme.primaryBlue)
+                            }
                         }
-                    }
+                }
 
                 actionButtonsRow(profile: profile)
                     .padding(.horizontal, 16)
@@ -268,34 +273,31 @@ struct SellerProfileScreen: View {
                 let color = colorItem.displayColor
                 let isSelected = selectedColorId == colorItem.id
 
-                Group {
-                    if viewModel.canUpdatePaymentFlag {
-                        Button {
-                            viewModel.updatePaymentFlag(colorId: colorItem.id)
-                        } label: {
-                            paymentFlagCircle(color: color, isSelected: isSelected)
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        paymentFlagCircle(color: color, isSelected: isSelected)
-                    }
+                Button {
+                    viewModel.updatePaymentFlag(colorId: colorItem.id)
+                } label: {
+                    paymentFlagCircle(color: color, isSelected: isSelected)
                 }
+                .buttonStyle(.plain)
             }
 
             Spacer(minLength: 0)
         }
     }
 
+    /// Android: a 28dp ring (2dp in the flag colour with a 20% tint when selected, a faint 1dp
+    /// grey otherwise) around a filled dot inset by 4dp.
     private func paymentFlagCircle(color: Color, isSelected: Bool) -> some View {
         Circle()
             .fill(color)
-            .frame(width: isSelected ? 22 : 18, height: isSelected ? 22 : 18)
+            .padding(4)
+            .frame(width: 28, height: 28)
+            .background(Circle().fill(isSelected ? color.opacity(0.2) : .clear))
             .overlay {
                 Circle()
-                    .stroke(color, lineWidth: isSelected ? 2 : 1)
-                    .padding(-3)
-                    .opacity(isSelected ? 1 : 0.35)
+                    .stroke(isSelected ? color : DashboardTheme.neutralLight.opacity(0.3), lineWidth: isSelected ? 2 : 1)
             }
+            .contentShape(Circle())
     }
 
     private func actionButtonsRow(profile: SellerProfileInfo) -> some View {
@@ -600,6 +602,8 @@ struct SellerProfileScreen: View {
                         viewModel.openOrdersTab()
                     }
 
+                    // Android hides Create Order until an admin approves the seller for new orders
+                    // (`can_create_order`); the Pending Bills card carries the Request Access button.
                     if viewModel.canCreateOrder {
                         NavigationLink {
                             ChooseBrandScreen(sellerId: viewModel.profileSellerId)
@@ -607,9 +611,6 @@ struct SellerProfileScreen: View {
                             createOrderButtonLabel
                         }
                         .buttonStyle(.plain)
-                    } else {
-                        createOrderButtonLabel
-                            .opacity(0.55)
                     }
                 }
             }
@@ -866,10 +867,15 @@ struct SellerProfileScreen: View {
 
 /// Android `PendingBillsCard`: orange while bills are unpaid (or new orders are barred), green
 /// once none are. The whole card opens the bills, with "View Pending Bills" drawn as its button.
-private struct SellerPendingBillsCard: View {
+private struct SellerPendingBillsCard<BillsDestination: View>: View {
     let count: Int?
     let amount: String?
     let restricted: Bool
+    let accessSending: Bool
+    let accessSent: Bool
+    let accessError: String?
+    let onRequestAccess: () -> Void
+    @ViewBuilder let billsDestination: () -> BillsDestination
 
     private var hasPendingBills: Bool { (count ?? 0) > 0 }
     private var warm: Bool { hasPendingBills || restricted }
@@ -912,17 +918,60 @@ private struct SellerPendingBillsCard: View {
                 figure(count.map(String.init) ?? "—", "Unpaid bills", size: 32).billWeight(0.8)
                 figure(amountText, "Outstanding amount", size: 24).billWeight(1.4)
             }
-            Text("View Pending Bills")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(accent)
-                .frame(maxWidth: .infinity).frame(height: 40)
-                .overlay(Capsule().stroke(accent, lineWidth: 1))
+            NavigationLink(destination: billsDestination) {
+                Text("View Pending Bills")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(accent)
+                    .frame(maxWidth: .infinity).frame(height: 40)
+                    .overlay(Capsule().stroke(accent, lineWidth: 1))
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            if restricted {
+                accessSection
+            }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(warm ? Color(hex: "FFF7ED") : Color(hex: "F0FDF4"), in: RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(accent.opacity(0.25), lineWidth: 1))
-        .contentShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    /// Android `PendingBillsCard`'s restricted block: the seller can't take new orders until an
+    /// admin approves a request.
+    private var accessSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Rectangle().fill(accent.opacity(0.15)).frame(height: 1)
+            Text("New order access required")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(accent)
+            Text(accessSent
+                 ? "Request sent to Admin. Awaiting approval; refresh this profile after approval."
+                 : "New orders are restricted for this seller. Request admin approval to continue.")
+                .font(.system(size: 14))
+                .foregroundStyle(accent)
+                .fixedSize(horizontal: false, vertical: true)
+            if let accessError {
+                Text(accessError)
+                    .font(.system(size: 14))
+                    .foregroundStyle(DashboardTheme.dangerRed)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Button(action: onRequestAccess) {
+                HStack(spacing: 8) {
+                    if accessSending {
+                        ProgressView().tint(.white).scaleEffect(0.8)
+                    }
+                    Text(accessSending ? "Sending request…" : accessSent ? "Request Sent" : "Request Access")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity).frame(height: 40)
+                .background(accent.opacity(accessSending || accessSent ? 0.5 : 1), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(accessSending || accessSent)
+        }
     }
 
     private func figure(_ value: String, _ label: String, size: CGFloat) -> some View {
